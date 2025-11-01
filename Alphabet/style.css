@@ -181,7 +181,43 @@ h1 {
     
     transition: transform 0.1s;
 }
+/* ==============================================
+   TABLET LANDSCAPE STYLES
+  ============================================== */
+
+/* This targets landscape devices with a height 
+   GREATER than 500px (i.e., tablets) 
+*/
+@media (orientation: landscape) and (min-height: 501px) {
+
+    h1 {
+        font-size: 2em; /* Slightly smaller title */
+        margin: 10px 0; /* Reduced margin */
+    }
+
+    #color-palette {
+        margin-bottom: 10px;
+    }
+
+    #alphabet-container {
+        grid-template-columns: repeat(9, 1fr); /* Use 9 columns */
+        gap: 8px; /* Can keep gap a bit larger than phone */
+        padding: 8px;
+        margin: 10px auto;
+    }
+
+    .letter-box {
+        font-size: 2em; /* Slightly smaller text */
+        padding: 12px 0;
+        border-radius: 20px;
+    }
+
+    #controls-container {
+        margin-top: 10px; /* Reduced margin */
+    }
+}
 
 .control-button-icon:active {
     transform: scale(0.9);
+
 }

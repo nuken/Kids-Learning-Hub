@@ -1,0 +1,79 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kids Learning Hub</title>
+	
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/konva@10/konva.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="main-menu-screen" class="game-screen visible">
+        <h1>Kids Learning Hub</h1>
+        <div class="menu-buttons">
+            <button id="start-alphabet-btn" class="menu-btn" data-target="alphabet-screen">Alphabet Fun</button>
+            <button id="start-numbers-btn" class="menu-btn" data-target="numbers-screen">Numbers Fun</button>
+            
+            <a href="coloring/index.html" class="menu-btn" id="start-coloring-btn">Coloring Book</a>
+        </div>
+    </div>
+
+    <div id="alphabet-screen" class="game-screen">
+        <button class="home-btn">Home</button>
+        <h1>Alphabet Fun!</h1>
+        <div id="color-palette">
+            <div class="color-swatch" style="background-color: #f4f4f4;" data-color="#f4f4f4"></div>
+            <div class="color-swatch" style="background-color: #E3F2FD;" data-color="#E3F2FD"></div>
+            <div class="color-swatch" style="background-color: #FFF9C4;" data-color="#FFF9C4"></div>
+            <div class="color-swatch" style="background-color: #E8F5E9;" data-color="#E8F5E9"></div>
+            <div class="color-swatch" style="background-color: #FCE4EC;" data-color="#FCE4EC"></div>
+        </div>
+        <div id="alphabet-container"></div>
+        <div id="controls-container">
+            <button id="speech-toggle-button" class="control-button">Switch to Words</button>
+            <button id="reset-button" class="control-button">Reset</button>
+        </div>
+    </div>
+
+    <div id="numbers-screen" class="game-screen">
+        <button class="home-btn">Home</button>
+        <h1>Numbers Fun!</h1>
+        <div class="menu-buttons">
+            <button class="menu-btn number-menu-btn" data-target="counting-screen">Counting</button>
+            <button class="menu-btn number-menu-btn" data-target="tracing-screen">Tracing</button>
+            <button class="menu-btn number-menu-btn" data-target="patterns-screen">Patterns</button>
+        </div>
+    </div>
+
+    <div id="counting-screen" class="game-screen">
+        <button class="back-btn" data-target="numbers-screen">Back</button>
+        <h2 id="counting-prompt">Tap 3 ducks</h2>
+        <div id="counting-grid" class="touch-area"></div>
+    </div>
+
+    <div id="tracing-screen" class="game-screen">
+        <div class="trace-toolbar">
+            <button class="back-btn" data-target="numbers-screen">Back</button>
+            <button id="trace-clear-btn">Clear</button>
+            <button id="trace-next-btn">Next</button>
+        </div>
+        <div id="tracing-container" class="touch-area"></div>
+    </div>
+
+    <div id="patterns-screen" class="game-screen">
+        <button class="back-btn" data-target="numbers-screen">Back</button>
+        <h2 id="patterns-prompt">What comes next?</h2>
+        <div id="pattern-sequence" class="touch-area"></div>
+        <div id="pattern-choices"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

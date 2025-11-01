@@ -1,0 +1,324 @@
+/* --- Global Styles --- */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Comic Neue', sans-serif;
+    text-align: center;
+    background-color: #E3F2FD; /* Light blue background */
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+h1 {
+    font-size: 3em;
+    margin: 20px 0;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 2.2em;
+    margin: 15px 0;
+    font-weight: 700;
+    color: #333;
+}
+
+/* --- Screen Navigation System --- */
+.game-screen {
+    display: none; /* Hidden by default */
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box; /* Ensures padding is included */
+}
+
+.game-screen.visible {
+    display: flex; /* Show the active screen */
+}
+
+.home-btn, .back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 10px 20px;
+    background-color: #f4f4f4;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 100;
+}
+.trace-toolbar .back-btn {
+    position: static; /* Override for tracing toolbar */
+}
+
+/* --- Main Menu Styles --- */
+#main-menu-screen h1, #numbers-screen h1 {
+    margin-bottom: 40px;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.menu-btn {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 2.5em;
+    font-weight: 700;
+    padding: 20px 40px;
+    min-width: 300px;
+    border-radius: 20px;
+    border: 3px solid #666;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.1s;
+    text-decoration: none;
+    display: block;
+    box-sizing: border-box;
+}
+.menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* Main Menu Colors */
+#start-alphabet-btn { background-color: #F44336; /* Red */ }
+#start-numbers-btn  { background-color: #4CAF50; /* Green */ }
+#start-coloring-btn { background-color: #3F51B5; /* Indigo */ }
+
+/* Numbers Menu Colors */
+.number-menu-btn[data-target="counting-screen"] { background-color: #4CAF50; }
+.number-menu-btn[data-target="tracing-screen"]  { background-color: #f44336; }
+.number-menu-btn[data-target="patterns-screen"] { background-color: #3F51B5; }
+
+/* --- Styles for ALPHABET FUN (Scoped) --- */
+#alphabet-screen {
+    background-color: #f4f4f4; /* Default bg for this app */
+}
+#alphabet-screen h1 {
+    font-size: 2.2em;
+    margin: 15px 0;
+}
+#alphabet-screen #color-palette {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+#alphabet-screen .color-swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+#alphabet-screen .color-swatch:hover {
+    transform: scale(1.1);
+}
+#alphabet-screen #alphabet-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    padding: 10px;
+    width: 95%;
+    max-width: 800px;
+    margin: 10px auto;
+    touch-action: none;
+    box-sizing: border-box;
+    flex-grow: 1;
+}
+#alphabet-screen .letter-box {
+    background-color: #ffffff;
+    border: 3px solid #cccccc;
+    border-radius: 25px;
+    padding: 15px 0;
+    font-size: 2.5em;
+    font-weight: 700;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s, transform 0.2s ease-out;
+}
+#alphabet-screen .letter-box:active {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+    transition: transform 0.05s ease-in;
+    position: relative;
+    z-index: 10;
+}
+#alphabet-screen #controls-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding-bottom: 15px; /* Add padding at bottom */
+}
+#alphabet-screen .control-button {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    font-family: 'Comic Neue', sans-serif;
+    font-weight: 700;
+}
+#alphabet-screen #reset-button {
+    background-color: #007BFF;
+}
+#alphabet-screen #speech-toggle-button {
+    background-color: #5cb85c;
+}
+
+/* --- Styles for NUMBERS FUN (Scoped) --- */
+.touch-area {
+    width: 95%;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Counting Game */
+#counting-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 15px;
+}
+.counting-item {
+    font-size: 4.5em;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+    user-select: none;
+    padding: 5px;
+}
+.counting-item:active {
+    transform: scale(1.2);
+}
+.counting-item.counted {
+    opacity: 0.4;
+    transform: scale(0.9);
+}
+
+/* Tracing Game */
+.trace-toolbar {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+#trace-clear-btn, #trace-next-btn {
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 10px 20px;
+    background-color: #FFF9C4; /* Yellow */
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    cursor: pointer;
+}
+#tracing-container {
+    width: 90vw;
+    height: 70vh; /* Adjusted height */
+    max-width: 800px;
+    max-height: 600px;
+    background-color: #ffffff;
+    border: 3px solid #999;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* Patterns Game */
+#pattern-sequence {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-weight: 700;
+    font-size: 5em;
+    color: #333;
+    user-select: none;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+#pattern-sequence .blank {
+    width: 1.2em;
+    height: 1.2em;
+    border: 5px dashed #999;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.4);
+}
+#pattern-choices {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+.choice-btn {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 4em;
+    font-weight: 700;
+    width: 2.5em;
+    height: 2.5em;
+    border-radius: 20px;
+    border: 3px solid #666;
+    color: white;
+    cursor: pointer;
+    background-color: #FF9800; /* Orange */
+    transition: all 0.2s;
+}
+.choice-btn:active {
+    transform: scale(0.95);
+}
+.choice-btn.correct {
+    background-color: #4CAF50; /* Green */
+    transform: scale(1.1);
+}
+.choice-btn.incorrect {
+    background-color: #F44336; /* Red */
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+/* --- Responsive Styles --- */
+@media (orientation: landscape) and (max-height: 500px) {
+    h1 { font-size: 2em; margin: 10px 0; }
+    h2 { font-size: 1.8em; margin: 10px 0; }
+    .home-btn, .back-btn { top: 10px; left: 10px; font-size: 1em; padding: 8px 15px; }
+    
+    /* Alphabet Landscape */
+    #alphabet-screen #alphabet-container {
+        grid-template-columns: repeat(9, 1fr);
+        gap: 5px; padding: 5px;
+    }
+    #alphabet-screen .letter-box {
+        font-size: 1.5em; padding: 10px 0; border-radius: 15px;
+    }
+    #alphabet-screen #controls-container { margin-top: 10px; }
+    #alphabet-screen .control-button { padding: 10px 20px; font-size: 1em; }
+    #alphabet-screen #color-palette { margin-bottom: 10px; gap: 8px; }
+    #alphabet-screen .color-swatch { width: 30px; height: 30px; }
+
+    /* Numbers Landscape */
+    #pattern-sequence { font-size: 3.5em; gap: 10px; }
+    .choice-btn { font-size: 3em; }
+    .counting-item { font-size: 3em; }
+}

@@ -1,0 +1,187 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    /* 2. CHANGE THIS: Set 'Comic Neue' as the main font */
+    font-family: 'Comic Neue', sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    /* Add a smooth transition for the background color */
+    transition: background-color 0.3s;
+}
+
+h1 {
+    font-size: 2.2em;
+    margin: 15px 0;
+    font-weight: 700; /* Use the bold weight of Comic Neue */
+}
+
+/* --- Color Palette Styles --- */
+#color-palette {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.color-swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+/* --- Alphabet Grid Styles --- */
+#alphabet-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    padding: 10px;
+    max-width: 95%;
+    margin: 10px auto;
+    touch-action: none;
+    box-sizing: border-box; 
+}
+
+.letter-box {
+    background-color: #ffffff;
+    border: 3px solid #cccccc;
+    
+    /* 3. CHANGE THIS: This creates the "squircle" shape */
+    border-radius: 25px; 
+    
+    padding: 15px 0;
+    font-size: 2.5em;
+    font-weight: 700; /* Use the bold weight */
+    color: #333;
+    cursor: pointer;
+    user-select: none; 
+    
+    /* This transition animates the FINAL state (the color and JS-applied scale) */
+    transition: background-color 0.2s, transform 0.2s ease-out;
+}
+
+/* 4. ADD THIS: The new "push-in" effect for immediate feedback */
+.letter-box:active {
+    /* Make it pop bigger, instantly */
+    transform: scale(1.1); 
+    
+    /* Add a white "glow" effect */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+    
+    /* This transition makes the "push-in" fast */
+    transition: transform 0.05s ease-in; 
+    
+    /* Make sure the pressed letter pops on top of others */
+    position: relative;
+    z-index: 10;
+}
+
+
+/* --- Control Button Styles --- */
+#controls-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.control-button {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    font-family: 'Comic Neue', sans-serif; /* Make buttons use the font too */
+    font-weight: 700;
+}
+
+#reset-button {
+    background-color: #007BFF;
+}
+
+#speech-toggle-button {
+    background-color: #5cb85c;
+}
+
+
+/* ==============================================
+   PHONE LANDSCAPE STYLES
+  ============================================== */
+@media (orientation: landscape) and (max-height: 500px) {
+
+    h1 {
+        font-size: 1.8em;
+        margin: 10px 0;
+    }
+
+    #color-palette {
+        margin-bottom: 10px;
+        gap: 8px;
+    }
+
+    .color-swatch {
+        width: 30px;
+        height: 30px;
+    }
+
+    #alphabet-container {
+        grid-template-columns: repeat(9, 1fr);
+        gap: 5px;
+        padding: 5px;
+        margin: 5px auto;
+    }
+
+    .letter-box {
+        font-size: 1.5em;
+        padding: 10px 0;
+        border-width: 2px;
+        
+        /* 5. CHANGE THIS: Use a smaller radius for the smaller boxes */
+        border-radius: 15px; 
+    }
+
+    #controls-container {
+        margin-top: 10px;
+        gap: 10px;
+    }
+
+    .control-button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+}
+/* --- Style for new Home Icon Button --- */
+.control-button-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    width: 50px;
+    height: 50px;
+    
+    font-size: 1.2em; /* Icon size */
+    cursor: pointer;
+    border-radius: 50%; /* Make it circular */
+    border: none;
+    color: #333;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    text-decoration: none;
+    
+    transition: transform 0.1s;
+}
+
+.control-button-icon:active {
+    transform: scale(0.9);
+}

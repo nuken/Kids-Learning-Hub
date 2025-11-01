@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Numbers Fun!</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/konva@10/konva.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="main-menu" class="game-screen visible">
+	<a href="../index.html" class="home-btn-number" title="Home">
+                <i class="fas fa-home"></i>
+            </a>
+        <h1>Numbers Fun!</h1>
+        <div class="menu-buttons">
+            <button id="start-counting-btn" class="menu-btn">Counting</button>
+            <button id="start-tracing-btn" class="menu-btn">Tracing</button>
+            <button id="start-patterns-btn" class="menu-btn">Patterns</button>
+        </div>
+    </div>
+
+    <div id="counting-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2 id="counting-prompt">Tap 3 ducks</h2>
+        <div id="counting-grid" class="touch-area"></div>
+    </div>
+
+    <div id="tracing-game" class="game-screen">
+        <div class="trace-toolbar">
+            <button class="back-btn">Back</button>
+            <button id="trace-clear-btn">Clear</button>
+            <button id="trace-next-btn">Next</button>
+        </div>
+        <div id="tracing-container" class="touch-area"></div>
+    </div>
+
+    <div id="patterns-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2 id="patterns-prompt">What comes next?</h2>
+        <div id="pattern-sequence" class="touch-area">
+            </div>
+        <div id="pattern-choices">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

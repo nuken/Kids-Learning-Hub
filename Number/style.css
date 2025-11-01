@@ -1,0 +1,339 @@
+/* Base styles adapted from your alphabet-fun/style.css */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Comic Neue', sans-serif;
+    text-align: center;
+    background-color: #E3F2FD; /* Light blue background */
+    overflow: hidden;
+    /* Prevents double-tap zoom on tablets */
+    touch-action: manipulation;
+}
+
+h1 {
+    font-size: 3em;
+    margin: 20px 0;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 2.2em;
+    margin: 15px 0;
+    font-weight: 700;
+    color: #333;
+}
+
+/* --- Navigation & Screen Styling --- */
+.game-screen {
+    display: none; /* Hidden by default */
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.game-screen.visible {
+    display: flex; /* Show the active screen */
+}
+
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 10px 20px;
+    background-color: #f4f4f4;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Styles for the "touchable" area of each game */
+.touch-area {
+    width: 95%;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* --- Main Menu Styles --- */
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.menu-btn {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 2.5em;
+    font-weight: 700;
+    padding: 20px 40px;
+    min-width: 300px;
+    border-radius: 20px;
+    border: 3px solid #666;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.menu-btn:active {
+    transform: scale(0.95);
+}
+
+#start-counting-btn { background-color: #4CAF50; /* Green */ }
+#start-tracing-btn  { background-color: #F44336; /* Red */ }
+#start-patterns-btn { background-color: #3F51B5; /* Indigo */ }
+
+/* --- 1. Counting Game Styles --- */
+#counting-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 15px;
+}
+
+.counting-item {
+    font-size: 4.5em; /* Big, tappable emoji */
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+    user-select: none;
+    padding: 5px;
+}
+
+.counting-item:active {
+    transform: scale(1.2);
+}
+
+.counting-item.counted {
+    opacity: 0.4;
+    transform: scale(0.9);
+}
+
+/* --- 2. Tracing Game Styles --- */
+.trace-toolbar {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.trace-toolbar .back-btn {
+    position: static; /* Override absolute positioning */
+}
+
+#trace-clear-btn, #trace-next-btn {
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 10px 20px;
+    background-color: #FFF9C4; /* Yellow */
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+#tracing-container {
+    width: 90vw;
+    height: 75vh;
+    max-width: 800px;
+    max-height: 600px;
+    background-color: #ffffff;
+    border: 3px solid #999;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    /* This ensures Konva renders sharp on all screens */
+    overflow: hidden; 
+}
+
+/* --- 3. Patterns Game Styles --- */
+#pattern-sequence {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-weight: 700;
+    font-size: 5em;
+    color: #333;
+    user-select: none;
+}
+
+#pattern-sequence .blank {
+    width: 1.2em;
+    height: 1.2em;
+    border: 5px dashed #999;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.4);
+}
+
+#pattern-choices {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.choice-btn {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 4em;
+    font-weight: 700;
+    width: 2.5em;
+    height: 2.5em;
+    border-radius: 20px;
+    border: 3px solid #666;
+    color: white;
+    cursor: pointer;
+    background-color: #FF9800; /* Orange */
+    transition: all 0.2s;
+}
+.choice-btn:active {
+    transform: scale(0.95);
+}
+
+.choice-btn.correct {
+    background-color: #4CAF50; /* Green */
+    transform: scale(1.1);
+}
+.choice-btn.incorrect {
+    background-color: #F44336; /* Red */
+    animation: shake 0.3s;
+}
+
+/* Simple shake animation for wrong answers */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+/* --- Style for new Home Button --- */
+.home-btn-number {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.8em; /* Nice and large icon */
+    color: #333;
+    text-decoration: none;
+    padding: 10px;
+    z-index: 100;
+    transition: transform 0.1s;
+}
+
+.home-btn-number:active {
+    transform: scale(0.9);
+}
+
+/* --- START: PHONE PORTRAIT FIXES (Patterns Game) --- */
+
+/* Targets phones in portrait view */
+@media (orientation: portrait) and (max-width: 500px) {
+    
+    /* Puts the back button above the title, fixing the overlap */
+    .back-btn {
+        position: static; /* Un-stick it from the corner */
+        margin-top: 15px; /* Add some space above */
+    }
+
+    h2 {
+        font-size: 1.8em; /* Shrink the title */
+        margin: 10px 0;
+    }
+
+    /* --- Patterns Game Specifics --- */
+    #patterns-game #patterns-prompt {
+        margin-top: 0; /* Tighten up space left by back button */
+    }
+    
+    #pattern-sequence {
+        font-size: 3.5em; /* Shrink the sequence numbers */
+        gap: 15px;
+    }
+
+    #pattern-sequence .blank {
+        border-width: 3px;
+    }
+    
+    #pattern-choices {
+        gap: 10px; /* Tighter gap between buttons */
+        margin-top: 20px;
+    }
+
+    .choice-btn {
+        font-size: 2.5em; /* Significantly shrink the choice buttons */
+        width: 2.2em;   /* Adjust button box size */
+        height: 2.2em;
+        border-width: 2px;
+        border-radius: 15px;
+    }
+}
+/* --- END: PHONE PORTRAIT FIXES --- */
+
+/* --- START: PHONE LANDSCAPE FIXES (All Games) --- */
+
+/* Targets phones in landscape view (short and wide) */
+@media (orientation: landscape) and (max-height: 500px) {
+
+    h1 {
+        font-size: 2em; /* Shrink main menu title */
+        margin: 10px 0;
+    }
+    h2 {
+        font-size: 1.5em; /* Shrink game titles */
+        margin: 5px 0;
+    }
+    
+    .back-btn, #trace-clear-btn, #trace-next-btn {
+        padding: 5px 10px; /* Smaller buttons */
+        font-size: 1em;
+        top: 10px;
+        left: 10px;
+    }
+    
+    /* Fix home button overlap in landscape */
+    .home-btn-number {
+        top: 10px;
+        left: 10px;
+    }
+
+    /* --- Counting Game --- */
+    #counting-grid {
+        gap: 10px;
+    }
+    .counting-item {
+        font-size: 3em; /* Shrink emojis */
+    }
+
+    /* --- Tracing Game --- */
+    .trace-toolbar {
+        padding: 5px;
+        gap: 10px;
+    }
+    #tracing-container {
+        height: 70vh; /* Make trace area slightly smaller */
+    }
+
+    /* --- Patterns Game --- */
+    #pattern-sequence {
+        font-size: 3em; /* Shrink sequence */
+        gap: 15px;
+    }
+    #pattern-choices {
+        gap: 15px; /* Tighter gap */
+        margin-top: 15px;
+    }
+    .choice-btn {
+        font-size: 2em; /* Shrink choice buttons */
+        width: 2.2em;
+        height: 2.2em;
+        border-radius: 10px;
+    }
+}
+/* --- END: PHONE LANDSCAPE FIXES --- */

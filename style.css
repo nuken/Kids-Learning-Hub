@@ -65,20 +65,20 @@ h1 {
   AND where the height is very short (max-height: 500px).
   This is the typical profile for a phone held sideways.
 */
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) and (max-height: 600px) {
 
     h1 {
         font-size: 2.2em;      /* Make the title smaller */
-        margin: 15px 0 15px 0; /* Reduce top/bottom margin */
+        margin: 13px 0 13px 0; /* Reduce top/bottom margin */
     }
 
     .menu-container {
         gap: 15px;      /* Reduce space between buttons */
-        padding: 10px;  /* Reduce top/bottom padding */
+        padding: 8px;  /* Reduce top/bottom padding */
     }
 
     .menu-btn {
-        font-size: 1.8em;       /* Make button text much smaller */
+        font-size: 1.6em;       /* Make button text much smaller */
         padding: 12px 20px;   /* Reduce button padding */
         border-width: 3px;
     }

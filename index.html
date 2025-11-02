@@ -25,6 +25,46 @@
         <a href="Coloring/index.html" class="menu-btn" id="coloring-btn">
             Coloring Book
         </a>
+		
+		<a href="Spelling/index.html" class="menu-btn" id="spelling-btn">
+            Let's Spell
+        </a>
     </div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let speechApiWarmedUp = false;
+
+            /**
+             * This function speaks a silent, empty utterance in response to a user
+             * gesture. This is required to "unlock" the Web Speech API in
+             * many desktop browsers (like Chrome on Windows).
+             */
+            function warmUpSpeechAPI() {
+                if (speechApiWarmedUp || !window.speechSynthesis) {
+                    return;
+                }
+                
+                // Create a silent, empty utterance
+                const utterance = new SpeechSynthesisUtterance("");
+                utterance.volume = 0;
+                
+                // Speak it to unlock the API
+                window.speechSynthesis.speak(utterance);
+                
+                // Also, proactively start fetching the voice list
+                window.speechSynthesis.getVoices();
+                
+                speechApiWarmedUp = true;
+            }
+
+            // Add the listener to all menu buttons
+            const buttons = document.querySelectorAll('.menu-btn');
+            buttons.forEach(btn => {
+                // We use 'mousedown' as it fires just before navigation,
+                // giving the command the best chance to execute.
+                btn.addEventListener('mousedown', warmUpSpeechAPI);
+            });
+        });
+    </script>
 </body>
 </html>

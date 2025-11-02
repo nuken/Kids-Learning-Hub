@@ -1,0 +1,249 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f0f8ff; /* Light blue background */
+  /* Prevent double-tap zoom on tablets */
+  touch-action: manipulation;
+  
+}
+
+
+#game-container {
+  margin-top: 30px;
+}
+
+#word-image {
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+  border: 5px solid #ccc;
+  border-radius: 10px;
+}
+
+/* Styles for the _ _ _ blanks */
+.word-blanks {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* <<< NEW! Lets blanks wrap on small screens */
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.blank {
+  width: 80px;
+  height: 80px;
+  border: 4px dashed #aaa;
+  font-size: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333;
+}
+
+/* Styles for the letter choice buttons */
+.letter-choices {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* <<< NEW! Lets buttons wrap on small screens */
+  gap: 20px;
+}
+
+.letter-button {
+  width: 90px;
+  height: 90px;
+  font-size: 60px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 3px solid #555;
+  border-radius: 10px;
+  background-color: white;
+
+  /* --- ADD THESE 3 LINES --- */
+  display: flex;
+  justify-content: center; /* Horizontally center */
+  align-items: center;   /* Vertically center */
+}
+
+.letter-button:active {
+  transform: scale(0.95);
+}
+
+/* --- NEW! Styling for the "Next Word" Button --- */
+#next-word-button {
+  font-size: 28px;
+  font-weight: bold;
+  padding: 20px 30px;
+  background-color: #4CAF50; /* Cheerful green */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 30px;
+  /* This animation draws the eye! */
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* --- NEW! Animation for the button --- */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* --- NEW! Shake animation for wrong answers --- */
+.shake {
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  50% { transform: translateX(10px); }
+  75% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
+
+/* This class hides elements */
+.hidden {
+  display: none;
+}
+/* --- New Home Button Style --- */
+.home-button {
+  position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.8em; /* Nice and large icon */
+    color: #333;
+    text-decoration: none;
+    padding: 10px;
+    z-index: 100;
+    transition: transform 0.1s;
+}
+.home-button:active {
+  transform: scale(0.9);
+}
+/* --- NEW! For Landscape Tablets --- */
+/* This checks if the screen is wider than it is tall,
+   AND if the height is 600px or less */
+@media (orientation: landscape) and (max-height: 720px) {
+
+  h1 {
+    font-size: 28px; /* Make title smaller */
+    margin: 10px 0;
+  }
+
+  #game-container {
+    margin-top: 10px; /* Reduce top space */
+  }
+
+  #word-image {
+    width: 280px;  /* Make image smaller */
+    height: 280px;
+  }
+  
+  .word-blanks {
+    margin: 15px 0; /* Reduce space around blanks */
+    gap: 10px;
+  }
+
+  .blank {
+    width: 60px;   /* Make blanks smaller */
+    height: 60px;
+    font-size: 45px;
+  }
+
+  .letter-choices {
+    gap: 15px; /* Space out letters a bit less */
+  }
+  
+  .letter-button {
+    width: 70px;   /* Make letter buttons smaller */
+    height: 70px;
+    font-size: 45px;
+  }
+
+  #next-word-button {
+    font-size: 20px; /* Make "Next" button smaller */
+    padding: 15px 25px;
+    margin-top: 20px;
+  }
+
+}
+
+/* --- NEW! For Phone Portrait --- */
+/* This triggers on tall, narrow screens 
+   like a phone in portrait mode 
+*/
+@media (orientation: portrait) and (max-width: 480px) {
+  
+  h1 {
+    font-size: 28px;
+  }
+  
+  #word-image {
+    width: 250px;  /* A bit smaller than the default 300px */
+    height: 250px;
+  }
+  
+  .blank {
+    width: 60px;
+    height: 60px;
+    font-size: 40px;
+  }
+
+  .letter-button {
+    width: 70px;
+    height: 70px;
+    font-size: 40px;
+  }
+}
+
+
+/* --- NEW! For Phone Landscape --- */
+/* This triggers on short, wide screens 
+   like a phone in landscape mode 
+*/
+@media (orientation: landscape) and (max-height: 450px) {
+
+  h1 {
+    font-size: 20px; /* Make title tiny */
+    margin: 5px 0;
+  }
+
+  #game-container {
+    margin-top: 5px; /* Remove all extra space */
+  }
+
+  #word-image {
+    width: 150px;  /* Make image much smaller */
+    height: 150px;
+  }
+  
+  .word-blanks {
+    margin: 10px 0; /* Less space */
+    gap: 8px;
+  }
+
+  .blank {
+    width: 40px;   /* Make blanks tiny */
+    height: 40px;
+    font-size: 30px;
+  }
+
+  .letter-choices {
+    gap: 10px; 
+  }
+  
+  .letter-button {
+    width: 50px;   /* Make buttons tiny */
+    height: 50px;
+    font-size: 30px;
+  }
+
+  #next-word-button {
+    font-size: 16px; /* Make "Next" button tiny */
+    padding: 10px 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}

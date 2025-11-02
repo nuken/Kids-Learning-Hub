@@ -48,7 +48,7 @@ h1 {
 #alphabet-btn { background-color: #5cb85c; /* Green */ }
 #number-btn   { background-color: #3F51B5; /* Indigo */ }
 #coloring-btn { background-color: #FF9800; /* Orange */ }
-
+#spelling-btn { background-color: #90D5FF; /* Light Blue */ }
 /* Responsive styles for smaller screens */
 @media (max-width: 600px) {
     h1 {

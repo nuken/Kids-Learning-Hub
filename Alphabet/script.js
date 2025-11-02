@@ -137,7 +137,11 @@ function speakText(text, onEndCallback) {
 
 // Wait for the page to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-
+    // --- ADD THIS LINE TO UNLOCK SPEECH ---
+    if (window.unlockSpeechIfNeeded) {
+        window.unlockSpeechIfNeeded();
+    }
+    // --- END OF ADDITION ---
     const container = document.getElementById('alphabet-container');
     const resetButton = document.getElementById('reset-button');
     const colorPalette = document.getElementById('color-palette');
@@ -152,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     // "Warm up" the speech API on first user interaction
-    document.body.addEventListener('click', loadVoices, { once: true });
+    //document.body.addEventListener('click', loadVoices, { once: true });
 
     // ... your colorPalette listener ...
     colorPalette.addEventListener('click', (event) => {

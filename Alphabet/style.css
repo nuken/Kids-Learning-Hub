@@ -181,6 +181,10 @@ h1 {
     
     transition: transform 0.1s;
 }
+
+.control-button-icon:active {
+    transform: scale(0.9);
+}
 /* ==============================================
    TABLET LANDSCAPE STYLES
   ============================================== */
@@ -215,9 +219,4 @@ h1 {
     #controls-container {
         margin-top: 10px; /* Reduced margin */
     }
-}
-
-.control-button-icon:active {
-    transform: scale(0.9);
-
 }

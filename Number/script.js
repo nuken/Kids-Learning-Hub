@@ -67,37 +67,41 @@ document.addEventListener('DOMContentLoaded', () => {
             const isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
 
             if (isMobile) {
-                // --- Mobile Logic (iOS & Android) ---
-                
-                // 1. Try iOS high-quality ("Samantha")
-                selectedVoice = voices.find(v => v.name === 'Samantha' && v.lang === 'en-US');
-                
-                // 2. Try Android high-quality ("Google")
-                if (!selectedVoice) {
-                    selectedVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'));
-                }
-                
-                // 3. Fallback for other high-quality mobile (e.g., "Daniel")
-                if (!selectedVoice) {
-                    const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
-                    for (const name of preferredVoiceNames) {
-                        selectedVoice = voices.find(v => v.name === name);
-                        if (selectedVoice) break;
-                    }
-                }
+            // --- Mobile Logic (iOS & Android) ---
+            // Use .startsWith('en-') to be more flexible and catch en-US, en-GB, etc.
 
-                // 4. Fallback for any en-US on mobile
-                if (!selectedVoice) {
-                    selectedVoice = voices.find(v => v.lang === 'en-US');
-                }
+            // 1. Try iOS high-quality ("Samantha")
+            selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang.startsWith('en-'));
 
-            } else {
-                // --- PC/Other Logic (The original, working version) ---
-                selectedVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en'));
-                if (!selectedVoice) {
-                    selectedVoice = voices.find(v => v.lang.includes('en-US') || v.default);
+            // 2. Try Android high-quality ("Google")
+            if (!selectedVoice) {
+                selectedVoice = voiceList.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
+            }
+
+            // 3. Fallback for other high-quality mobile (e.g., "Daniel")
+            if (!selectedVoice) {
+                const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
+                for (const name of preferredVoiceNames) {
+                    // --- THIS IS THE CRITICAL FIX ---
+                    // Must check for name AND language
+                    selectedVoice = voiceList.find(v => v.name === name && v.lang.startsWith('en-'));
+                    if (selectedVoice) break;
                 }
             }
+
+            // 4. Fallback for any en-US on mobile
+            if (!selectedVoice) {
+                // Find *any* English voice
+                selectedVoice = voiceList.find(v => v.lang.startsWith('en-'));
+            }
+            
+        } else {
+            // --- PC/Other Logic (The original, working version) ---
+            selectedVoice = voiceList.find(v => v.name.includes('Google') && v.lang.includes('en'));
+            if (!selectedVoice) {
+                selectedVoice = voiceList.find(v => v.lang.includes('en-US') || v.default);
+            }
+        }
             // --- End OS-Specific Logic ---
             
             // Assign the voice if we found one

@@ -78,27 +78,31 @@ function speakText(text, onEndCallback) {
 
         if (isMobile) {
             // --- Mobile Logic (iOS & Android) ---
+            // Use .startsWith('en-') to be more flexible and catch en-US, en-GB, etc.
 
             // 1. Try iOS high-quality ("Samantha")
-            selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
+            selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang.startsWith('en-'));
 
             // 2. Try Android high-quality ("Google")
             if (!selectedVoice) {
-                selectedVoice = voiceList.find(v => v.lang === 'en-US' && v.name.includes('Google'));
+                selectedVoice = voiceList.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
             }
 
             // 3. Fallback for other high-quality mobile (e.g., "Daniel")
             if (!selectedVoice) {
                 const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
                 for (const name of preferredVoiceNames) {
-                    selectedVoice = voiceList.find(v => v.name === name);
+                    // --- THIS IS THE CRITICAL FIX ---
+                    // Must check for name AND language
+                    selectedVoice = voiceList.find(v => v.name === name && v.lang.startsWith('en-'));
                     if (selectedVoice) break;
                 }
             }
 
             // 4. Fallback for any en-US on mobile
             if (!selectedVoice) {
-                selectedVoice = voiceList.find(v => v.lang === 'en-US');
+                // Find *any* English voice
+                selectedVoice = voiceList.find(v => v.lang.startsWith('en-'));
             }
             
         } else {

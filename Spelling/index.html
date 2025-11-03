@@ -1,26 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Spelling Game</title>
+  <title>Spelling Fun!</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
- <a href="../index.html" class="home-button" title="Home">
-    <i class="fas fa-home"></i></a>
-  <h1>Let's Spell!</h1>
 
-  <div id="game-container">
- 
-    <img id="word-image" src="images/cat.png" alt="What is this?">
+    <div id="main-menu" class="game-screen visible">
+        <a href="../index.html" class="home-btn-spelling" title="Home">
+            <i class="fas fa-home"></i>
+        </a>
+        <h1>Spelling Fun!</h1>
+        <div class="menu-buttons">
+            <button id="start-image-game-btn" class="menu-btn">Spell the Word</button>
 
-    <div id="word-blanks" class="word-blanks"></div>
-    
-    <div id="letter-choices" class="letter-choices"></div>
+            <button id="start-missing-game-btn" class="menu-btn">Missing Letter</button>
 
-    <button id="next-word-button" class="hidden">Next Word!</button>
-  </div>
+            <button id="start-color-game-btn" class="menu-btn">Spell the Color</button>
+        </div>
+    </div>
+
+    <div id="spell-image-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Spell the Word!</h2>
+        <div id="game-container-image">
+            <img id="word-image" src="images/cat.jpg" alt="What is this?">
+            <div id="word-blanks-image" class="word-blanks"></div>
+            <div id="letter-choices-image" class="letter-choices"></div>
+            <button id="next-word-button-image" class="hidden">Next Word!</button>
+        </div>
+    </div>
+
+    <div id="spell-missing-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Find the Missing Letter!</h2>
+        <div id="game-container-missing">
+            <img id="word-image-missing" src="images/cat.jpg" alt="What is this?">
+            <div id="word-blanks-missing" class="word-blanks"></div>
+            <div id="letter-choices-missing" class="letter-choices"></div>
+            <button id="next-word-button-missing" class="hidden">Next Word!</button>
+        </div>
+    </div>
+
+
+    <div id="spell-color-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Spell the Color!</h2>
+        <div id="game-container-color">
+            <div id="color-box-display"></div>
+            <div id="word-blanks-color" class="word-blanks"></div>
+            <div id="letter-choices-color" class="letter-choices"></div>
+            <button id="next-word-button-color" class="hidden">Next Color!</button>
+        </div>
+    </div>
 
   <script src="script.js"></script>
 </body>

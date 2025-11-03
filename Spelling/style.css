@@ -1,18 +1,122 @@
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background-color: #f0f8ff; /* Light blue background */
-  /* Prevent double-tap zoom on tablets */
-  touch-action: manipulation;
-  
+/* --- START: Styles from Number/style.css for Menu --- */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif; /* Re-set base font */
+    text-align: center;
+    background-color: #f0f8ff; /* Light blue background */
+    overflow: hidden;
+    touch-action: manipulation;
 }
 
-
-#game-container {
-  margin-top: 30px;
+h1 {
+    font-size: 3em;
+    margin: 20px 0;
+    font-weight: 700;
 }
 
-#word-image {
+h2 {
+    font-size: 2.2em;
+    margin: 15px 0;
+    font-weight: 700;
+    color: #333;
+}
+
+.game-screen {
+    display: none; /* Hidden by default */
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    /* justify-content: center; */ /* Centering can be bad for scrolling content */
+    padding-top: 20px; /* Add some padding */
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow-y: auto; /* Allow scrolling if content is too tall */
+    box-sizing: border-box;
+}
+
+.game-screen.visible {
+    display: flex; /* Show the active screen */
+}
+
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 10px 20px;
+    background-color: #f4f4f4;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.menu-btn {
+    font-family: 'Comic Neue', sans-serif; /* Using font from other apps */
+    font-size: 2.5em;
+    font-weight: 700;
+    padding: 20px 40px;
+    min-width: 300px;
+    border-radius: 20px;
+    border: 3px solid #666;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- BUTTON COLORS --- */
+#start-image-game-btn { background-color: #FFC107; /* Amber */ }
+#start-missing-game-btn { background-color: #4CAF50; /* Green */ } /* NEW */
+#start-color-game-btn { background-color: #03A9F4; /* Light Blue */ }
+
+.home-btn-spelling {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.8em; /* Nice and large icon */
+    color: #333;
+    text-decoration: none;
+    padding: 10px;
+    z-index: 100;
+    transition: transform 0.1s;
+}
+
+.home-btn-spelling:active {
+    transform: scale(0.9);
+}
+/* --- END: Styles from Number/style.css for Menu --- */
+
+
+/* --- START: Original styles from Spelling/style.css --- */
+/* Note: body styles are merged above */
+
+/* --- UPDATED CENTERING RULE --- */
+#game-container-image, #game-container-color, #game-container-missing {
+  margin-top: 10px;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#word-image, #word-image-missing { /* Added new image */
   width: 300px;
   height: 300px;
   object-fit: contain;
@@ -20,11 +124,19 @@ body {
   border-radius: 10px;
 }
 
-/* Styles for the _ _ _ blanks */
+/* --- NEW STYLE for Color Game Box --- */
+#color-box-display {
+  width: 300px;
+  height: 300px;
+  border: 5px solid #ccc;
+  border-radius: 10px;
+  /* Background color will be set by JS */
+}
+
 .word-blanks {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap; /* <<< NEW! Lets blanks wrap on small screens */
+  flex-wrap: wrap;
   gap: 15px;
   margin: 30px 0;
 }
@@ -38,13 +150,20 @@ body {
   justify-content: center;
   align-items: center;
   color: #333;
+  box-sizing: border-box; /* Add this for better sizing */
 }
 
-/* Styles for the letter choice buttons */
+/* --- NEW STYLE for pre-filled blanks in color game --- */
+.blank.filled {
+    border-style: solid;
+    color: #666;
+    background-color: #eee;
+}
+
 .letter-choices {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap; /* <<< NEW! Lets buttons wrap on small screens */
+  flex-wrap: wrap;
   gap: 20px;
 }
 
@@ -57,40 +176,35 @@ body {
   border: 3px solid #555;
   border-radius: 10px;
   background-color: white;
-
-  /* --- ADD THESE 3 LINES --- */
   display: flex;
-  justify-content: center; /* Horizontally center */
-  align-items: center;   /* Vertically center */
+  justify-content: center;
+  align-items: center;
 }
 
 .letter-button:active {
   transform: scale(0.95);
 }
 
-/* --- NEW! Styling for the "Next Word" Button --- */
-#next-word-button {
+/* --- UPDATED NEXT BUTTON RULE --- */
+#next-word-button-image, #next-word-button-color, #next-word-button-missing {
   font-size: 28px;
   font-weight: bold;
   padding: 20px 30px;
-  background-color: #4CAF50; /* Cheerful green */
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   margin-top: 30px;
-  /* This animation draws the eye! */
   animation: pulse 1.5s infinite ease-in-out;
 }
 
-/* --- NEW! Animation for the button --- */
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-/* --- NEW! Shake animation for wrong answers --- */
 .shake {
   animation: shake 0.5s;
 }
@@ -103,145 +217,144 @@ body {
   100% { transform: translateX(0); }
 }
 
-/* This class hides elements */
 .hidden {
   display: none;
 }
-/* --- New Home Button Style --- */
-.home-button {
-  position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 1.8em; /* Nice and large icon */
-    color: #333;
-    text-decoration: none;
-    padding: 10px;
-    z-index: 100;
-    transition: transform 0.1s;
-}
-.home-button:active {
-  transform: scale(0.9);
-}
-/* --- NEW! For Landscape Tablets --- */
-/* This checks if the screen is wider than it is tall,
-   AND if the height is 600px or less */
-@media (orientation: landscape) and (max-height: 720px) {
 
+/* --- START: Original Responsive Styles (Adapted) --- */
+@media (orientation: landscape) and (max-height: 720px) {
   h1 {
-    font-size: 28px; /* Make title smaller */
+    font-size: 28px;
     margin: 10px 0;
   }
-
-  #game-container {
-    margin-top: 10px; /* Reduce top space */
+  h2 {
+    font-size: 24px;
+    margin: 10px 0;
   }
-
-  #word-image {
-    width: 280px;  /* Make image smaller */
-    height: 280px;
+  #game-container-image, #game-container-color, #game-container-missing {
+    margin-top: 5px;
+    padding-bottom: 20px; /* Add padding for "Next" button */
   }
-  
+  #word-image, #color-box-display, #word-image-missing {
+    width: 200px; /* Smaller */
+    height: 200px;
+  }
   .word-blanks {
-    margin: 15px 0; /* Reduce space around blanks */
+    margin: 15px 0;
     gap: 10px;
   }
-
   .blank {
-    width: 60px;   /* Make blanks smaller */
-    height: 60px;
-    font-size: 45px;
+    width: 50px;
+    height: 50px;
+    font-size: 35px;
+    border-width: 3px;
   }
-
   .letter-choices {
-    gap: 15px; /* Space out letters a bit less */
+    gap: 10px;
   }
-  
   .letter-button {
-    width: 70px;   /* Make letter buttons smaller */
-    height: 70px;
-    font-size: 45px;
+    width: 60px;
+    height: 60px;
+    font-size: 35px;
   }
-
-  #next-word-button {
-    font-size: 20px; /* Make "Next" button smaller */
-    padding: 15px 25px;
+  #next-word-button-image, #next-word-button-color, #next-word-button-missing {
+    font-size: 18px;
+    padding: 12px 20px;
     margin-top: 20px;
   }
-
+  .back-btn {
+    font-size: 1em;
+    padding: 8px 15px;
+    top: 10px;
+    left: 10px;
+  }
+  .home-btn-spelling {
+     top: 10px;
+     left: 10px;
+  }
 }
 
-/* --- NEW! For Phone Portrait --- */
-/* This triggers on tall, narrow screens 
-   like a phone in portrait mode 
-*/
 @media (orientation: portrait) and (max-width: 480px) {
-  
   h1 {
     font-size: 28px;
   }
-  
-  #word-image {
-    width: 250px;  /* A bit smaller than the default 300px */
+  h2 {
+    font-size: 24px;
+    margin-top: 40px; /* Make space for back button */
+  }
+  #word-image, #color-box-display, #word-image-missing {
+    width: 250px;
     height: 250px;
   }
-  
   .blank {
-    width: 60px;
-    height: 60px;
-    font-size: 40px;
+    width: 50px;
+    height: 50px;
+    font-size: 30px;
+    gap: 10px;
   }
-
   .letter-button {
-    width: 70px;
-    height: 70px;
-    font-size: 40px;
+    width: 65px;
+    height: 65px;
+    font-size: 35px;
+    gap: 10px;
+  }
+  .back-btn {
+     /* Un-stick it */
+    position: static;
+    margin-top: 15px;
+  }
+  .home-btn-spelling {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 15px;
+  }
+  .menu-buttons {
+    align-items: center;
+  }
+  .menu-btn {
+    font-size: 1.8em;
+    padding: 15px 20px;
+    min-width: 280px;
+    width: 90%;
   }
 }
 
-
-/* --- NEW! For Phone Landscape --- */
-/* This triggers on short, wide screens 
-   like a phone in landscape mode 
-*/
 @media (orientation: landscape) and (max-height: 450px) {
-
   h1 {
-    font-size: 20px; /* Make title tiny */
+    font-size: 20px;
     margin: 5px 0;
   }
-
-  #game-container {
-    margin-top: 5px; /* Remove all extra space */
+   h2 {
+    font-size: 18px;
+    margin: 5px 0;
   }
-
-  #word-image {
-    width: 150px;  /* Make image much smaller */
-    height: 150px;
+  #game-container-image, #game-container-color, #game-container-missing {
+    margin-top: 5px;
   }
-  
+  #word-image, #color-box-display, #word-image-missing {
+    width: 140px;
+    height: 140px;
+  }
   .word-blanks {
-    margin: 10px 0; /* Less space */
+    margin: 10px 0;
     gap: 8px;
   }
-
   .blank {
-    width: 40px;   /* Make blanks tiny */
-    height: 40px;
-    font-size: 30px;
+    width: 35px;
+    height: 35px;
+    font-size: 24px;
+    border-width: 2px;
   }
-
   .letter-choices {
-    gap: 10px; 
+    gap: 8px;
   }
-  
   .letter-button {
-    width: 50px;   /* Make buttons tiny */
-    height: 50px;
-    font-size: 30px;
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
   }
-
-  #next-word-button {
-    font-size: 16px; /* Make "Next" button tiny */
+  #next-word-button-image, #next-word-button-color, #next-word-button-missing {
+    font-size: 16px;
     padding: 10px 15px;
     margin-top: 10px;
     margin-bottom: 10px;

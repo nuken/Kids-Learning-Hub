@@ -1,5 +1,3 @@
-// --- MODIFICATION ---
-// Wrapped entire file in an IIFE to create a private scope
 (function() {
 
     // --- MODIFIED: Replaced PHONETIC_SOUNDS with EXAMPLE_WORDS ---
@@ -158,14 +156,21 @@
 
         const speechToggleButton = document.getElementById('speech-toggle-button');
 
+        // --- MODIFICATION ---
+        // Get the new button
+        const caseToggleButton = document.getElementById('case-toggle-button');
+        // --- END MODIFICATION ---
+
         // --- MODIFIED: State names and button text ---
         let speechMode = 'letter'; // Can be 'letter' or 'letterAndWord'
         speechToggleButton.textContent = 'Switch to Words'; // Set initial button text
 
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        // --- MODIFICATION ---
+        // Add state for letter case
+        let caseMode = 'upper'; // Can be 'upper' or 'lower'
+        // --- END MODIFICATION ---
 
-        // "Warm up" the speech API on first user interaction
-        //document.body.addEventListener('click', loadVoices, { once: true });
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
         // ... your colorPalette listener ...
         colorPalette.addEventListener('click', (event) => {
@@ -190,14 +195,36 @@
             }
         });
 
+        // --- MODIFICATION ---
+        // Add click listener for the new case toggle button
+        caseToggleButton.addEventListener('click', () => {
+            if (caseMode === 'upper') {
+                caseMode = 'lower';
+                caseToggleButton.textContent = 'Switch to Uppercase';
+            } else {
+                caseMode = 'upper';
+                caseToggleButton.textContent = 'Switch to Lowercase';
+            }
+            updateCase(); // Call the function to update letters
+        });
+        // --- END MODIFICATION ---
+
         // --- 1. Create all the letter blocks ---
         alphabet.forEach(letter => {
             const letterBox = document.createElement('div');
             letterBox.classList.add('letter-box');
-            letterBox.textContent = letter;
 
-            // Store the letter in the element itself for easy access
+            // --- MODIFICATION ---
+            // Set text based on initial caseMode
+            letterBox.textContent = (caseMode === 'upper') ? letter : letter.toLowerCase();
+
+            // Store the letter (uppercase) in the element for speech
             letterBox.dataset.letter = letter;
+
+            // Store both cases for easy toggling
+            letterBox.dataset.letterUpper = letter;
+            letterBox.dataset.letterLower = letter.toLowerCase();
+            // --- END MODIFICATION ---
 
             container.appendChild(letterBox);
         });
@@ -207,7 +234,11 @@
             // Check if it's a letter box and hasn't been visited yet (using our new data-hasVisited flag)
             if (targetElement.classList.contains('letter-box') && !targetElement.dataset.hasVisited) {
 
+                // --- MODIFICATION ---
+                // We always use the 'letter' dataset (which is uppercase)
+                // for speech and logic, regardless of what's displayed.
                 const letter = targetElement.dataset.letter;
+                // --- END MODIFICATION ---
 
                 // Generate a random bright background color
                 const randomBgColor = getRandomBrightColor();
@@ -235,6 +266,7 @@
         // --- 3. Create the function that speaks (--- MODIFIED ---) ---
         function speakLetter(letter) {
             // 1. Get the two different sounds
+            //    'letter' is always uppercase ('A'), so this works correctly.
             const nameSound = letter.toLowerCase();           // e.g., "b" (spoken as "Bee")
             const exampleWord = EXAMPLE_WORDS[letter];        // e.g., "Boy"
 
@@ -251,7 +283,22 @@
             }
         }
 
-        // --- 4. Set up all the event listeners ---
+        // --- MODIFICATION ---
+        // --- 4. Create the function to update letter case ---
+        function updateCase() {
+            const allBoxes = document.querySelectorAll('.letter-box');
+            allBoxes.forEach(box => {
+                if (caseMode === 'upper') {
+                    box.textContent = box.dataset.letterUpper;
+                } else {
+                    box.textContent = box.dataset.letterLower;
+                }
+            });
+        }
+        // --- END MODIFICATION ---
+
+
+        // --- 4. Set up all the event listeners --- (Now #5)
 
         // For a simple tap on a tablet or a click with a mouse
         container.addEventListener('click', (event) => {
@@ -277,7 +324,7 @@
             }
         });
 
-        // --- 5. Make the reset button work ---
+        // --- 5. Make the reset button work --- (Now #6)
         resetButton.addEventListener('click', () => {
             const allBoxes = document.querySelectorAll('.letter-box'); // Select ALL letter boxes
             allBoxes.forEach(box => {
@@ -289,10 +336,17 @@
                 delete box.dataset.hasVisited;  // Remove the flag
             });
 
+            // --- MODIFICATION ---
+            // Also reset the case mode and button text
+            caseMode = 'upper';
+            caseToggleButton.textContent = 'Switch to Lowercase';
+            updateCase(); // Update the letters back to uppercase
+            // --- END MODIFICATION ---
+
             // Optional: announce "Reset"
             //speakText('Reset!');
         });
 
     });
 
-})(); // --- MODIFICATION --- End of IIFE
+})();

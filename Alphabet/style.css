@@ -49,23 +49,23 @@ h1 {
     max-width: 95%;
     margin: 10px auto;
     touch-action: none;
-    box-sizing: border-box; 
+    box-sizing: border-box;
 }
 
 .letter-box {
     background-color: #ffffff;
     border: 3px solid #cccccc;
-    
+
     /* 3. CHANGE THIS: This creates the "squircle" shape */
-    border-radius: 25px; 
-    
+    border-radius: 25px;
+
     padding: 15px 0;
     font-size: 2.5em;
     font-weight: 700; /* Use the bold weight */
     color: #333;
     cursor: pointer;
-    user-select: none; 
-    
+    user-select: none;
+
     /* This transition animates the FINAL state (the color and JS-applied scale) */
     transition: background-color 0.2s, transform 0.2s ease-out;
 }
@@ -73,14 +73,14 @@ h1 {
 /* 4. ADD THIS: The new "push-in" effect for immediate feedback */
 .letter-box:active {
     /* Make it pop bigger, instantly */
-    transform: scale(1.1); 
-    
+    transform: scale(1.1);
+
     /* Add a white "glow" effect */
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
-    
+
     /* This transition makes the "push-in" fast */
-    transition: transform 0.05s ease-in; 
-    
+    transition: transform 0.05s ease-in;
+
     /* Make sure the pressed letter pops on top of others */
     position: relative;
     z-index: 10;
@@ -114,6 +114,13 @@ h1 {
     background-color: #5cb85c;
 }
 
+/* --- MODIFICATION --- */
+/* ADDED STYLE FOR THE NEW BUTTON */
+#case-toggle-button {
+    background-color: #f0ad4e; /* A friendly orange */
+}
+/* --- END MODIFICATION --- */
+
 
 /* ==============================================
    PHONE LANDSCAPE STYLES
@@ -146,9 +153,9 @@ h1 {
         font-size: 1.5em;
         padding: 10px 0;
         border-width: 2px;
-        
+
         /* 5. CHANGE THIS: Use a smaller radius for the smaller boxes */
-        border-radius: 15px; 
+        border-radius: 15px;
     }
 
     #controls-container {
@@ -166,10 +173,10 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    
+
     width: 50px;
     height: 50px;
-    
+
     font-size: 1.2em; /* Icon size */
     cursor: pointer;
     border-radius: 50%; /* Make it circular */
@@ -178,7 +185,7 @@ h1 {
     background-color: #fff;
     border: 2px solid #ccc;
     text-decoration: none;
-    
+
     transition: transform 0.1s;
 }
 
@@ -189,8 +196,8 @@ h1 {
    TABLET LANDSCAPE STYLES
   ============================================== */
 
-/* This targets landscape devices with a height 
-   GREATER than 500px (i.e., tablets) 
+/* This targets landscape devices with a height
+   GREATER than 500px (i.e., tablets)
 */
 @media (orientation: landscape) and (min-height: 501px) {
 

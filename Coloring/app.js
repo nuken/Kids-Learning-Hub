@@ -146,12 +146,23 @@ function floodFill(startX, startY, fillColorRgb) {
     const imageData = context.getImageData(0, 0, width, height);
     const { data } = imageData;
 
+    // --- MODIFICATION ---
+    // Added a tolerant check for black boundary lines
+    const blackColor = [0, 0, 0];
+    // --- END MODIFICATION ---
+
     const startIndex = (startY * width + startX) * 4;
     const startColor = [data[startIndex], data[startIndex + 1], data[startIndex + 2]];
 
-    if (startColor[0] < 30 && startColor[1] < 30 && startColor[2] < 30) {
+    // --- MODIFICATION ---
+    // Changed this check to use the tolerant colorsMatch function
+    // This prevents fill from failing on anti-aliased gray pixels near a line
+    if (colorsMatch(data, startIndex, blackColor, 30)) {
+        // Clicked on a line, don't fill
         return;
     }
+    // --- END MODIFICATION ---
+
     if (colorsMatch(data, startIndex, fillColorRgb, 10)) {
         return;
     }
@@ -239,7 +250,7 @@ function loadImageByName(fileName) {
 
         backgroundLayer.add(imageNode);
         backgroundLayer.batchDraw();
-        
+
         // Ensure stage dimensions are properly set
         requestAnimationFrame(() => {
             ensureStageDimensions();
@@ -256,7 +267,7 @@ function ensureStageDimensions() {
     // Ensure stage never exceeds container boundaries
     const maxWidth = Math.max(container.clientWidth - paddingX, 100);
     const maxHeight = Math.max(container.clientHeight - paddingY, 100);
-    
+
     if (stage.width() !== maxWidth || stage.height() !== maxHeight) {
         stage.width(maxWidth);
         stage.height(maxHeight);
@@ -337,7 +348,7 @@ const handleResize = debounce(() => {
     // Ensure stage never exceeds container boundaries
     const maxWidth = Math.max(container.clientWidth - paddingX, 100);
     const maxHeight = Math.max(container.clientHeight - paddingY, 100);
-    
+
     stage.width(maxWidth);
     stage.height(maxHeight);
 
@@ -366,20 +377,11 @@ const handleResize = debounce(() => {
 
     stage.batchDraw();
 
-    requestAnimationFrame(() => {
-        if (!currentImageNode) return;
-        const sourceCanvas = currentImageNode.image();
-
-        fillHistory.forEach(fill => {
-            const targetX = Math.floor(fill.relativeX * sourceCanvas.width);
-            const targetY = Math.floor(fill.relativeY * sourceCanvas.height);
-            floodFill(targetX, targetY, fill.color);
-        });
-
-        if (fillHistory.length > 0) {
-            backgroundLayer.batchDraw();
-        }
-    });
+    // --- MODIFICATION ---
+    // Removed the fillHistory loop from here. It was slow and redundant,
+    // as the fills are part of the background canvas which Konva
+    // scales automatically.
+    // --- END MODIFICATION ---
 
 }, 250);
 

@@ -136,7 +136,7 @@ h2 {
 .word-blanks {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: wrap; 
   gap: 15px;
   margin: 30px 0;
 }
@@ -303,11 +303,15 @@ h2 {
     position: static;
     margin-top: 15px;
   }
+  
+  /* --- THIS BLOCK WAS REMOVED ---
   .home-btn-spelling {
     left: 50%;
     transform: translateX(-50%);
     top: 15px;
   }
+  */
+  
   .menu-buttons {
     align-items: center;
   }

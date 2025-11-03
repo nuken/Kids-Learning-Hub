@@ -1,471 +1,482 @@
-// Wait for the page to be fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // --- ADD THIS LINE TO UNLOCK SPEECH ---
-    if (window.unlockSpeechIfNeeded) {
-        window.unlockSpeechIfNeeded();
-    }
-    // --- END OF ADDITION ---
-    // --- Global Elements ---
-    const screens = document.querySelectorAll('.game-screen');
-    const mainMenu = document.getElementById('main-menu');
-    const backButtons = document.querySelectorAll('.back-btn');
+// --- MODIFICATION ---
+// Wrapped entire file in an IIFE to create a private scope
+(function() {
 
-    // --- Main Navigation ---
-    const gameButtons = {
-        'start-counting-btn': 'counting-game',
-        'start-tracing-btn': 'tracing-game',
-        'start-patterns-btn': 'patterns-game'
-    };
-
-    // Function to switch screens
-    function showScreen(screenId) {
-        // Hide all screens
-        screens.forEach(screen => screen.classList.remove('visible'));
-        
-        // Show the target screen
-        const targetScreen = document.getElementById(screenId);
-        if (targetScreen) {
-            targetScreen.classList.add('visible');
-            
-            // If we are showing a game, initialize it
-            if (screenId === 'counting-game') startCountingGame();
-            if (screenId === 'tracing-game') initTracingGame();
-            if (screenId === 'patterns-game') startPatternsGame();
+    // Wait for the page to be fully loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- ADD THIS LINE TO UNLOCK SPEECH ---
+        if (window.unlockSpeechIfNeeded) {
+            window.unlockSpeechIfNeeded();
         }
-    }
+        // --- END OF ADDITION ---
+        // --- Global Elements ---
+        const screens = document.querySelectorAll('.game-screen');
+        const mainMenu = document.getElementById('main-menu');
+        const backButtons = document.querySelectorAll('.back-btn');
 
-    // Add click listeners to main menu buttons
-    for (const btnId in gameButtons) {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            btn.addEventListener('click', () => showScreen(gameButtons[btnId]));
+        // --- Main Navigation ---
+        const gameButtons = {
+            'start-counting-btn': 'counting-game',
+            'start-tracing-btn': 'tracing-game',
+            'start-patterns-btn': 'patterns-game'
+        };
+
+        // Function to switch screens
+        function showScreen(screenId) {
+            // Hide all screens
+            screens.forEach(screen => screen.classList.remove('visible'));
+
+            // Show the target screen
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('visible');
+
+                // If we are showing a game, initialize it
+                if (screenId === 'counting-game') startCountingGame();
+                if (screenId === 'tracing-game') initTracingGame();
+                if (screenId === 'patterns-game') startPatternsGame();
+            }
         }
-    }
 
-    // Add click listeners to all "Back" buttons
-    backButtons.forEach(btn => {
-        btn.addEventListener('click', () => showScreen('main-menu'));
-    });
+        // Add click listeners to main menu buttons
+        for (const btnId in gameButtons) {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.addEventListener('click', () => showScreen(gameButtons[btnId]));
+            }
+        }
 
-// ==========================================================
-    // --- ROBUST SPEECH SYSTEM ---
+        // Add click listeners to all "Back" buttons
+        backButtons.forEach(btn => {
+            btn.addEventListener('click', () => showScreen('main-menu'));
+        });
+
     // ==========================================================
-    
-    let voiceList = []; // Store voices to avoid lag
-    
-    /**
-     * Populates the global voiceList array.
-     */
-    function loadVoices() {
-        voiceList = window.speechSynthesis.getVoices();
-    }
-    
-    // Pre-load voices when they are ready
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    
-    /**
-     * Warms up the speech engine on the first user interaction.
-     * This is required by browsers to prevent audio spam.
-     */
-    function warmUpSpeechEngine() {
-        console.log("Warming up speech engine...");
-        
-        // 1. Try to get the voice list.
-        loadVoices();
-        
-        // 2. Perform a silent speech act to wake the engine.
-        const utterance = new SpeechSynthesisUtterance(" ");
-        utterance.volume = 0; // Make it silent
-        utterance.lang = 'en-US';
-        
-        window.speechSynthesis.speak(utterance);
-    }
-    
-    /**
-     * The robust text-to-speech function.
-     * @param {string} text - The text to speak.
-     * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
-     */
-    function speakText(text, onEndCallback) {
-        // Cancel any previous speech
-        window.speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        
-        // Handle the optional callback
-        if (onEndCallback) {
-            utterance.onend = onEndCallback;
+        // --- ROBUST SPEECH SYSTEM ---
+        // ==========================================================
+
+        let voiceList = []; // Store voices to avoid lag
+
+        /**
+         * Populates the global voiceList array.
+         */
+        function loadVoices() {
+            voiceList = window.speechSynthesis.getVoices();
         }
 
-        // Use the pre-loaded voice list if available
-        if (voiceList.length > 0) {
-            
-            let selectedVoice = null;
+        // Pre-load voices when they are ready
+        window.speechSynthesis.onvoiceschanged = loadVoices;
 
-            // --- OS-Specific Logic ---
-            const isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
+        /**
+         * Warms up the speech engine on the first user interaction.
+         * This is required by browsers to prevent audio spam.
+         */
+        function warmUpSpeechEngine() {
+            console.log("Warming up speech engine...");
 
-            if (isMobile) {
-                // --- Mobile Logic (iOS & Android) ---
-                // Use .startsWith('en-') to be more flexible
+            // 1. Try to get the voice list.
+            loadVoices();
 
-                // 1. Try iOS high-quality ("Samantha")
-                selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang.startsWith('en-'));
+            // 2. Perform a silent speech act to wake the engine.
+            const utterance = new SpeechSynthesisUtterance(" ");
+            utterance.volume = 0; // Make it silent
+            utterance.lang = 'en-US';
 
-                // 2. Try Android high-quality ("Google")
-                if (!selectedVoice) {
-                    selectedVoice = voiceList.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
-                }
+            window.speechSynthesis.speak(utterance);
+        }
 
-                // 3. Fallback for other high-quality mobile (e.g., "Daniel")
-                if (!selectedVoice) {
-                    const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
-                    for (const name of preferredVoiceNames) {
-                        selectedVoice = voiceList.find(v => v.name === name && v.lang.startsWith('en-'));
-                        if (selectedVoice) break;
+        /**
+         * The robust text-to-speech function.
+         * @param {string} text - The text to speak.
+         * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
+         */
+        function speakText(text, onEndCallback) {
+            // Cancel any previous speech
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+
+            // Handle the optional callback
+            if (onEndCallback) {
+                utterance.onend = onEndCallback;
+            }
+
+            // --- MODIFICATION ---
+            // Check if voiceList is empty and try to load it synchronously
+            // This fixes a race condition if speech is requested before onvoiceschanged fires.
+            if (voiceList.length === 0) {
+                voiceList = window.speechSynthesis.getVoices();
+            }
+            // --- END MODIFICATION ---
+
+            // Use the pre-loaded voice list if available
+            if (voiceList.length > 0) {
+
+                let selectedVoice = null;
+
+                // --- OS-Specific Logic ---
+                const isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                    // --- Mobile Logic (iOS & Android) ---
+                    // Use .startsWith('en-') to be more flexible
+
+                    // 1. Try iOS high-quality ("Samantha")
+                    selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang.startsWith('en-'));
+
+                    // 2. Try Android high-quality ("Google")
+                    if (!selectedVoice) {
+                        selectedVoice = voiceList.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
+                    }
+
+                    // 3. Fallback for other high-quality mobile (e.g., "Daniel")
+                    if (!selectedVoice) {
+                        const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
+                        for (const name of preferredVoiceNames) {
+                            selectedVoice = voiceList.find(v => v.name === name && v.lang.startsWith('en-'));
+                            if (selectedVoice) break;
+                        }
+                    }
+
+                    // 4. Fallback for any en- on mobile
+                    if (!selectedVoice) {
+                        selectedVoice = voiceList.find(v => v.lang.startsWith('en-'));
+                    }
+
+                } else {
+                    // --- PC/Other Logic (The original, working version) ---
+                    selectedVoice = voiceList.find(v => v.name.includes('Google') && v.lang.includes('en'));
+                    if (!selectedVoice) {
+                        selectedVoice = voiceList.find(v => v.lang.includes('en-US') || v.default);
                     }
                 }
 
-                // 4. Fallback for any en- on mobile
-                if (!selectedVoice) {
-                    selectedVoice = voiceList.find(v => v.lang.startsWith('en-'));
+                // Assign the voice if we found one
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                    if (selectedVoice.lang.startsWith('en-GB')) {
+                        utterance.lang = 'en-GB';
+                    }
                 }
-                
+
+                window.speechSynthesis.speak(utterance);
+
             } else {
-                // --- PC/Other Logic (The original, working version) ---
-                selectedVoice = voiceList.find(v => v.name.includes('Google') && v.lang.includes('en'));
-                if (!selectedVoice) {
-                    selectedVoice = voiceList.find(v => v.lang.includes('en-US') || v.default);
-                }
-            }
-            
-            // Assign the voice if we found one
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-                if (selectedVoice.lang.startsWith('en-GB')) {
-                    utterance.lang = 'en-GB';
-                }
-            }
-
-            window.speechSynthesis.speak(utterance);
-
-        } else {
-            // Fallback: just speak (and try to load for next time)
-            window.speechSynthesis.speak(utterance);
-            if (voiceList.length === 0) {
-                loadVoices(); 
+                // Fallback: just speak
+                window.speechSynthesis.speak(utterance);
             }
         }
-    }
-    
-    // "Warm up" the speech API on first user interaction
-    //document.body.addEventListener('click', warmUpSpeechEngine, { once: true });
-    
-    // ==========================================================
-    // --- END OF SPEECH SYSTEM ---
-    // ==========================================================
-    // ==========================================================
-    // --- GAME 1: COUNTING GAME ---
-    // ==========================================================
-    const countingPrompt = document.getElementById('counting-prompt');
-    const countingGrid = document.getElementById('counting-grid');
-    let targetNumber = 0;
-    let currentCount = 0;
-    const items = ['🦆', '⭐️', '🍎', '🚗', '🎈', '🐶', '🍕'];
 
-    function startCountingGame() {
-        countingGrid.innerHTML = ''; // Clear the grid
-        currentCount = 0;
-        targetNumber = Math.floor(Math.random() * 9) + 1; // 1 to 9
-        
-        // Pick a random emoji for this round
-        const currentItem = items[Math.floor(Math.random() * items.length)];
+        // "Warm up" the speech API on first user interaction
+        //document.body.addEventListener('click', warmUpSpeechEngine, { once: true });
 
-        countingPrompt.textContent = `Tap ${targetNumber} ${currentItem}`;
-        speakText(`Tap ${targetNumber}`);
+        // ==========================================================
+        // --- END OF SPEECH SYSTEM ---
+        // ==========================================================
+        // ==========================================================
+        // --- GAME 1: COUNTING GAME ---
+        // ==========================================================
+        const countingPrompt = document.getElementById('counting-prompt');
+        const countingGrid = document.getElementById('counting-grid');
+        let targetNumber = 0;
+        let currentCount = 0;
+        const items = ['🦆', '⭐️', '🍎', '🚗', '🎈', '🐶', '🍕'];
 
-        // Add a few extra items
-        const totalItems = targetNumber + Math.floor(Math.random() * 4); 
+        function startCountingGame() {
+            countingGrid.innerHTML = ''; // Clear the grid
+            currentCount = 0;
+            targetNumber = Math.floor(Math.random() * 9) + 1; // 1 to 9
 
-        for (let i = 0; i < totalItems; i++) {
-            const itemEl = document.createElement('div');
-            itemEl.classList.add('counting-item');
-            itemEl.textContent = currentItem;
-            itemEl.addEventListener('click', handleCountClick);
-            countingGrid.appendChild(itemEl);
-        }
-    }
+            // Pick a random emoji for this round
+            const currentItem = items[Math.floor(Math.random() * items.length)];
 
-    function handleCountClick(e) {
-        // Check if it's already counted or if we are done
-        if (e.target.classList.contains('counted') || currentCount >= targetNumber) {
-            return;
-        }
+            countingPrompt.textContent = `Tap ${targetNumber} ${currentItem}`;
+            speakText(`Tap ${targetNumber}`);
 
-        currentCount++;
-        e.target.classList.add('counted');
+            // Add a few extra items
+            const totalItems = targetNumber + Math.floor(Math.random() * 4);
 
-        if (currentCount === targetNumber) {
-            // This is the final number. Speak it, and THEN...
-            speakText(currentCount, () => {
-                // ...as a callback, say "You did it!"
-                speakText("You did it!");
-                // And start the new game
-                setTimeout(startCountingGame, 1500);
-            });
-        } else {
-            // This is not the final number, just speak it.
-            speakText(currentCount);
-        }
-    }
-
-
-    // ==========================================================
-    // --- GAME 2: TRACING GAME ---
-    // ==========================================================
-    const traceContainer = document.getElementById('tracing-container');
-    const traceClearBtn = document.getElementById('trace-clear-btn');
-    const traceNextBtn = document.getElementById('trace-next-btn');
-    
-    let traceStage, drawingLayer, textLayer;
-    let isTracing = false;
-    let lastTraceLine;
-    let currentNumberToTrace = 1;
-    let konvaInitialized = false;
-
-    // This logic is adapted from your coloring-book/app.js
-    function initTracingGame() {
-        // Only initialize Konva once
-        if (konvaInitialized) {
-            loadNumberToTrace(currentNumberToTrace);
-            return;
-        }
-        
-        // 1. Setup Stage and Layers
-        traceStage = new Konva.Stage({
-            container: 'tracing-container',
-            width: traceContainer.clientWidth,
-            height: traceContainer.clientHeight,
-        });
-
-        textLayer = new Konva.Layer();
-        drawingLayer = new Konva.Layer();
-        traceStage.add(textLayer, drawingLayer);
-
-        // 2. Load the first number
-        loadNumberToTrace(currentNumberToTrace);
-
-        // 3. Add Event Listeners (copied from coloring-book/app.js)
-        traceStage.on('mousedown touchstart', (e) => {
-            isTracing = true;
-            const pos = traceStage.getPointerPosition();
-            lastTraceLine = new Konva.Line({
-                stroke: '#007bff', // Blue color
-                strokeWidth: 15,   // Nice thick line
-                globalCompositeOperation: 'source-over',
-                lineCap: 'round',
-                lineJoin: 'round',
-                points: [pos.x, pos.y, pos.x, pos.y],
-            });
-            drawingLayer.add(lastTraceLine);
-        });
-
-        traceStage.on('mouseup touchend', () => {
-            isTracing = false;
-        });
-
-        traceStage.on('mousemove touchmove', (e) => {
-            if (!isTracing) return;
-            e.evt.preventDefault();
-            const pos = traceStage.getPointerPosition();
-            const newPoints = lastTraceLine.points().concat([pos.x, pos.y]);
-            lastTraceLine.points(newPoints);
-            drawingLayer.batchDraw();
-        });
-
-        // 4. Add button listeners
-        traceClearBtn.addEventListener('click', () => {
-            drawingLayer.destroyChildren(); // Clear drawings
-            drawingLayer.batchDraw();
-        });
-
-        traceNextBtn.addEventListener('click', () => {
-            currentNumberToTrace++;
-            if (currentNumberToTrace > 9) {
-                currentNumberToTrace = 1; // Loop back to 1
+            for (let i = 0; i < totalItems; i++) {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('counting-item');
+                itemEl.textContent = currentItem;
+                itemEl.addEventListener('click', handleCountClick);
+                countingGrid.appendChild(itemEl);
             }
-            loadNumberToTrace(currentNumberToTrace);
-        });
-        
-        konvaInitialized = true;
-    }
-
-    function loadNumberToTrace(number) {
-        // Clear both layers
-        textLayer.destroyChildren();
-        drawingLayer.destroyChildren();
-        
-        // Get stage dimensions
-        const stageWidth = traceStage.width();
-        const stageHeight = traceStage.height();
-
-        // Create the large, faint number text
-        const numberText = new Konva.Text({
-            text: String(number),
-            fontSize: Math.min(stageWidth, stageHeight) * 0.8, // Make it huge
-            fontFamily: 'Comic Neue, sans-serif',
-            fontStyle: '700',
-            fill: '#e0e0e0', // Light grey
-            width: stageWidth,
-            height: stageHeight,
-            align: 'center',
-            verticalAlign: 'middle',
-        });
-        
-        textLayer.add(numberText);
-        
-        // Redraw layers
-        textLayer.batchDraw();
-        drawingLayer.batchDraw();
-        
-        speakText(String(number));
-    }
-    
-    // Handle resizing (important for tablets)
-    new ResizeObserver(() => {
-        if (!traceStage) return;
-        const container = document.getElementById('tracing-container');
-        if (container.clientWidth > 0 && container.clientHeight > 0) {
-            traceStage.width(container.clientWidth);
-            traceStage.height(container.clientHeight);
-            loadNumberToTrace(currentNumberToTrace);
         }
-    }).observe(traceContainer);
 
+        function handleCountClick(e) {
+            // Check if it's already counted or if we are done
+            if (e.target.classList.contains('counted') || currentCount >= targetNumber) {
+                return;
+            }
 
-    // ==========================================================
-    // --- GAME 3: PATTERNS GAME (--- MODIFIED ---) ---
-    // ==========================================================
-    const patternSequence = document.getElementById('pattern-sequence');
-    const patternChoices = document.getElementById('pattern-choices');
-    let currentPattern = {};
+            currentCount++;
+            e.target.classList.add('counted');
 
-    // --- REMOVED ---
-    // The old hard-coded 'patterns' array has been removed.
-
-    // --- NEW ---
-    // Function to generate plausible, but wrong, choices
-    function generateChoices(answer) {
-        let choices = [answer];
-        
-        // Add a choice that is one off
-        let choice1 = Math.random() > 0.5 ? answer + 1 : answer - 1;
-        if (choice1 < 1) choice1 = answer + 1; // Ensure it's not 0 or negative
-        choices.push(choice1);
-
-        // Add a second choice
-        let choice2 = Math.random() > 0.5 ? answer + 2 : answer - 2;
-        if (choice2 < 1 || choice2 === choice1) {
-             choice2 = answer + 2;
-             // Ensure choice2 is not the same as choice1
-             if (choice2 === choice1) choice2 = answer + 3;
-        }
-        choices.push(choice2);
-
-        return choices;
-    }
-
-    // --- NEW ---
-    // Function to dynamically generate a new pattern
-    function generatePattern() {
-        const patternType = Math.floor(Math.random() * 3); // 3 types of patterns
-        let sequence, answer, choices;
-        let start = Math.floor(Math.random() * 5) + 1; // Start from 1-5
-
-        switch (patternType) {
-            case 0: // Add 1 (e.g., 1, 2, __)
-                sequence = [start, start + 1, ''];
-                answer = start + 2;
-                break;
-            case 1: // Add 2 (e.g., 2, 4, __)
-                start = Math.floor(Math.random() * 4) + 1; // Start 1-4 to avoid big numbers
-                sequence = [start, start + 2, ''];
-                answer = start + 4;
-                break;
-            case 2: // Repeat (e.g., 3, 3, 4, 4, __)
-                sequence = [start, start, start + 1, start + 1, ''];
-                answer = start + 2;
-                break;
-        }
-        
-        choices = generateChoices(answer);
-        return { sequence, answer, choices };
-    }
-
-
-    function startPatternsGame() {
-        // Clear previous game
-        patternSequence.innerHTML = '';
-        patternChoices.innerHTML = '';
-
-        // --- MODIFIED ---
-        // Pick a random pattern from our hard-coded list
-        currentPattern = generatePattern(); // We now call our new function
-        
-        // Display the sequence
-        let speakableSequence = [];
-        currentPattern.sequence.forEach(item => {
-            const el = document.createElement('div');
-            if (item === '') {
-                el.classList.add('blank');
-                speakableSequence.push('blank');
+            if (currentCount === targetNumber) {
+                // This is the final number. Speak it, and THEN...
+                speakText(currentCount, () => {
+                    // ...as a callback, say "You did it!"
+                    speakText("You did it!");
+                    // And start the new game
+                    setTimeout(startCountingGame, 1500);
+                });
             } else {
-                el.classList.add('pattern-item');
-                el.textContent = item;
-                speakableSequence.push(item);
+                // This is not the final number, just speak it.
+                speakText(currentCount);
             }
-            patternSequence.appendChild(el);
-        });
-
-        // Create choice buttons
-        currentPattern.choices.sort(() => Math.random() - 0.5); // Shuffle choices
-        currentPattern.choices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.classList.add('choice-btn');
-            btn.textContent = choice;
-            btn.dataset.value = choice;
-            btn.addEventListener('click', handlePatternClick);
-            patternChoices.appendChild(btn);
-        });
-        
-        // Speak the first part
-        speakText('What comes next?', () => {
-            // After the first part ends, speak the sequence
-            speakText(speakableSequence.join(', '));
-        });
-    }
-
-    function handlePatternClick(e) {
-        const clickedValue = parseInt(e.target.dataset.value);
-        
-        // Disable all buttons
-        patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = true);
-
-        if (clickedValue === currentPattern.answer) {
-            e.target.classList.add('correct');
-            speakText(`That's right, ${currentPattern.answer}!`);
-            setTimeout(startPatternsGame, 1500); // New game
-        } else {
-            e.target.classList.add('incorrect');
-            speakText("Oops, try again!");
-            // Re-enable buttons after a moment
-            setTimeout(() => {
-                e.target.classList.remove('incorrect');
-                patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = false);
-            }, 1000);
         }
-    }
 
-});
+
+        // ==========================================================
+        // --- GAME 2: TRACING GAME ---
+        // ==========================================================
+        const traceContainer = document.getElementById('tracing-container');
+        const traceClearBtn = document.getElementById('trace-clear-btn');
+        const traceNextBtn = document.getElementById('trace-next-btn');
+
+        let traceStage, drawingLayer, textLayer;
+        let isTracing = false;
+        let lastTraceLine;
+        let currentNumberToTrace = 1;
+        let konvaInitialized = false;
+
+        // This logic is adapted from your coloring-book/app.js
+        function initTracingGame() {
+            // Only initialize Konva once
+            if (konvaInitialized) {
+                loadNumberToTrace(currentNumberToTrace);
+                return;
+            }
+
+            // 1. Setup Stage and Layers
+            traceStage = new Konva.Stage({
+                container: 'tracing-container',
+                width: traceContainer.clientWidth,
+                height: traceContainer.clientHeight,
+            });
+
+            textLayer = new Konva.Layer();
+            drawingLayer = new Konva.Layer();
+            traceStage.add(textLayer, drawingLayer);
+
+            // 2. Load the first number
+            loadNumberToTrace(currentNumberToTrace);
+
+            // 3. Add Event Listeners (copied from coloring-book/app.js)
+            traceStage.on('mousedown touchstart', (e) => {
+                isTracing = true;
+                const pos = traceStage.getPointerPosition();
+                lastTraceLine = new Konva.Line({
+                    stroke: '#007bff', // Blue color
+                    strokeWidth: 15,   // Nice thick line
+                    globalCompositeOperation: 'source-over',
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    points: [pos.x, pos.y, pos.x, pos.y],
+                });
+                drawingLayer.add(lastTraceLine);
+            });
+
+            traceStage.on('mouseup touchend', () => {
+                isTracing = false;
+            });
+
+            traceStage.on('mousemove touchmove', (e) => {
+                if (!isTracing) return;
+                e.evt.preventDefault();
+                const pos = traceStage.getPointerPosition();
+                const newPoints = lastTraceLine.points().concat([pos.x, pos.y]);
+                lastTraceLine.points(newPoints);
+                drawingLayer.batchDraw();
+            });
+
+            // 4. Add button listeners
+            traceClearBtn.addEventListener('click', () => {
+                drawingLayer.destroyChildren(); // Clear drawings
+                drawingLayer.batchDraw();
+            });
+
+            traceNextBtn.addEventListener('click', () => {
+                currentNumberToTrace++;
+                if (currentNumberToTrace > 9) {
+                    currentNumberToTrace = 1; // Loop back to 1
+                }
+                loadNumberToTrace(currentNumberToTrace);
+            });
+
+            konvaInitialized = true;
+        }
+
+        function loadNumberToTrace(number) {
+            // Clear both layers
+            textLayer.destroyChildren();
+            drawingLayer.destroyChildren();
+
+            // Get stage dimensions
+            const stageWidth = traceStage.width();
+            const stageHeight = traceStage.height();
+
+            // Create the large, faint number text
+            const numberText = new Konva.Text({
+                text: String(number),
+                fontSize: Math.min(stageWidth, stageHeight) * 0.8, // Make it huge
+                fontFamily: 'Comic Neue, sans-serif',
+                fontStyle: '700',
+                fill: '#e0e0e0', // Light grey
+                width: stageWidth,
+                height: stageHeight,
+                align: 'center',
+                verticalAlign: 'middle',
+            });
+
+            textLayer.add(numberText);
+
+            // Redraw layers
+            textLayer.batchDraw();
+            drawingLayer.batchDraw();
+
+            speakText(String(number));
+        }
+
+        // Handle resizing (important for tablets)
+        new ResizeObserver(() => {
+            if (!traceStage) return;
+            const container = document.getElementById('tracing-container');
+            if (container.clientWidth > 0 && container.clientHeight > 0) {
+                traceStage.width(container.clientWidth);
+                traceStage.height(container.clientHeight);
+                loadNumberToTrace(currentNumberToTrace);
+            }
+        }).observe(traceContainer);
+
+
+        // ==========================================================
+        // --- GAME 3: PATTERNS GAME (--- MODIFIED ---) ---
+        // ==========================================================
+        const patternSequence = document.getElementById('pattern-sequence');
+        const patternChoices = document.getElementById('pattern-choices');
+        let currentPattern = {};
+
+        // --- REMOVED ---
+        // The old hard-coded 'patterns' array has been removed.
+
+        // --- NEW ---
+        // Function to generate plausible, but wrong, choices
+        function generateChoices(answer) {
+            let choices = [answer];
+
+            // Add a choice that is one off
+            let choice1 = Math.random() > 0.5 ? answer + 1 : answer - 1;
+            if (choice1 < 1) choice1 = answer + 1; // Ensure it's not 0 or negative
+            choices.push(choice1);
+
+            // Add a second choice
+            let choice2 = Math.random() > 0.5 ? answer + 2 : answer - 2;
+            if (choice2 < 1 || choice2 === choice1) {
+                 choice2 = answer + 2;
+                 // Ensure choice2 is not the same as choice1
+                 if (choice2 === choice1) choice2 = answer + 3;
+            }
+            choices.push(choice2);
+
+            return choices;
+        }
+
+        // --- NEW ---
+        // Function to dynamically generate a new pattern
+        function generatePattern() {
+            const patternType = Math.floor(Math.random() * 3); // 3 types of patterns
+            let sequence, answer, choices;
+            let start = Math.floor(Math.random() * 5) + 1; // Start from 1-5
+
+            switch (patternType) {
+                case 0: // Add 1 (e.g., 1, 2, __)
+                    sequence = [start, start + 1, ''];
+                    answer = start + 2;
+                    break;
+                case 1: // Add 2 (e.g., 2, 4, __)
+                    start = Math.floor(Math.random() * 4) + 1; // Start 1-4 to avoid big numbers
+                    sequence = [start, start + 2, ''];
+                    answer = start + 4;
+                    break;
+                case 2: // Repeat (e.g., 3, 3, 4, 4, __)
+                    sequence = [start, start, start + 1, start + 1, ''];
+                    answer = start + 2;
+                    break;
+            }
+
+            choices = generateChoices(answer);
+            return { sequence, answer, choices };
+        }
+
+
+        function startPatternsGame() {
+            // Clear previous game
+            patternSequence.innerHTML = '';
+            patternChoices.innerHTML = '';
+
+            // --- MODIFIED ---
+            // Pick a random pattern from our hard-coded list
+            currentPattern = generatePattern(); // We now call our new function
+
+            // Display the sequence
+            let speakableSequence = [];
+            currentPattern.sequence.forEach(item => {
+                const el = document.createElement('div');
+                if (item === '') {
+                    el.classList.add('blank');
+                    speakableSequence.push('blank');
+                } else {
+                    el.classList.add('pattern-item');
+                    el.textContent = item;
+                    speakableSequence.push(item);
+                }
+                patternSequence.appendChild(el);
+            });
+
+            // Create choice buttons
+            currentPattern.choices.sort(() => Math.random() - 0.5); // Shuffle choices
+            currentPattern.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.classList.add('choice-btn');
+                btn.textContent = choice;
+                btn.dataset.value = choice;
+                btn.addEventListener('click', handlePatternClick);
+                patternChoices.appendChild(btn);
+            });
+
+            // Speak the first part
+            speakText('What comes next?', () => {
+                // After the first part ends, speak the sequence
+                speakText(speakableSequence.join(', '));
+            });
+        }
+
+        function handlePatternClick(e) {
+            const clickedValue = parseInt(e.target.dataset.value);
+
+            // Disable all buttons
+            patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (clickedValue === currentPattern.answer) {
+                e.target.classList.add('correct');
+                speakText(`That's right, ${currentPattern.answer}!`);
+                setTimeout(startPatternsGame, 1500); // New game
+            } else {
+                e.target.classList.add('incorrect');
+                speakText("Oops, try again!");
+                // Re-enable buttons after a moment
+                setTimeout(() => {
+                    e.target.classList.remove('incorrect');
+                    patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = false);
+                }, 1000);
+            }
+        }
+
+    });
+
+})(); // --- MODIFICATION --- End of IIFE

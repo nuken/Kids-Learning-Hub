@@ -4,7 +4,9 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
-    font-family: Arial, sans-serif; /* Re-set base font */
+    /* --- MODIFICATION --- */
+    font-family: 'Comic Neue', sans-serif; /* Changed from Arial */
+    /* --- END MODIFICATION --- */
     text-align: center;
     background-color: #f0f8ff; /* Light blue background */
     overflow: hidden;
@@ -86,7 +88,10 @@ h2 {
 #start-missing-game-btn { background-color: #4CAF50; /* Green */ } /* NEW */
 #start-color-game-btn { background-color: #03A9F4; /* Light Blue */ }
 
-.home-btn-spelling {
+/* --- MODIFICATION --- */
+/* Standardized class name */
+.home-btn-subpage {
+/* --- END MODIFICATION --- */
     position: absolute;
     top: 20px;
     left: 20px;
@@ -98,7 +103,9 @@ h2 {
     transition: transform 0.1s;
 }
 
-.home-btn-spelling:active {
+/* --- MODIFICATION --- */
+.home-btn-subpage:active {
+/* --- END MODIFICATION --- */
     transform: scale(0.9);
 }
 /* --- END: Styles from Number/style.css for Menu --- */
@@ -136,7 +143,7 @@ h2 {
 .word-blanks {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   gap: 15px;
   margin: 30px 0;
 }
@@ -268,7 +275,9 @@ h2 {
     top: 10px;
     left: 10px;
   }
-  .home-btn-spelling {
+  /* --- MODIFICATION --- */
+  .home-btn-subpage {
+  /* --- END MODIFICATION --- */
      top: 10px;
      left: 10px;
   }
@@ -303,7 +312,7 @@ h2 {
     position: static;
     margin-top: 15px;
   }
-  
+
   /* --- THIS BLOCK WAS REMOVED ---
   .home-btn-spelling {
     left: 50%;
@@ -311,7 +320,7 @@ h2 {
     top: 15px;
   }
   */
-  
+
   .menu-buttons {
     align-items: center;
   }

@@ -1,9 +1,10 @@
 
+
 # Kids Learning App Collection
 
-This project is a simple, ad-free, and fully responsive web portal that hosts three separate learning applications for children: **Alphabet Fun**, **Numbers Fun**, and a **Coloring Book**.
+This project is a simple, ad-free, and fully responsive web portal that hosts four separate learning applications for children: **Alphabet Fun**, **Numbers Fun**, a **Coloring Book**, and **Let's Spell**.
 
-The main `index.html` file acts as a central hub, allowing a child to easily launch any of the three apps. Each application has been modified with a non-intrusive "Home" button, allowing for easy navigation back to this main menu.
+The main `index.html` file acts as a central hub, allowing a child to easily launch any of the four apps. Each application has been modified with a non-intrusive "Home" button, allowing for easy navigation back to this main menu.
 
 The applications are designed to work perfectly on desktops, tablets (iPad, Android), and phones in both portrait and landscape modes.
 
@@ -40,34 +41,15 @@ The applications are designed to work perfectly on desktops, tablets (iPad, Andr
     * **Utility Tools:** Includes Undo, Clear, and Save (download as JPEG) functions.
     * Powered by the Konva.js canvas library for high performance.
 
-## Project Structure
+### 4. Let's Spell
 
-The project is organized to keep each application separate and modular.
-
-```
-
-/Main/
-├── Alphabet/           (Contains all files for Alphabet Fun)
-│   ├── index.html
-│   ├── script.js
-│   └── style.css
-│
-├── Coloring/           (Contains all files for Coloring Book)
-│   ├── index.html
-│   ├── app.js
-│   ├── style.css
-│   └── images/
-│
-├── Number/             (Contains all files for Numbers Fun)
-│   ├── index.html
-│   ├── script.js
-│   └── style.css
-│
-├── index.html          (The main start page/portal)
-├── style.css           (Styles for the main start page)
-└── README.md           (This file)
-
-```
+* **Location:** `/Spelling/`
+* **Description:** A simple spelling game where children look at an image and click the correct letters in order to spell the word.
+* **Features:**
+    * Features common words like 'cat', 'dog', and 'sun' with accompanying images.
+    * Presents letter blanks and a shuffled set of letter buttons for the child to choose from.
+    * Provides immediate audio feedback for correct or incorrect letter choices.
+    * Includes a "Next Word" button that appears after a word is spelled correctly.
 
 ## How to Download
 
@@ -96,7 +78,6 @@ Do not just open the `index.html` file directly from your folder (i.e., `file://
 
 3.  **Using Simple Web Server:**
     * Download and run the app from [SimpleWebServer.org](https://simplewebserver.org/).
-    
 
 ## Technologies Used
 

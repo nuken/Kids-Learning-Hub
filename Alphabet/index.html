@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alphabet Learner</title>
-    
-    <!-- 1. ADD THIS LINE: Imports the 'Comic Neue' font from Google -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="icon" href="../favicon.ico" type="image/x-icon">
@@ -17,7 +16,7 @@
 <body>
 
     <h1>Alphabet Fun!</h1>
-    
+
     <div id="color-palette">
         <div class="color-swatch" style="background-color: #f4f4f4;" data-color="#f4f4f4"></div>
         <div class="color-swatch" style="background-color: #E3F2FD;" data-color="#E3F2FD"></div>
@@ -25,14 +24,16 @@
         <div class="color-swatch" style="background-color: #E8F5E9;" data-color="#E8F5E9"></div>
         <div class="color-swatch" style="background-color: #FCE4EC;" data-color="#FCE4EC"></div>
     </div>
-    
+
     <div id="alphabet-container"></div>
-    
+
     <div id="controls-container">
 	    <a href="../index.html" class="control-button-icon" title="Home">
         <i class="fas fa-home"></i>
     </a>
         <button id="speech-toggle-button" class="control-button">Switch to Phonics</button>
+
+        <button id="case-toggle-button" class="control-button">Switch to Lowercase</button>
         <button id="reset-button" class="control-button">Reset</button>
     </div>
     <script src="unlock-speech.js"></script>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Time</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <link rel="stylesheet" href="../style.css"> 
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    
+    <a href="../index.html" class="home-btn-subpage" title="Home">
+        <i class="fas fa-home"></i>
+    </a>
+
+    <div id="lockout-screen" class="video-page-container">
+        <h1>All done for now!</h1>
+        <p>Come back later to watch more videos.</p>
+        <div id="lockout-timer-display"></div>
+    </div>
+
+    <div id="playlist-menu" class="video-page-container visible">
+        <h1>Choose a Video!</h1>
+        <div id="playlist-buttons" class="menu-container">
+            </div>
+    </div>
+    
+    <div id="player-container" class="video-page-container">
+        <div id="player-header">
+            <button id="back-to-menu-btn" class="control-btn">&larr; Change Playlist</button>
+            <div id="timer-display">Time Left: 00:00</div>
+        </div>
+        <div id="player-wrapper">
+            <div id="player"></div> 
+        </div>
+    </div>
+    
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

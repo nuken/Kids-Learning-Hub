@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const config = window.VIDEO_CONFIG || {};
     const WATCH_LIMIT_SECONDS = (config.WATCH_TIME_MINUTES || 30) * 60;
     const LOCKOUT_MINUTES = config.LOCKOUT_TIME_MINUTES || 60;
-    const PLAYLISTS = config.PLAYLISTS || [];
+    // --- MODIFICATION: Read from new VIDEO_ITEMS array ---
+    const VIDEO_ITEMS = config.VIDEO_ITEMS || [];
+    // --- END MODIFICATION ---
 
     let player; // The YouTube Player object
     let watchTimerInterval; // Interval for tracking watch time
@@ -18,65 +20,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplay = document.getElementById('timer-display');
     const lockoutTimerDisplay = document.getElementById('lockout-timer-display');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
-    
-    // --- MODIFICATION: Get the home button ---
     const homeBtn = document.querySelector('.home-btn-subpage');
-    // --- END MODIFICATION ---
 
     // --- 3. CORE LOGIC ---
     
-    /**
-     * This is the first function that runs.
-     * It checks if the user is locked out.
-     */
     function checkLockoutState() {
         const lockoutUntil = localStorage.getItem('videoLockoutUntil');
         if (lockoutUntil && Date.now() < parseInt(lockoutUntil)) {
-            // User is LOCKED OUT
             showLockoutScreen(parseInt(lockoutUntil));
         } else {
-            // User is NOT locked out
-            localStorage.removeItem('videoLockoutUntil'); // Clear any old key
+            localStorage.removeItem('videoLockoutUntil'); 
             showPlaylistMenu();
         }
     }
 
-    /**
-     * Formats seconds into MM:SS
-     */
     function formatTime(seconds) {
         const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
         const secs = (seconds % 60).toString().padStart(2, '0');
         return `${mins}:${secs}`;
     }
 
-    /**
-     * Gets the current accumulated watch time from localStorage
-     */
     function getWatchTime() {
         return parseInt(localStorage.getItem('videoWatchTime') || '0');
     }
 
-    /**
-     * Saves the current accumulated watch time
-     */
     function saveWatchTime(seconds) {
         localStorage.setItem('videoWatchTime', seconds.toString());
     }
 
-    /**
-     * Updates the "Time Left: MM:SS" display
-     */
     function updateTimerDisplay() {
         const remainingTime = WATCH_LIMIT_SECONDS - getWatchTime();
         timerDisplay.textContent = `Time Left: ${formatTime(remainingTime)}`;
     }
 
-    /**
-     * Starts the 1-second interval to track playing time
-     */
     function startWatchTimer() {
-        if (watchTimerInterval) return; // Already running
+        if (watchTimerInterval) return; 
         
         watchTimerInterval = setInterval(() => {
             let currentWatchTime = getWatchTime();
@@ -90,17 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    /**
-     * Stops the 1-second interval (when paused, buffered, or ended)
-     */
     function stopWatchTimer() {
         clearInterval(watchTimerInterval);
         watchTimerInterval = null;
     }
 
-    /**
-     * Called when watch time runs out
-     */
     function triggerLockout() {
         stopWatchTimer();
         if (player) {
@@ -109,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const lockoutEndTime = Date.now() + (LOCKOUT_MINUTES * 60 * 1000);
         localStorage.setItem('videoLockoutUntil', lockoutEndTime.toString());
-        localStorage.setItem('videoWatchTime', '0'); // Reset watch time
+        localStorage.setItem('videoWatchTime', '0'); 
         
         showLockoutScreen(lockoutEndTime);
     }
@@ -117,22 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. UI SCREEN MANAGEMENT ---
     
     function showScreen(screenElement) {
-        // Hide all screens
         [playlistMenu, playerContainer, lockoutScreen].forEach(el => {
             el.classList.remove('visible');
         });
         
-        // Show the target screen
         if (screenElement) {
             screenElement.classList.add('visible');
             
-            // --- MODIFICATION: Show/hide home button based on screen ---
             if (screenElement.id === 'playlist-menu') {
-                homeBtn.style.display = 'block'; // Or 'inline-block' if needed
+                homeBtn.style.display = 'block'; 
             } else {
                 homeBtn.style.display = 'none';
             }
-            // --- END MODIFICATION ---
         }
     }
 
@@ -147,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(lockoutTimerInterval);
                 lockoutTimerDisplay.textContent = "You can watch again!";
                 localStorage.removeItem('videoLockoutUntil');
-                // Wait a moment, then show menu
                 setTimeout(showPlaylistMenu, 2000); 
                 return;
             }
@@ -158,19 +125,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         clearInterval(lockoutTimerInterval);
         lockoutTimerInterval = setInterval(updateLockoutTimer, 1000);
-        updateLockoutTimer(); // Run once immediately
+        updateLockoutTimer(); 
     }
 
     function showPlaylistMenu() {
         showScreen(playlistMenu);
-        // Stop video if it's playing in the background
         if (player) {
-            // Check if player and stopVideo function exist before calling
             if (player && typeof player.stopVideo === 'function') {
                 player.stopVideo();
             }
         }
-        // Stop timers
         stopWatchTimer();
         clearInterval(lockoutTimerInterval);
     }
@@ -182,9 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 5. YOUTUBE API ---
 
-    /**
-     * This function loads the YouTube IFrame Player API script
-     */
     function loadYouTubeAPI() {
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -192,60 +153,66 @@ document.addEventListener('DOMContentLoaded', () => {
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     }
 
-    /**
-     * This global function is called by the YouTube API script when it's ready.
-     */
     window.onYouTubeIframeAPIReady = function() {
         // API is ready
     }
 
+    // --- MODIFICATION: Renamed to loadMedia and handles item object ---
     /**
-     * Creates the YouTube player instance
+     * Creates or updates the YouTube player to load a video or playlist
+     * @param {object} item - The item to play, e.g. { id: '...', title: '...', type: 'video' }
      */
-    function createPlayer(playlistId) {
+    function loadMedia(item) {
         // Make sure the API is loaded
         if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-            // API isn't loaded yet, wait a moment and try again
-            setTimeout(() => createPlayer(playlistId), 100);
+            setTimeout(() => loadMedia(item), 100);
             return;
         }
 
         if (player) {
-            // If player already exists, just load the new playlist
-            player.loadPlaylist({
-                list: playlistId,
-                listType: 'playlist'
-            });
+            // If player already exists, just load the new media
+            if (item.type === 'playlist') {
+                player.loadPlaylist({
+                    list: item.id,
+                    listType: 'playlist'
+                });
+            } else { // 'video'
+                player.loadVideoById(item.id);
+            }
         } else {
             // Create a new player
-            player = new YT.Player('player', {
+            let playerConfig = {
                 height: '100%',
                 width: '100%',
                 playerVars: {
                     'playsinline': 1,
                     'modestbranding': 1,
-                    'rel': 0, // Don't show related videos
-                    'listType': 'playlist',
-                    'list': playlistId
+                    'rel': 0 // Don't show related videos
                 },
                 events: {
                     'onStateChange': onPlayerStateChange
                 }
-            });
+            };
+
+            // Configure the player differently for playlists vs. single videos
+            if (item.type === 'playlist') {
+                playerConfig.playerVars['listType'] = 'playlist';
+                playerConfig.playerVars['list'] = item.id;
+            } else { // 'video'
+                playerConfig['videoId'] = item.id;
+            }
+            
+            player = new YT.Player('player', playerConfig);
         }
         showPlayer();
     }
+    // --- END MODIFICATION ---
 
-    /**
-* This function is called by the API whenever the player's state changes
-* (e.g., playing, paused, ended).
-*/
+
     function onPlayerStateChange(event) {
         if (event.data === YT.PlayerState.PLAYING) {
-            // Video is playing
             startWatchTimer();
         } else {
-            // Video is paused, ended, buffering, etc.
             stopWatchTimer();
         }
     }
@@ -253,30 +220,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 6. INITIALIZATION ---
 
     function initialize() {
-        // Create playlist buttons from config
-        if (PLAYLISTS.length === 0) {
+        // --- MODIFICATION: Use VIDEO_ITEMS and pass full object to loadMedia ---
+        if (VIDEO_ITEMS.length === 0) {
             playlistButtonsContainer.innerHTML = "<p>No playlists configured.</p>";
         } else {
-            PLAYLISTS.forEach(playlist => {
+            VIDEO_ITEMS.forEach(item => { // Use 'item'
                 const btn = document.createElement('a');
                 btn.href = "#";
-                btn.className = "menu-btn"; // Use a class from root style.css
-                btn.textContent = playlist.title;
+                btn.className = "menu-btn"; 
+                btn.textContent = item.title;
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    createPlayer(playlist.id);
+                    loadMedia(item); // Pass the whole item object
                 });
                 playlistButtonsContainer.appendChild(btn);
             });
         }
+        // --- END MODIFICATION ---
         
-        // Add listener for the "Back to Menu" button
         backToMenuBtn.addEventListener('click', showPlaylistMenu);
-
-        // Load the YouTube API
         loadYouTubeAPI();
-
-        // Check if user is locked out or not
         checkLockoutState();
     }
     

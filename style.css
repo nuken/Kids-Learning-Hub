@@ -6,7 +6,9 @@ html, body {
     font-family: 'Comic Neue', sans-serif;
     text-align: center;
     background-color: #f0f8ff; /* A nice light blue */
-    overflow: hidden;
+    /* --- MODIFICATION --- */
+    overflow-y: auto; /* Changed from hidden to allow scrolling */
+    /* --- END MODIFICATION --- */
     touch-action: manipulation;
 }
 
@@ -23,6 +25,9 @@ h1 {
     align-items: center;
     gap: 25px;
     padding: 20px;
+    /* --- ADD THIS --- */
+    padding-bottom: 40px; /* Add padding to bottom for scrolling */
+    /* --- END ADDITION --- */
 }
 
 .menu-btn {
@@ -49,6 +54,12 @@ h1 {
 #number-btn   { background-color: #3F51B5; /* Indigo */ }
 #coloring-btn { background-color: #FF9800; /* Orange */ }
 #spelling-btn { background-color: #90D5FF; /* Light Blue */ }
+
+/* --- ADD THIS STYLE --- */
+#videotime-btn { background-color: #f44336; /* Red */ }
+/* --- END OF ADDITION --- */
+
+
 /* Responsive styles for smaller screens */
 @media (max-width: 600px) {
     h1 {

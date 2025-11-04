@@ -114,12 +114,10 @@ h1 {
     background-color: #5cb85c;
 }
 
-/* --- MODIFICATION --- */
-/* ADDED STYLE FOR THE NEW BUTTON */
 #case-toggle-button {
     background-color: #f0ad4e; /* A friendly orange */
 }
-/* --- END MODIFICATION --- */
+
 
 
 /* ==============================================
@@ -167,31 +165,36 @@ h1 {
         padding: 10px 20px;
         font-size: 1em;
     }
+
+    /* --- MODIFICATION --- */
+    /* Added responsive style for the home button */
+    .home-btn-subpage {
+        top: 10px;
+        left: 10px;
+    }
+    /* --- END MODIFICATION --- */
 }
-/* --- Style for new Home Icon Button --- */
-.control-button-icon {
-    display: flex;
-    justify-content: center;
-    align-items: center;
 
-    width: 50px;
-    height: 50px;
-
-    font-size: 1.2em; /* Icon size */
-    cursor: pointer;
-    border-radius: 50%; /* Make it circular */
-    border: none;
+/* --- MODIFICATION --- */
+/* Replaced .control-button-icon with the standard .home-btn-subpage */
+.home-btn-subpage {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.8em; /* Nice and large icon */
     color: #333;
-    background-color: #fff;
-    border: 2px solid #ccc;
     text-decoration: none;
-
+    padding: 10px;
+    z-index: 100;
     transition: transform 0.1s;
 }
 
-.control-button-icon:active {
+.home-btn-subpage:active {
     transform: scale(0.9);
 }
+/* --- END MODIFICATION --- */
+
+
 /* ==============================================
    TABLET LANDSCAPE STYLES
   ============================================== */

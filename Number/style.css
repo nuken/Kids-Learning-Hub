@@ -6,7 +6,7 @@ html, body {
     height: 100%;
     font-family: 'Comic Neue', sans-serif;
     text-align: center;
-    background-color: #E3F2FD; /* Light blue background */
+    background-color: #f0f8ff; /* Light blue background */
     overflow: hidden;
     /* Prevents double-tap zoom on tablets */
     touch-action: manipulation;
@@ -32,10 +32,13 @@ h2 {
     height: 100%;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /* justify-content: center; */
+    padding-top: 20px; /* Add some padding */
     position: absolute;
     top: 0;
     left: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .game-screen.visible {
@@ -72,6 +75,7 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-top: 20px;
 }
 
 .menu-btn {
@@ -129,9 +133,15 @@ h2 {
     gap: 15px;
     flex-wrap: wrap;
 }
+
+/* --- MODIFICATION --- */
+/* This entire block was removed, as it's no longer needed */
+/*
 .trace-toolbar .back-btn {
-    position: static; /* Override absolute positioning */
+    position: static;
 }
+*/
+/* --- END MODIFICATION --- */
 
 #trace-clear-btn, #trace-next-btn {
     font-size: 1.2em;
@@ -153,7 +163,7 @@ h2 {
     border-radius: 20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     /* This ensures Konva renders sharp on all screens */
-    overflow: hidden; 
+    overflow: hidden;
 }
 
 /* --- 3. Patterns Game Styles --- */
@@ -215,7 +225,7 @@ h2 {
 }
 
 /* --- Style for new Home Button --- */
-.home-btn-number {
+.home-btn-subpage {
     position: absolute;
     top: 20px;
     left: 20px;
@@ -227,7 +237,7 @@ h2 {
     transition: transform 0.1s;
 }
 
-.home-btn-number:active {
+.home-btn-subpage:active {
     transform: scale(0.9);
 }
 
@@ -235,7 +245,7 @@ h2 {
 
 /* Targets phones in portrait view */
 @media (orientation: portrait) and (max-width: 500px) {
-    
+
     /* Puts the back button above the title, fixing the overlap */
     .back-btn {
         position: static; /* Un-stick it from the corner */
@@ -251,7 +261,7 @@ h2 {
     #patterns-game #patterns-prompt {
         margin-top: 0; /* Tighten up space left by back button */
     }
-    
+
     #pattern-sequence {
         font-size: 3.5em; /* Shrink the sequence numbers */
         gap: 15px;
@@ -260,7 +270,7 @@ h2 {
     #pattern-sequence .blank {
         border-width: 3px;
     }
-    
+
     #pattern-choices {
         gap: 10px; /* Tighter gap between buttons */
         margin-top: 20px;
@@ -289,16 +299,16 @@ h2 {
         font-size: 1.5em; /* Shrink game titles */
         margin: 5px 0;
     }
-    
+
     .back-btn, #trace-clear-btn, #trace-next-btn {
         padding: 5px 10px; /* Smaller buttons */
         font-size: 1em;
         top: 10px;
         left: 10px;
     }
-    
+
     /* Fix home button overlap in landscape */
-    .home-btn-number {
+    .home-btn-subpage {
         top: 10px;
         left: 10px;
     }

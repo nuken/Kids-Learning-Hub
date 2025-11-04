@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplay = document.getElementById('timer-display');
     const lockoutTimerDisplay = document.getElementById('lockout-timer-display');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
+    
+    // --- MODIFICATION: Get the home button ---
+    const homeBtn = document.querySelector('.home-btn-subpage');
+    // --- END MODIFICATION ---
 
     // --- 3. CORE LOGIC ---
     
@@ -117,9 +121,18 @@ document.addEventListener('DOMContentLoaded', () => {
         [playlistMenu, playerContainer, lockoutScreen].forEach(el => {
             el.classList.remove('visible');
         });
+        
         // Show the target screen
         if (screenElement) {
             screenElement.classList.add('visible');
+            
+            // --- MODIFICATION: Show/hide home button based on screen ---
+            if (screenElement.id === 'playlist-menu') {
+                homeBtn.style.display = 'block'; // Or 'inline-block' if needed
+            } else {
+                homeBtn.style.display = 'none';
+            }
+            // --- END MODIFICATION ---
         }
     }
 

@@ -2,6 +2,8 @@
 html, body {
     background-color: #f0f8ff;
     overflow: hidden;
+    /* --- ADDED: Ensure 100% height --- */
+    height: 100%;
 }
 
 /* --- ADDED: Standard Home Button Style --- */
@@ -26,7 +28,10 @@ html, body {
 
 .video-page-container {
     width: 100%;
-    height: 100vh;
+    /* --- MODIFICATION: Use dynamic viewport height (dvh) --- */
+    height: 100%; /* Fallback */
+    height: 100dvh;
+    /* --- END MODIFICATION --- */
     display: none;
     flex-direction: column;
     align-items: center;
@@ -44,19 +49,17 @@ html, body {
     margin-top: 60px; /* Make space for home button */
 }
 
-/* --- MODIFICATION HERE --- */
 #playlist-buttons .menu-btn {
-    font-size: 1.8em; /* Make buttons a bit smaller */
+    font-size: 1.8em;
     padding: 15px 30px;
-    background-color: #673AB7; /* NEW: Added a purple background */
+    background-color: #673AB7;
 }
-/* --- END MODIFICATION --- */
 
 
 /* --- Player Container --- */
 #player-container {
     padding: 10px;
-    justify-content: flex-start;
+    justify-content: flex-start; /* Align children to top */
 }
 
 #player-header {
@@ -66,6 +69,8 @@ html, body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    /* --- ADDED: Prevent header from shrinking --- */
+    flex-shrink: 0;
 }
 
 .control-btn {
@@ -91,23 +96,33 @@ html, body {
 
 #player-wrapper {
     width: 100%;
-    /* This creates a responsive 16:9 aspect ratio box */
-    position: relative;
-    padding-top: 56.25%; /* 16:9 */
     max-width: 800px;
     background: #000;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+
+    /* --- KEY FIXES: Use Flexbox to fill remaining space --- */
+    /* 1. REMOVED 'position: relative;' */
+    /* 2. REMOVED 'padding-top: 56.25%;' (The problem-causer) */
+    
+    /* 3. ADDED flex-grow to fill available space */
+    flex-grow: 1;
+    /* 4. ADDED min-height to allow shrinking */
+    min-height: 0;
+    /* --- END OF KEY FIXES --- */
 }
 
 #player-wrapper iframe,
 #player-wrapper #player {
-    position: absolute;
-    top: 0;
-    left: 0;
+    /* --- KEY FIXES: Make iframe a simple block element --- */
+    /* 1. REMOVED 'position: absolute;' */
+    /* 2. REMOVED 'top: 0;' and 'left: 0;' */
+    
+    /* 3. Kept these, which will now work correctly */
     width: 100%;
     height: 100%;
+    /* --- END OF KEY FIXES --- */
 }
 
 /* --- Lockout Screen --- */
@@ -123,7 +138,9 @@ html, body {
 }
 
 /* --- Responsive Fixes --- */
-@media (max-width: 600px) {
+
+/* --- Rule for PORTRAIT phones --- */
+@media (max-width: 600px) and (orientation: portrait) {
     .video-page-container {
         padding: 10px;
     }
@@ -141,10 +158,12 @@ html, body {
     }
 
     #player-header {
-        flex-direction: column;
+        flex-direction: column; /* Stack header items vertically */
         gap: 10px;
         margin-top: 40px; /* Space for home button */
     }
+
+    /* REMOVED the 'max-height' rule from #player-wrapper here */
 
     .control-btn {
         font-size: 0.9em;
@@ -163,5 +182,62 @@ html, body {
     .home-btn-subpage {
         top: 10px;
         left: 10px;
+    }
+}
+
+
+/* --- Rule for LANDSCAPE phones (and other very short screens) --- */
+@media (orientation: landscape) and (max-height: 500px) {
+    .video-page-container {
+        padding: 5px; /* Reduced all padding */
+    }
+
+    .home-btn-subpage {
+        top: 8px;
+        left: 8px;
+        font-size: 1.5em;
+    }
+
+    #playlist-menu h1,
+    #lockout-screen h1 {
+        font-size: 1.5em;
+        margin-top: 30px;
+        margin-bottom: 10px;
+    }
+
+    #playlist-buttons {
+        gap: 10px;
+    }
+
+    #playlist-buttons .menu-btn {
+        font-size: 1.2em;
+        padding: 8px 12px;
+        width: 80%;
+        max-width: 350px;
+    }
+
+    #player-header {
+        flex-direction: row;
+        margin-top: 30px;
+        margin-bottom: 5px;
+        max-width: 100%;
+        gap: 8px;
+    }
+     
+    /* REMOVED the 'max-height' rule from #player-wrapper here */
+
+    .control-btn {
+        font-size: 0.8em;
+        padding: 4px 8px;
+    }
+
+    #timer-display {
+        font-size: 0.9em;
+        padding: 4px 8px;
+    }
+
+    #lockout-timer-display {
+        font-size: 1.4em;
+        margin-top: 10px;
     }
 }

@@ -21,8 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const lockoutTimerDisplay = document.getElementById('lockout-timer-display');
     const backToMenuBtn = document.getElementById('back-to-menu-btn');
     const homeBtn = document.querySelector('.home-btn-subpage');
-    const playBtn = document.getElementById('play-btn');
-    const pauseBtn = document.getElementById('pause-btn');
 
     // --- 3. CORE LOGIC ---
     
@@ -190,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     'playsinline': 1,
                     'modestbranding': 1,
                     'rel': 0 // Don't show related videos
-                    'controls': 0
                 },
                 events: {
                     'onStateChange': onPlayerStateChange
@@ -242,17 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- END MODIFICATION ---
         
         backToMenuBtn.addEventListener('click', showPlaylistMenu);
-        playBtn.addEventListener('click', () => {
-            if (player && typeof player.playVideo === 'function') {
-                player.playVideo();
-            }
-        });
-
-        pauseBtn.addEventListener('click', () => {
-            if (player && typeof player.pauseVideo === 'function') {
-                player.pauseVideo();
-            }
-        });
         loadYouTubeAPI();
         checkLockoutState();
     }

@@ -51,130 +51,92 @@
             btn.addEventListener('click', () => showScreen('main-menu'));
         });
 
-    // ==========================================================
-        // --- ROBUST SPEECH SYSTEM ---
-        // ==========================================================
+    // --- START: NEW SPEECH SYSTEM (SAFARI-COMPATIBLE) ---
 
-        let voiceList = []; // Store voices to avoid lag
+// Make voiceList global to persist across calls.
+let voiceList = [];
 
-        /**
-         * Populates the global voiceList array.
-         */
-        function loadVoices() {
-            voiceList = window.speechSynthesis.getVoices();
+/**
+ * Populates the global voiceList. This function is designed to be
+ * called multiple times if needed, as Safari can be slow to load voices.
+ */
+function loadVoices() {
+    // If we've already loaded voices, don't do it again.
+    if (voiceList.length > 0) {
+        return;
+    }
+    voiceList = window.speechSynthesis.getVoices();
+}
+
+// Try to load voices immediately when the script runs.
+loadVoices();
+
+// Also, set up the event listener which is the "correct" way to do it.
+// Safari may or may not fire this event reliably, which is why we also
+// call loadVoices() manually.
+window.speechSynthesis.onvoiceschanged = loadVoices;
+
+
+/**
+ * The robust, Safari-compatible text-to-speech function.
+ * @param {string} text - The text to speak.
+ * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
+ */
+function speakText(text, onEndCallback) {
+    // Always cancel any previous speech to avoid overlaps.
+    window.speechSynthesis.cancel();
+
+    // If the voice list is still empty, make another attempt to load them.
+    // This is a crucial step for Safari.
+    if (voiceList.length === 0) {
+        loadVoices();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9; // A good rate for kids
+
+    // Set the language as a fallback. This is the most important property
+    // if a specific voice cannot be found or assigned.
+    utterance.lang = 'en-US';
+
+    if (onEndCallback) {
+        utterance.onend = onEndCallback;
+    }
+
+    // Only try to select a specific voice if the list has been populated.
+    if (voiceList.length > 0) {
+        let selectedVoice = null;
+
+        // --- Voice Selection Logic ---
+        // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
+        selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
+
+        // 2. If not found, look for any voice that is the browser's default for US English.
+        if (!selectedVoice) {
+            selectedVoice = voiceList.find(v => v.lang === 'en-US' && v.default);
         }
 
-        // Pre-load voices when they are ready
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-
-        /**
-         * Warms up the speech engine on the first user interaction.
-         * This is required by browsers to prevent audio spam.
-         */
-        function warmUpSpeechEngine() {
-            console.log("Warming up speech engine...");
-
-            // 1. Try to get the voice list.
-            loadVoices();
-
-            // 2. Perform a silent speech act to wake the engine.
-            const utterance = new SpeechSynthesisUtterance(" ");
-            utterance.volume = 0; // Make it silent
-            utterance.lang = 'en-US';
-
-            window.speechSynthesis.speak(utterance);
+        // 3. If still no voice, just grab the very first US English voice available.
+        if (!selectedVoice) {
+            selectedVoice = voiceList.find(v => v.lang === 'en-US');
         }
 
-        /**
-         * The robust text-to-speech function.
-         * @param {string} text - The text to speak.
-         * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
-         */
-        function speakText(text, onEndCallback) {
-            // Cancel any previous speech
-            window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 0.9;
-
-            // Handle the optional callback
-            if (onEndCallback) {
-                utterance.onend = onEndCallback;
-            }
-
-            // --- MODIFICATION ---
-            // Check if voiceList is empty and try to load it synchronously
-            // This fixes a race condition if speech is requested before onvoiceschanged fires.
-            if (voiceList.length === 0) {
-                voiceList = window.speechSynthesis.getVoices();
-            }
-            // --- END MODIFICATION ---
-
-            // Use the pre-loaded voice list if available
-            if (voiceList.length > 0) {
-
-                let selectedVoice = null;
-
-                // --- OS-Specific Logic ---
-                const isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
-
-                if (isMobile) {
-                    // --- Mobile Logic (iOS & Android) ---
-                    // Use .startsWith('en-') to be more flexible
-
-                    // 1. Try iOS high-quality ("Samantha")
-                    selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang.startsWith('en-'));
-
-                    // 2. Try Android high-quality ("Google")
-                    if (!selectedVoice) {
-                        selectedVoice = voiceList.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
-                    }
-
-                    // 3. Fallback for other high-quality mobile (e.g., "Daniel")
-                    if (!selectedVoice) {
-                        const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
-                        for (const name of preferredVoiceNames) {
-                            selectedVoice = voiceList.find(v => v.name === name && v.lang.startsWith('en-'));
-                            if (selectedVoice) break;
-                        }
-                    }
-
-                    // 4. Fallback for any en- on mobile
-                    if (!selectedVoice) {
-                        selectedVoice = voiceList.find(v => v.lang.startsWith('en-'));
-                    }
-
-                } else {
-                    // --- PC/Other Logic (The original, working version) ---
-                    selectedVoice = voiceList.find(v => v.name.includes('Google') && v.lang.includes('en'));
-                    if (!selectedVoice) {
-                        selectedVoice = voiceList.find(v => v.lang.includes('en-US') || v.default);
-                    }
-                }
-
-                // Assign the voice if we found one
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                    if (selectedVoice.lang.startsWith('en-GB')) {
-                        utterance.lang = 'en-GB';
-                    }
-                }
-
-                window.speechSynthesis.speak(utterance);
-
-            } else {
-                // Fallback: just speak
-                window.speechSynthesis.speak(utterance);
-            }
+        // If we successfully found a voice, assign it to the utterance.
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            // **CRITICAL SAFARI FIX**: Re-set the lang property from the
+            // voice object itself. This strongly tells Safari which synthesizer to use.
+            utterance.lang = selectedVoice.lang;
         }
+    }
 
-        // "Warm up" the speech API on first user interaction
-        //document.body.addEventListener('click', warmUpSpeechEngine, { once: true });
+    // Finally, speak. For Safari, this first call to speak() might be what
+    // actually triggers the voice list to load for all subsequent calls.
+    window.speechSynthesis.speak(utterance);
+}
 
-        // ==========================================================
-        // --- END OF SPEECH SYSTEM ---
-        // ==========================================================
+// --- END: NEW SPEECH SYSTEM ---
+       
         // ==========================================================
         // --- GAME 1: COUNTING GAME ---
         // ==========================================================

@@ -1,10 +1,8 @@
-
-
 # Kids Learning App Collection
 
-This project is a simple, ad-free, and fully responsive web portal that hosts four separate learning applications for children: **Alphabet Fun**, **Numbers Fun**, a **Coloring Book**, and **Let's Spell**.
+This project is a simple, ad-free, and fully responsive web portal that hosts five separate learning applications for children: **Alphabet Fun**, **Numbers Fun**, a **Coloring Book**, **Let's Spell**, and **Video Time**.
 
-The main `index.html` file acts as a central hub, allowing a child to easily launch any of the four apps. Each application has been modified with a non-intrusive "Home" button, allowing for easy navigation back to this main menu.
+The main `index.html` file acts as a central hub, allowing a child to easily launch any of the five apps. Each application has been modified with a non-intrusive "Home" button, allowing for easy navigation back to this main menu.
 
 The applications are designed to work perfectly on desktops, tablets (iPad, Android), and phones in both portrait and landscape modes.
 
@@ -15,10 +13,10 @@ The applications are designed to work perfectly on desktops, tablets (iPad, Andr
 * **Location:** `/Alphabet/`
 * **Description:** A classic alphabet learner where children can tap or drag their finger across letters (A-Z) to see them light up with color and hear their names spoken.
 * **Features:**
-    * Interactive touch and-drag grid.
+    * Interactive touch-and-drag grid.
     * Randomized colors for a fun visual effect.
     * High-quality, platform-specific text-to-speech (Web Speech API) for clear audio on PC, iOS, and Android.
-    * Controls to reset the board or toggle phonics/letter sounds.
+    * Controls to reset the board, toggle between letter names ("Bee") and words ("Boy"), or switch between uppercase and lowercase letters.
 
 ### 2. Numbers Fun
 
@@ -44,12 +42,22 @@ The applications are designed to work perfectly on desktops, tablets (iPad, Andr
 ### 4. Let's Spell
 
 * **Location:** `/Spelling/`
-* **Description:** A simple spelling game where children look at an image and click the correct letters in order to spell the word.
+* **Description:** A multi-game app focused on basic spelling skills.
 * **Features:**
-    * Features common words like 'cat', 'dog', and 'sun' with accompanying images.
-    * Presents letter blanks and a shuffled set of letter buttons for the child to choose from.
+    * **Spell the Word:** Spell a word (like 'cat' or 'dog') by choosing letters in the correct order to match an image.
+    * **Missing Letter:** Find and select the single missing letter from a word (e.g., 'C_T').
+    * **Spell the Color:** Spell the name of a color (e.g., 'red', 'blue') shown in a box.
     * Provides immediate audio feedback for correct or incorrect letter choices.
-    * Includes a "Next Word" button that appears after a word is spelled correctly.
+
+### 5. Video Time
+
+* **Location:** `/VideoTime/`
+* **Description:** A simple, timer-controlled portal for watching curated, parent-approved videos.
+* **Features:**
+    * Loads pre-configured YouTube playlists or single videos set in `config.js`.
+    * Tracks watch time against a set limit (e.g., 30 minutes).
+    * Includes a lockout "cooldown" period after time is up (e.g., 60 minutes) to help manage screen time.
+    * A "Back" button allows returning to the main video menu.
 
 ## How to Download
 
@@ -57,7 +65,7 @@ If you are on the GitHub page for this project:
 
 1.  Click the green **"<> Code"** button near the top of the file list.
 2.  Select **"Download ZIP"** from the dropdown menu.
-3.  Unzip the file on your computer. You will have the `Main` folder containing all the project files.
+3.  Unzip the file on your computer. You will have the main folder containing all the project files.
 
 ## How to Run This Project
 
@@ -69,10 +77,10 @@ Do not just open the `index.html` file directly from your folder (i.e., `file://
 
 1.  **Using VS Code:**
     * Install the **"Live Server"** extension.
-    * Right-click on the main `Main/index.html` file and choose "Open with Live Server".
+    * Right-click on the main `index.html` file and choose "Open with Live Server".
 
 2.  **Using Python:**
-    * Open a terminal or command prompt in the `Main` folder.
+    * Open a terminal or command prompt in the main project folder.
     * Run the command: `python -m http.server` (or `python3 -m http.server` on Mac/Linux).
     * Open your browser and go to `http://localhost:8000`.
 
@@ -86,4 +94,5 @@ Do not just open the `index.html` file directly from your folder (i.e., `file://
 * **JavaScript (ES6+)**
 * **Web Speech API:** Provides the text-to-speech for the Alphabet and Number apps.
 * **Konva.js:** A 2D HTML5 canvas library used for the Coloring Book and the Number Tracing game.
+* **YouTube iFrame API:** Used by the Video Time app to embed and control videos.
 * **Font Awesome:** Used for icons (like the "Home" button).

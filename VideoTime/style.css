@@ -241,3 +241,41 @@ html, body {
         margin-top: 10px;
     }
 }
+/* ... add this to the end of the file ... */
+
+#player-header {
+    /* Add this to allow buttons to wrap on small screens */
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#custom-controls {
+    display: flex;
+    gap: 10px;
+}
+/* Make Play button green */
+#play-btn { background-color: #4CAF50; color: white; border-color: #4CAF50; }
+/* Make Pause button yellow */
+#pause-btn { background-color: #ffeb3b; color: #333; border-color: #ffeb3b; }
+
+
+#player-wrapper {
+    /* ... existing styles ... */
+
+    /* CHANGE: Add position: relative */
+    position: relative;
+    /* ... */
+}
+
+/* NEW OVERLAY STYLE */
+#player-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    /* This is transparent, so the user sees the video,
+       but it "catches" all the clicks. */
+    background-color: transparent;
+}

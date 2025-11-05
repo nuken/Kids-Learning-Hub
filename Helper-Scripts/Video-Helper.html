@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video List Maker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Comic Neue', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2, h3 { text-align: center; }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            font-family: 'Comic Neue', sans-serif;
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            box-sizing: border-box; /* Important */
+        }
+        .admin-btn {
+            font-family: 'Comic Neue', sans-serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #current-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        #current-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        #current-list .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        #json-output {
+            width: 100%;
+            height: 250px;
+            font-family: monospace;
+            font-size: 1em;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+        #copy-btn {
+            background-color: #007BFF;
+            width: auto;
+            display: block;
+            margin: 10px auto 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Video List Maker</h1>
+        <p>Use this form to build your video list. When you're done, copy the text from the output box and paste it into your `videos.json` file on the server.</p>
+
+        <hr>
+
+        <h3>Step 1: Add Your Videos</h3>
+        <form id="video-form">
+            <div class="form-group">
+                <label for="video-title">Title</label>
+                <input type="text" id="video-title" required placeholder="e.g., Danny Go">
+            </div>
+            <div class="form-group">
+                <label for="video-id">Video or Playlist ID</label>
+                <input type="text" id="video-id" required placeholder="e.g., PL-i89lrKRaYSWRV0tVDGnxpCKyBr1BXV0">
+            </div>
+            <div class="form-group">
+                <label for="video-type">Type</label>
+                <select id="video-type">
+                    <option value="playlist">Playlist</option>
+                    <option value="video">Single Video</option>
+                </select>
+            </div>
+            <button type="submit" class="admin-btn">Add Video to List</button>
+        </form>
+
+        <hr style="margin: 25px 0;">
+
+        <h3>Step 2: Review Your List</h3>
+        <ul id="current-list">
+            <li>Your list is empty.</li>
+        </ul>
+
+        <hr style="margin: 25px 0;">
+
+        <h3>Step 3: Copy Your File Content</h3>
+        <label for="json-output"><strong>Copy this text into `videos.json`:</strong></label>
+        <textarea id="json-output" readonly></textarea>
+        <button id="copy-btn" class="admin-btn">Copy to Clipboard</button>
+    </div>
+
+    <script>
+        const videoForm = document.getElementById('video-form');
+        const videoTitle = document.getElementById('video-title');
+        const videoId = document.getElementById('video-id');
+        const videoType = document.getElementById('video-type');
+        const currentList = document.getElementById('current-list');
+        const jsonOutput = document.getElementById('json-output');
+        const copyBtn = document.getElementById('copy-btn');
+
+        let videoList = [];
+
+        function renderList() {
+            currentList.innerHTML = ''; // Clear list
+            if (videoList.length === 0) {
+                currentList.innerHTML = '<li>Your list is empty.</li>';
+                return;
+            }
+
+            videoList.forEach((video, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span><strong>${video.title}</strong> (Type: ${video.type})</span>
+                    <button class="remove-btn" data-index="${index}">Remove</button>
+                `;
+                currentList.appendChild(li);
+            });
+
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', handleRemove);
+            });
+        }
+
+        function generateJson() {
+            // The JSON.stringify(..., null, 2) makes it "pretty-printed"
+            jsonOutput.value = JSON.stringify(videoList, null, 2);
+        }
+
+        function handleAdd(e) {
+            e.preventDefault();
+            const newVideo = {
+                id: videoId.value.trim(),
+                title: videoTitle.value.trim(),
+                type: videoType.value
+            };
+
+            if (!newVideo.id || !newVideo.title) return;
+
+            videoList.push(newVideo);
+            renderList();
+            generateJson();
+            videoForm.reset();
+        }
+
+        function handleRemove(e) {
+            const indexToRemove = parseInt(e.target.dataset.index);
+            videoList = videoList.filter((_, index) => index !== indexToRemove);
+            renderList();
+            generateJson();
+        }
+
+        function copyToClipboard() {
+            jsonOutput.select();
+            document.execCommand('copy');
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 1500);
+        }
+
+        // --- Attach Listeners ---
+        videoForm.addEventListener('submit', handleAdd);
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        // --- Initial Call ---
+        renderList();
+        generateJson();
+
+    </script>
+</body>
+</html>

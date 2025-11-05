@@ -68,86 +68,63 @@ window.speechSynthesis.onvoiceschanged = loadVoices;
 
 
 /**
-     * The robust text-to-speech function.
-     * @param {string} text - The text to speak.
-     * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
-     */
-    function speakText(text, onEndCallback) {
-        // Cancel any previous speech
-        window.speechSynthesis.cancel();
+ * The robust, Safari-compatible text-to-speech function.
+ * @param {string} text - The text to speak.
+ * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
+ */
+function speakText(text, onEndCallback) {
+    // Always cancel any previous speech to avoid overlaps.
+    window.speechSynthesis.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US'; // Set desired language
-        utterance.rate = 0.9;
+    // If the voice list is still empty, make another attempt to load them.
+    // This is a crucial step for Safari.
+    if (voiceList.length === 0) {
+        loadVoices();
+    }
 
-        // Handle the optional callback
-        if (onEndCallback) {
-            utterance.onend = onEndCallback;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9; // A good rate for kids
+
+    // Set the language as a fallback. This is the most important property
+    // if a specific voice cannot be found or assigned.
+    utterance.lang = 'en-US';
+
+    if (onEndCallback) {
+        utterance.onend = onEndCallback;
+    }
+
+    // Only try to select a specific voice if the list has been populated.
+    if (voiceList.length > 0) {
+        let selectedVoice = null;
+
+        // --- Voice Selection Logic ---
+        // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
+        selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
+
+        // 2. If not found, look for any voice that is the browser's default for US English.
+        if (!selectedVoice) {
+            selectedVoice = voiceList.find(v => v.lang === 'en-US' && v.default);
         }
 
-        // Check if voiceList is empty and try to load it synchronously
-        if (voiceList.length === 0) {
-            voiceList = window.speechSynthesis.getVoices();
+        // 3. If still no voice, just grab the very first US English voice available.
+        if (!selectedVoice) {
+            selectedVoice = voiceList.find(v => v.lang === 'en-US');
         }
 
-        // Use the pre-loaded voice list if available
-        if (voiceList.length > 0) {
-
-            let selectedVoice = null;
-
-            // --- OS-Specific Logic ---
-            const isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
-
-            if (isMobile) {
-                // --- Mobile Logic (iOS & Android) ---
-                // 1. Try iOS high-quality ("Samantha")
-                selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang.startsWith('en-'));
-
-                // 2. Try Android high-quality ("Google")
-                if (!selectedVoice) {
-                    selectedVoice = voiceList.find(v => v.lang.startsWith('en-') && v.name.includes('Google'));
-                }
-
-                // 3. Fallback for other high-quality mobile (e.g., "Daniel")
-                if (!selectedVoice) {
-                    const preferredVoiceNames = ['Daniel', 'Alex', 'Allison'];
-                    for (const name of preferredVoiceNames) {
-                        selectedVoice = voiceList.find(v => v.name === name && v.lang.startsWith('en-'));
-                        if (selectedVoice) break;
-                    }
-                }
-
-                // 4. Fallback for any en- on mobile
-                if (!selectedVoice) {
-                    selectedVoice = voiceList.find(v => v.lang.startsWith('en-'));
-                }
-
-            } else {
-                // --- PC/Other Logic ---
-                selectedVoice = voiceList.find(v => v.name.includes('Google') && v.lang.includes('en'));
-                if (!selectedVoice) {
-                    selectedVoice = voiceList.find(v => v.lang.includes('en-US') || v.default);
-                }
-            }
-
-            // Assign the voice if we found one
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-                
-                // --- THIS IS THE FIX FOR THE FRENCH VOICE ---
-                // Always set the utterance's lang to match the found voice's lang.
-                // This prevents iOS from ignoring the language and defaulting to French.
-                utterance.lang = selectedVoice.lang;
-                // --- END OF FIX ---
-            }
-
-            window.speechSynthesis.speak(utterance);
-
-        } else {
-            // Fallback: just speak
-            window.speechSynthesis.speak(utterance);
+        // If we successfully found a voice, assign it to the utterance.
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            // **CRITICAL SAFARI FIX**: Re-set the lang property from the
+            // voice object itself. This strongly tells Safari which synthesizer to use.
+            utterance.lang = selectedVoice.lang;
         }
     }
+
+    // Finally, speak. For Safari, this first call to speak() might be what
+    // actually triggers the voice list to load for all subsequent calls.
+    window.speechSynthesis.speak(utterance);
+}
+
 // --- END: NEW SPEECH SYSTEM ---
 
     // Wait for the page to be fully loaded

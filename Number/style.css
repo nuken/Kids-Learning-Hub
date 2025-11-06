@@ -342,9 +342,39 @@ h2 {
         border-width: 2px;
         border-radius: 15px;
     }
+
+    /* --- Egg-dition Game Specifics --- */
+    #egg-problem-container {
+        flex-wrap: wrap; /* This is the main fix! Allows wrapping */
+        gap: 10px;       /* Tighter gap between items */
+        margin: 10px 0;
+    }
+
+    .egg-group {
+        min-height: 60px; /* Make the boxes smaller */
+        padding: 8px;
+        gap: 5px;         /* Tighter gap between eggs */
+    }
+
+    .egg {
+        width: 30px;      /* Make the eggs smaller */
+        height: 42px;
+    }
+
+    .math-symbol, .blank-answer {
+        font-size: 3em;   /* Make the symbols smaller */
+    }
+
+    #egg-solution-container {
+        min-height: 80px; /* Adjust the "nest" size */
+        width: 90%;
+    }
+
+    #egg-choices {
+        padding-bottom: 20px; /* Add space at the very bottom */
+    }
 }
 /* --- END: PHONE PORTRAIT FIXES --- */
-
 /* --- START: PHONE LANDSCAPE FIXES (All Games) --- */
 
 /* Targets phones in landscape view (short and wide) */

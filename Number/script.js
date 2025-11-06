@@ -532,9 +532,14 @@ function handleEggChoiceClick(e) {
 
     if (clickedValue === currentEggProblem.answer) {
         e.target.classList.add('correct');
-        // Use speakText for feedback
-        speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`);
-        setTimeout(generateEggProblem, 2000); // New problem
+
+        // Use speakText with the callback
+        speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`, () => {
+            // This function will ONLY run after the speech finishes.
+            // I added a small extra delay so it doesn't feel too sudden.
+            setTimeout(generateEggProblem, 500); // New problem
+        });
+
     } else {
         e.target.classList.add('incorrect');
         speakText("Oops, try again!");

@@ -18,7 +18,8 @@
         const gameButtons = {
             'start-counting-btn': 'counting-game',
             'start-tracing-btn': 'tracing-game',
-            'start-patterns-btn': 'patterns-game'
+            'start-patterns-btn': 'patterns-game',
+            'start-egg-dition-btn': 'egg-dition-game'
         };
 
         // Function to switch screens
@@ -35,6 +36,7 @@
                 if (screenId === 'counting-game') startCountingGame();
                 if (screenId === 'tracing-game') initTracingGame();
                 if (screenId === 'patterns-game') startPatternsGame();
+                if (screenId === 'egg-dition-game') startEggDitionGame();
             }
         }
 
@@ -438,6 +440,111 @@ function speakText(text, onEndCallback) {
                 }, 1000);
             }
         }
+        // ==========================================================
+// --- GAME 4: EGG-DITION GAME ---
+// ==========================================================
+const eggGroup1 = document.getElementById('egg-group-1');
+const eggGroup2 = document.getElementById('egg-group-2');
+const eggSolutionContainer = document.getElementById('egg-solution-container');
+const eggChoicesContainer = document.getElementById('egg-choices');
+
+let currentEggProblem = {};
+const eggColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7D842', '#84DCC6', '#FFA07A'];
+
+function startEggDitionGame() {
+    generateEggProblem();
+}
+
+function createEgg(color) {
+    const egg = document.createElement('div');
+    egg.className = 'egg';
+    egg.style.backgroundColor = color;
+    return egg;
+}
+
+function generateEggProblem() {
+    // Simple problems, sum less than 10
+    const num1 = Math.floor(Math.random() * 4) + 1; // 1 to 4
+    let num2 = Math.floor(Math.random() * 4) + 1; // 1 to 4
+    const answer = num1 + num2;
+
+    // Ensure sum is not too high, e.g., max 8
+    if (answer > 8) {
+        num2 = 1; // Adjust if too high
+    }
+
+    currentEggProblem = { num1, num2, answer };
+
+    // Pick two different colors
+    const color1 = eggColors[Math.floor(Math.random() * eggColors.length)];
+    let color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
+    while (color1 === color2) {
+        color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
+    }
+
+    // Clear previous problem
+    eggGroup1.innerHTML = '';
+    eggGroup2.innerHTML = '';
+    eggSolutionContainer.innerHTML = '';
+    eggChoicesContainer.innerHTML = '';
+
+    // 1. Show the first group of eggs
+    for (let i = 0; i < num1; i++) {
+        eggGroup1.appendChild(createEgg(color1));
+    }
+
+    // 2. Show the second group of eggs
+    for (let i = 0; i < num2; i++) {
+        eggGroup2.appendChild(createEgg(color2));
+    }
+
+    // 3. Show the combined eggs
+    for (let i = 0; i < num1; i++) {
+        eggSolutionContainer.appendChild(createEgg(color1));
+    }
+    for (let i = 0; i < num2; i++) {
+        eggSolutionContainer.appendChild(createEgg(color2));
+    }
+
+    // 4. Create choices (re-using logic from Patterns game)
+    // We can reuse the generateChoices function from the patterns game
+    const choices = generateChoices(answer);
+    choices.sort(() => Math.random() - 0.5); // Shuffle
+
+    choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.classList.add('choice-btn'); // Reuse pattern choice style
+        btn.textContent = choice;
+        btn.dataset.value = choice;
+        btn.addEventListener('click', handleEggChoiceClick);
+        eggChoicesContainer.appendChild(btn);
+    });
+
+    // 5. Use speakText
+    speakText(`What is ${num1} plus ${num2}?`);
+}
+
+function handleEggChoiceClick(e) {
+    const clickedValue = parseInt(e.target.dataset.value);
+
+    // Disable all buttons
+    eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+    if (clickedValue === currentEggProblem.answer) {
+        e.target.classList.add('correct');
+        // Use speakText for feedback
+        speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`);
+        setTimeout(generateEggProblem, 2000); // New problem
+    } else {
+        e.target.classList.add('incorrect');
+        speakText("Oops, try again!");
+        // Re-enable buttons after a moment
+        setTimeout(() => {
+            e.target.classList.remove('incorrect');
+            eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }, 1000);
+    }
+}
 
     });
 

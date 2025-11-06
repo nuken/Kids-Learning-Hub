@@ -30,6 +30,9 @@
         'Y': 'Yo-yo',
         'Z': 'Zebra'
     };
+    
+    // NEW: Full alphabet for Level 2
+    const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     // This function generates a random bright color (RGB between 100-250)
     function getRandomBrightColor() {
@@ -127,6 +130,18 @@ function speakText(text, onEndCallback) {
 
 // --- END: NEW SPEECH SYSTEM ---
 
+    // --- NEW: Sound playback function (from Spelling game) ---
+    async function playSound(sound) {
+        sound.currentTime = 0; // Rewind to start
+        try {
+            await sound.play();
+        } catch (err) {
+            // Log the error but don't crash the app
+            console.error("Audio play failed:", err);
+        }
+    }
+
+
     // Wait for the page to be fully loaded
     document.addEventListener('DOMContentLoaded', () => {
         // --- ADD THIS LINE TO UNLOCK SPEECH ---
@@ -135,17 +150,30 @@ function speakText(text, onEndCallback) {
         }
         // --- END OF ADDITION ---
         const container = document.getElementById('alphabet-container');
-        const resetButton = document.getElementById('reset-button');
+        
+        // MODIFIED: Renamed reset button
+        const level1Button = document.getElementById('level-1-button');
+        
         const colorPalette = document.getElementById('color-palette');
         const bodyElement = document.body;
-
         const speechToggleButton = document.getElementById('speech-toggle-button');
-
-        // --- MODIFICATION ---
-        // Get the new button
         const caseToggleButton = document.getElementById('case-toggle-button');
-        // --- END MODIFICATION ---
 
+        // --- NEW: Level 2 Elements ---
+        const level2Button = document.getElementById('level-2-button');
+        const alphabetPrompt = document.getElementById('alphabet-prompt');
+        
+        // --- THIS IS THE ONLY CHANGE ---
+        // The path is now direct, since the 'sounds' folder is inside
+        // the 'Alphabet' folder, next to this script.
+        const goodSound = new Audio('sounds/correct.mp3');
+        const badSound = new Audio('sounds/wrong.mp3');
+        // --- END OF CHANGE ---
+
+        // --- NEW: Game State ---
+        let currentGameMode = 'level1'; // 'level1' or 'level2'
+        let currentTargetLetter = null; // For Level 2
+        
         // --- MODIFIED: State names and button text ---
         let speechMode = 'letter'; // Can be 'letter' or 'letterAndWord'
         speechToggleButton.textContent = 'Switch to Words'; // Set initial button text
@@ -154,8 +182,6 @@ function speakText(text, onEndCallback) {
         // Add state for letter case
         let caseMode = 'upper'; // Can be 'upper' or 'lower'
         // --- END MODIFICATION ---
-
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
         // ... your colorPalette listener ...
         colorPalette.addEventListener('click', (event) => {
@@ -195,7 +221,7 @@ function speakText(text, onEndCallback) {
         // --- END MODIFICATION ---
 
         // --- 1. Create all the letter blocks ---
-        alphabet.forEach(letter => {
+        ALPHABET.forEach(letter => {
             const letterBox = document.createElement('div');
             letterBox.classList.add('letter-box');
 
@@ -216,28 +242,28 @@ function speakText(text, onEndCallback) {
 
         // --- 2. Create the function that handles the interaction ---
         function handleInteraction(targetElement) {
-            // Check if it's a letter box and hasn't been visited yet (using our new data-hasVisited flag)
-            if (targetElement.classList.contains('letter-box') && !targetElement.dataset.hasVisited) {
-
-                // --- MODIFICATION ---
-                // We always use the 'letter' dataset (which is uppercase)
-                // for speech and logic, regardless of what's displayed.
+            // Check if it's a letter box
+            if (!targetElement.classList.contains('letter-box')) return;
+            
+            // --- NEW: Route logic based on game mode ---
+            if (currentGameMode === 'level1') {
+                handleLevel1Click(targetElement);
+            } else if (currentGameMode === 'level2') {
+                handleLevel2Click(targetElement);
+            }
+        }
+        
+        // --- NEW: Logic for Level 1 (Original Game) ---
+        function handleLevel1Click(targetElement) {
+            // hasn't been visited yet
+            if (!targetElement.dataset.hasVisited) {
                 const letter = targetElement.dataset.letter;
-                // --- END MODIFICATION ---
 
                 // Generate a random bright background color
                 const randomBgColor = getRandomBrightColor();
-
-                // Set the background color directly
                 targetElement.style.backgroundColor = randomBgColor;
-
-                // Set the text color to white for contrast
                 targetElement.style.color = 'white';
-
-                // Make the border match the background
                 targetElement.style.borderColor = randomBgColor;
-
-                // Apply the scale effect directly
                 targetElement.style.transform = 'scale(1.05)';
 
                 // Mark this letter as visited using a data attribute
@@ -247,6 +273,35 @@ function speakText(text, onEndCallback) {
                 speakLetter(letter);
             }
         }
+        
+        // --- NEW: Logic for Level 2 (New Game) ---
+        function handleLevel2Click(targetElement) {
+            // Don't do anything if the box is already marked
+            if (targetElement.classList.contains('correct') || targetElement.classList.contains('wrong')) {
+                return;
+            }
+
+            const clickedLetter = targetElement.dataset.letter;
+
+            if (clickedLetter === currentTargetLetter) {
+                // CORRECT
+                playSound(goodSound);
+                targetElement.classList.add('correct');
+                speakText(`You found ${currentTargetLetter}!`, () => {
+                    // After speech, wait a moment then pick a new letter
+                    setTimeout(pickNewTargetLetter, 1000);
+                });
+            } else {
+                // WRONG
+                playSound(badSound);
+                targetElement.classList.add('wrong');
+                // Remove the 'wrong' class after the shake animation
+                setTimeout(() => {
+                    targetElement.classList.remove('wrong');
+                }, 500);
+            }
+        }
+
 
         // --- 3. Create the function that speaks (--- MODIFIED ---) ---
         function speakLetter(letter) {
@@ -292,6 +347,9 @@ function speakText(text, onEndCallback) {
 
         // This handles "running a finger over" the letters
         container.addEventListener('touchmove', (event) => {
+            // --- NEW: Only run this interaction for level 1 ---
+            if (currentGameMode !== 'level1') return;
+            
             // Find the element that is *currently* under the user's finger
             const touch = event.touches[0];
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -303,15 +361,31 @@ function speakText(text, onEndCallback) {
 
         // This does the same for a mouse (for testing on your computer)
         container.addEventListener('mouseover', (event) => {
+            // --- NEW: Only run this interaction for level 1 ---
+            if (currentGameMode !== 'level1') return;
+
             // 'event.buttons === 1' means it only works if the mouse button is held down
             if (event.buttons === 1) {
                 handleInteraction(event.target);
             }
         });
 
-        // --- 5. Make the reset button work --- (Now #6)
-        resetButton.addEventListener('click', () => {
-            const allBoxes = document.querySelectorAll('.letter-box'); // Select ALL letter boxes
+        // --- 5. Make the level buttons work --- (Now #6)
+        
+        // MODIFIED: This is now the Level 1 button
+        level1Button.addEventListener('click', startLevel1);
+        
+        // NEW: Add listener for Level 2
+        level2Button.addEventListener('click', startLevel2);
+        
+        
+        // --- NEW: Functions to start/reset levels ---
+        
+        function startLevel1() {
+            currentGameMode = 'level1';
+            bodyElement.classList.remove('level-2-active'); // Use CSS to hide/show elements
+            
+            const allBoxes = document.querySelectorAll('.letter-box');
             allBoxes.forEach(box => {
                 // Clear the inline styles and the 'hasVisited' flag
                 box.style.backgroundColor = ''; // Reverts to default from CSS
@@ -319,6 +393,9 @@ function speakText(text, onEndCallback) {
                 box.style.borderColor = '';     // Reverts to default from CSS
                 box.style.transform = '';       // Reverts to default
                 delete box.dataset.hasVisited;  // Remove the flag
+                
+                // NEW: Clear level 2 classes
+                box.classList.remove('correct', 'wrong');
             });
 
             // --- MODIFICATION ---
@@ -327,10 +404,44 @@ function speakText(text, onEndCallback) {
             caseToggleButton.textContent = 'Switch to Lowercase';
             updateCase(); // Update the letters back to uppercase
             // --- END MODIFICATION ---
+        }
+        
+        function startLevel2() {
+            currentGameMode = 'level2';
+            bodyElement.classList.add('level-2-active'); // Use CSS to hide/show elements
 
-            // Optional: announce "Reset"
-            //speakText('Reset!');
-        });
+            // Force uppercase for Level 2
+            caseMode = 'upper';
+            updateCase();
+            
+            // Clear all styles from Level 1
+            const allBoxes = document.querySelectorAll('.letter-box');
+            allBoxes.forEach(box => {
+                box.style.backgroundColor = '';
+                box.style.color = '';
+                box.style.borderColor = '';
+                box.style.transform = '';
+                delete box.dataset.hasVisited;
+            });
+
+            pickNewTargetLetter();
+        }
+        
+        function pickNewTargetLetter() {
+            // Clear all correct/wrong markers
+            document.querySelectorAll('.letter-box').forEach(box => {
+                box.classList.remove('correct', 'wrong');
+            });
+        
+            // Pick a new random letter
+            currentTargetLetter = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+            
+            // Update and speak the prompt
+            alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
+            speakText(`Find ${currentTargetLetter}`);
+        }
+        
+        // --- END NEW FUNCTIONS ---
 
     });
 

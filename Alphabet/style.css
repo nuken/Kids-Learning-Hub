@@ -40,6 +40,16 @@ h1 {
     transform: scale(1.1);
 }
 
+/* --- NEW: Alphabet Prompt Style --- */
+#alphabet-prompt {
+    display: none; /* Hidden by default */
+    font-size: 2em;
+    font-weight: 700;
+    color: #333;
+    margin: 10px 0;
+}
+
+
 /* --- Alphabet Grid Styles --- */
 #alphabet-container {
     display: grid;
@@ -106,7 +116,8 @@ h1 {
     font-weight: 700;
 }
 
-#reset-button {
+/* MODIFIED: Renamed button */
+#level-1-button {
     background-color: #007BFF;
 }
 
@@ -118,6 +129,58 @@ h1 {
     background-color: #f0ad4e; /* A friendly orange */
 }
 
+/* NEW: Style for Level 2 button */
+#level-2-button {
+    background-color: #dc3545; /* Red */
+}
+
+
+/* --- NEW: Level 2 Game Styles --- */
+
+/* When level 2 is active, show the prompt */
+.level-2-active #alphabet-prompt {
+    display: block;
+}
+
+/* When level 2 is active, hide the color palette and other controls */
+.level-2-active #color-palette,
+.level-2-active #speech-toggle-button,
+.level-2-active #case-toggle-button {
+    display: none;
+}
+
+/* Reset letter boxes for Level 2 */
+.level-2-active .letter-box {
+    background-color: #ffffff;
+    color: #333;
+    border-color: #cccccc;
+    transform: none;
+}
+
+/* Style for a correct guess */
+.level-2-active .letter-box.correct {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border-color: #4CAF50;
+    transform: scale(1.1);
+}
+
+/* Style for a wrong guess */
+.level-2-active .letter-box.wrong {
+    background-color: #f44336; /* Red */
+    color: white;
+    border-color: #f44336;
+    animation: shake 0.5s;
+}
+
+/* NEW: Shake animation (from Spelling game) */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  50% { transform: translateX(10px); }
+  75% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
 
 
 /* ==============================================
@@ -128,6 +191,12 @@ h1 {
     h1 {
         font-size: 1.8em;
         margin: 10px 0;
+    }
+    
+    /* NEW: Responsive prompt */
+    #alphabet-prompt {
+        font-size: 1.5em;
+        margin: 5px 0;
     }
 
     #color-palette {

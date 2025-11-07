@@ -30,7 +30,7 @@
         'Y': 'Yo-yo',
         'Z': 'Zebra'
     };
-    
+
     // NEW: Full alphabet for Level 2
     const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -150,10 +150,10 @@ function speakText(text, onEndCallback) {
         }
         // --- END OF ADDITION ---
         const container = document.getElementById('alphabet-container');
-        
+
         // MODIFIED: Renamed reset button
         const level1Button = document.getElementById('level-1-button');
-        
+
         const colorPalette = document.getElementById('color-palette');
         const bodyElement = document.body;
         const speechToggleButton = document.getElementById('speech-toggle-button');
@@ -162,18 +162,18 @@ function speakText(text, onEndCallback) {
         // --- NEW: Level 2 Elements ---
         const level2Button = document.getElementById('level-2-button');
         const alphabetPrompt = document.getElementById('alphabet-prompt');
-        
-        // --- THIS IS THE ONLY CHANGE ---
-        // The path is now direct, since the 'sounds' folder is inside
-        // the 'Alphabet' folder, next to this script.
+
+        // --- Corrected path to sounds folder ---
         const goodSound = new Audio('sounds/correct.mp3');
         const badSound = new Audio('sounds/wrong.mp3');
-        // --- END OF CHANGE ---
 
         // --- NEW: Game State ---
         let currentGameMode = 'level1'; // 'level1' or 'level2'
         let currentTargetLetter = null; // For Level 2
-        
+
+        // --- NEW: List for "Sticker Book" mode ---
+        let lettersToFind = [];
+
         // --- MODIFIED: State names and button text ---
         let speechMode = 'letter'; // Can be 'letter' or 'letterAndWord'
         speechToggleButton.textContent = 'Switch to Words'; // Set initial button text
@@ -244,7 +244,7 @@ function speakText(text, onEndCallback) {
         function handleInteraction(targetElement) {
             // Check if it's a letter box
             if (!targetElement.classList.contains('letter-box')) return;
-            
+
             // --- NEW: Route logic based on game mode ---
             if (currentGameMode === 'level1') {
                 handleLevel1Click(targetElement);
@@ -252,7 +252,7 @@ function speakText(text, onEndCallback) {
                 handleLevel2Click(targetElement);
             }
         }
-        
+
         // --- NEW: Logic for Level 1 (Original Game) ---
         function handleLevel1Click(targetElement) {
             // hasn't been visited yet
@@ -273,23 +273,39 @@ function speakText(text, onEndCallback) {
                 speakLetter(letter);
             }
         }
-        
-        // --- NEW: Logic for Level 2 (New Game) ---
+
+        // --- NEW: Logic for Level 2 (Sticker Book Mode) ---
         function handleLevel2Click(targetElement) {
-            // Don't do anything if the box is already marked
-            if (targetElement.classList.contains('correct') || targetElement.classList.contains('wrong')) {
+            // Don't do anything if the box is already found or marked wrong
+            if (targetElement.classList.contains('found') || targetElement.classList.contains('wrong')) {
                 return;
             }
 
             const clickedLetter = targetElement.dataset.letter;
 
             if (clickedLetter === currentTargetLetter) {
-                // CORRECT
+                // CORRECT!
                 playSound(goodSound);
-                targetElement.classList.add('correct');
+
+                // 1. Fill it with a permanent random color
+                const randomBgColor = getRandomBrightColor();
+                targetElement.style.backgroundColor = randomBgColor;
+                targetElement.style.color = 'white';
+                targetElement.style.borderColor = randomBgColor;
+                targetElement.classList.add('found'); // Mark as found
+
+                // 2. Remove it from the list of letters to find
+                lettersToFind = lettersToFind.filter(l => l !== currentTargetLetter);
+
+                // 3. Speak feedback, then pick the next letter
                 speakText(`You found ${currentTargetLetter}!`, () => {
-                    // After speech, wait a moment then pick a new letter
-                    setTimeout(pickNewTargetLetter, 1000);
+                    // Check if the game is over
+                    if (lettersToFind.length === 0) {
+                        finishLevel2();
+                    } else {
+                        // Otherwise, pick the next letter
+                        pickNewTargetLetter();
+                    }
                 });
             } else {
                 // WRONG
@@ -349,7 +365,7 @@ function speakText(text, onEndCallback) {
         container.addEventListener('touchmove', (event) => {
             // --- NEW: Only run this interaction for level 1 ---
             if (currentGameMode !== 'level1') return;
-            
+
             // Find the element that is *currently* under the user's finger
             const touch = event.touches[0];
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -371,76 +387,85 @@ function speakText(text, onEndCallback) {
         });
 
         // --- 5. Make the level buttons work --- (Now #6)
-        
+
         // MODIFIED: This is now the Level 1 button
         level1Button.addEventListener('click', startLevel1);
-        
+
         // NEW: Add listener for Level 2
         level2Button.addEventListener('click', startLevel2);
-        
-        
+
+
         // --- NEW: Functions to start/reset levels ---
-        
-        function startLevel1() {
-            currentGameMode = 'level1';
-            bodyElement.classList.remove('level-2-active'); // Use CSS to hide/show elements
-            
+
+        function clearAllBoxes() {
             const allBoxes = document.querySelectorAll('.letter-box');
             allBoxes.forEach(box => {
-                // Clear the inline styles and the 'hasVisited' flag
-                box.style.backgroundColor = ''; // Reverts to default from CSS
-                box.style.color = '';           // Reverts to default from CSS
-                box.style.borderColor = '';     // Reverts to default from CSS
-                box.style.transform = '';       // Reverts to default
-                delete box.dataset.hasVisited;  // Remove the flag
-                
-                // NEW: Clear level 2 classes
-                box.classList.remove('correct', 'wrong');
-            });
-
-            // --- MODIFICATION ---
-            // Also reset the case mode and button text
-            caseMode = 'upper';
-            caseToggleButton.textContent = 'Switch to Lowercase';
-            updateCase(); // Update the letters back to uppercase
-            // --- END MODIFICATION ---
-        }
-        
-        function startLevel2() {
-            currentGameMode = 'level2';
-            bodyElement.classList.add('level-2-active'); // Use CSS to hide/show elements
-
-            // Force uppercase for Level 2
-            caseMode = 'upper';
-            updateCase();
-            
-            // Clear all styles from Level 1
-            const allBoxes = document.querySelectorAll('.letter-box');
-            allBoxes.forEach(box => {
+                // Clear inline styles
                 box.style.backgroundColor = '';
                 box.style.color = '';
                 box.style.borderColor = '';
                 box.style.transform = '';
+                // Clear state flags
                 delete box.dataset.hasVisited;
+                // Clear level 2 classes
+                box.classList.remove('found', 'wrong');
             });
+        }
 
+        function startLevel1() {
+            currentGameMode = 'level1';
+            bodyElement.classList.remove('level-2-active'); // Use CSS to hide/show elements
+
+            clearAllBoxes();
+
+            // Also reset the case mode and button text
+            caseMode = 'upper';
+            caseToggleButton.textContent = 'Switch to Lowercase';
+            updateCase(); // Update the letters back to uppercase
+        }
+
+        function startLevel2() {
+            currentGameMode = 'level2';
+            bodyElement.classList.add('level-2-active'); // Use CSS to hide/show elements
+
+            // --- MODIFICATION ---
+            // The two lines that forced uppercase have been REMOVED.
+            // The game will now respect the current `caseMode`.
+            // --- END OF MODIFICATION ---
+
+            // Clear all styles and classes from all boxes
+            clearAllBoxes();
+
+            // Create a fresh list of all letters to find
+            lettersToFind = [...ALPHABET];
+
+            // Start the game by picking the first letter
             pickNewTargetLetter();
         }
-        
+
         function pickNewTargetLetter() {
-            // Clear all correct/wrong markers
-            document.querySelectorAll('.letter-box').forEach(box => {
-                box.classList.remove('correct', 'wrong');
-            });
-        
-            // Pick a new random letter
-            currentTargetLetter = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
-            
+            // This shouldn't happen, but good to check
+            if (lettersToFind.length === 0) {
+                finishLevel2();
+                return;
+            }
+
+            // Pick a new random letter *from the remaining list*
+            currentTargetLetter = lettersToFind[Math.floor(Math.random() * lettersToFind.length)];
+
             // Update and speak the prompt
             alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
             speakText(`Find ${currentTargetLetter}`);
         }
-        
+
+        function finishLevel2() {
+            alphabetPrompt.textContent = "You found them all!";
+            speakText("You found them all! Great job!", () => {
+                // After 2 seconds, restart Level 2
+                setTimeout(startLevel2, 2000);
+            });
+        }
+
         // --- END NEW FUNCTIONS ---
 
     });

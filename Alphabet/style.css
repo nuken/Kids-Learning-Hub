@@ -142,12 +142,13 @@ h1 {
     display: block;
 }
 
-/* When level 2 is active, hide the color palette and other controls */
-.level-2-active #color-palette,
-.level-2-active #speech-toggle-button,
-.level-2-active #case-toggle-button {
+/* --- MODIFICATION --- */
+/* When level 2 is active, ONLY hide the speech toggle button */
+.level-2-active #speech-toggle-button {
     display: none;
 }
+/* --- END OF MODIFICATION --- */
+
 
 /* Reset letter boxes for Level 2 */
 .level-2-active .letter-box {
@@ -157,14 +158,6 @@ h1 {
     transform: none;
 }
 
-/* Style for a correct guess */
-.level-2-active .letter-box.correct {
-    background-color: #4CAF50; /* Green */
-    color: white;
-    border-color: #4CAF50;
-    transform: scale(1.1);
-}
-
 /* Style for a wrong guess */
 .level-2-active .letter-box.wrong {
     background-color: #f44336; /* Red */
@@ -172,6 +165,19 @@ h1 {
     border-color: #f44336;
     animation: shake 0.5s;
 }
+
+/* --- NEW: Style for permanently found letters --- */
+/* This stops the :active pop effect on letters already found */
+.level-2-active .letter-box.found {
+    transform: scale(1.0);
+    box-shadow: none;
+    cursor: default;
+}
+.level-2-active .letter-box.found:active {
+    transform: scale(1.0);
+    box-shadow: none;
+}
+
 
 /* NEW: Shake animation (from Spelling game) */
 @keyframes shake {
@@ -192,7 +198,7 @@ h1 {
         font-size: 1.8em;
         margin: 10px 0;
     }
-    
+
     /* NEW: Responsive prompt */
     #alphabet-prompt {
         font-size: 1.5em;

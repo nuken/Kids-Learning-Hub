@@ -134,15 +134,6 @@ h2 {
     flex-wrap: wrap;
 }
 
-/* --- MODIFICATION --- */
-/* This entire block was removed, as it's no longer needed */
-/*
-.trace-toolbar .back-btn {
-    position: static;
-}
-*/
-/* --- END MODIFICATION --- */
-
 #trace-clear-btn, #trace-next-btn {
     font-size: 1.2em;
     font-weight: 700;
@@ -162,9 +153,17 @@ h2 {
     border: 3px solid #999;
     border-radius: 20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    /* This ensures Konva renders sharp on all screens */
     overflow: hidden;
+
+    /* --- THIS IS THE CRITICAL FIX for Portrait Mode --- */
+    /* This prevents the browser from trying to scroll when tracing on the canvas */
+    touch-action: none;
 }
+
+#tracing-container .konvajs-content {
+    /* Intentionally empty. The `pointer-events: none;` rule was removed. */
+}
+
 
 /* --- 3. Patterns Game Styles --- */
 #pattern-sequence {

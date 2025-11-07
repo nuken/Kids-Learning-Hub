@@ -138,7 +138,7 @@ function speakText(text, onEndCallback) {
 }
 
 // --- END: NEW SPEECH SYSTEM ---
-       
+
         // ==========================================================
         // --- GAME 1: COUNTING GAME ---
         // ==========================================================
@@ -208,6 +208,12 @@ function speakText(text, onEndCallback) {
         let currentNumberToTrace = 1;
         let konvaInitialized = false;
 
+        // --- NEW: Simplified trace logic ---
+        let traceStartTime = 0;
+        const MIN_TRACE_DURATION = 1000; // 1 second
+        // --- END NEW ---
+
+
         // This logic is adapted from your coloring-book/app.js
         function initTracingGame() {
             // Only initialize Konva once
@@ -233,6 +239,9 @@ function speakText(text, onEndCallback) {
             // 3. Add Event Listeners (copied from coloring-book/app.js)
             traceStage.on('mousedown touchstart', (e) => {
                 isTracing = true;
+                // --- NEW: Record start time ---
+                traceStartTime = Date.now();
+                // --- END NEW ---
                 const pos = traceStage.getPointerPosition();
                 lastTraceLine = new Konva.Line({
                     stroke: '#007bff', // Blue color
@@ -247,6 +256,12 @@ function speakText(text, onEndCallback) {
 
             traceStage.on('mouseup touchend', () => {
                 isTracing = false;
+                // --- NEW: Check trace duration ---
+                const traceDuration = Date.now() - traceStartTime;
+                if (traceDuration > MIN_TRACE_DURATION) {
+                    playStarEffect();
+                }
+                // --- END NEW ---
             });
 
             traceStage.on('mousemove touchmove', (e) => {
@@ -256,6 +271,8 @@ function speakText(text, onEndCallback) {
                 const newPoints = lastTraceLine.points().concat([pos.x, pos.y]);
                 lastTraceLine.points(newPoints);
                 drawingLayer.batchDraw();
+
+                // --- REMOVED: All checkpoint logic removed from here ---
             });
 
             // 4. Add button listeners
@@ -274,6 +291,49 @@ function speakText(text, onEndCallback) {
 
             konvaInitialized = true;
         }
+
+        // --- REMOVED: checkTrace() function is no longer needed ---
+
+        // --- NEW: Function to play star effect (unchanged from before) ---
+        function playStarEffect() {
+            const stageWidth = traceStage.width();
+            const stageHeight = traceStage.height();
+            const numStars = 30;
+
+            for (let i = 0; i < numStars; i++) {
+                const star = new Konva.Star({
+                    x: stageWidth / 2,
+                    y: stageHeight / 2,
+                    numPoints: 5,
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    fill: `hsl(${Math.random() * 360}, 90%, 70%)`,
+                    opacity: 1,
+                    scaleX: 0.5,
+                    scaleY: 0.5,
+                });
+                drawingLayer.add(star);
+
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * (stageWidth / 3) + (stageWidth / 4);
+                const destX = (stageWidth / 2) + Math.cos(angle) * distance;
+                const destY = (stageHeight / 2) + Math.sin(angle) * distance;
+
+                star.to({
+                    x: destX,
+                    y: destY,
+                    scaleX: 1.2,
+                    scaleY: 1.2,
+                    opacity: 0,
+                    duration: 0.8 + Math.random() * 0.5, // 0.8 to 1.3 seconds
+                    easing: Konva.Easings.EaseOut,
+                    onFinish: () => {
+                        star.destroy();
+                    }
+                });
+            }
+        }
+        // --- END NEW ---
 
         function loadNumberToTrace(number) {
             // Clear both layers
@@ -295,6 +355,9 @@ function speakText(text, onEndCallback) {
                 height: stageHeight,
                 align: 'center',
                 verticalAlign: 'middle',
+                // --- NEW: Disable hit detection on the number itself ---
+                listening: false,
+                // --- END NEW ---
             });
 
             textLayer.add(numberText);
@@ -303,6 +366,7 @@ function speakText(text, onEndCallback) {
             textLayer.batchDraw();
             drawingLayer.batchDraw();
 
+            // --- This is now the ONLY place the number is spoken ---
             speakText(String(number));
         }
 
@@ -313,7 +377,37 @@ function speakText(text, onEndCallback) {
             if (container.clientWidth > 0 && container.clientHeight > 0) {
                 traceStage.width(container.clientWidth);
                 traceStage.height(container.clientHeight);
-                loadNumberToTrace(currentNumberToTrace);
+
+                // --- FIX: Call loadNumberToTrace BUT DO NOT SPEAK ---
+                // We just want to reload the number, not speak it again.
+                // Easiest way: create a "silent" version of the load function
+
+                // Clear both layers
+                textLayer.destroyChildren();
+                drawingLayer.destroyChildren();
+
+                // Get stage dimensions
+                const stageWidth = traceStage.width();
+                const stageHeight = traceStage.height();
+
+                // Create the large, faint number text
+                const numberText = new Konva.Text({
+                    text: String(currentNumberToTrace), // Use the *current* number
+                    fontSize: Math.min(stageWidth, stageHeight) * 0.8,
+                    fontFamily: 'Comic Neue, sans-serif',
+                    fontStyle: '700',
+                    fill: '#e0e0e0',
+                    width: stageWidth,
+                    height: stageHeight,
+                    align: 'center',
+                    verticalAlign: 'middle',
+                    listening: false,
+                });
+
+                textLayer.add(numberText);
+                textLayer.batchDraw();
+                drawingLayer.batchDraw();
+                // --- Notice: no speakText() call here! ---
             }
         }).observe(traceContainer);
 

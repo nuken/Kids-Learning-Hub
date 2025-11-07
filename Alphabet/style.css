@@ -305,3 +305,34 @@ h1 {
         margin-top: 10px; /* Reduced margin */
     }
 }
+/* --- NEW: Starburst Effect Styles --- */
+
+.star-particle {
+    position: fixed; /* Use fixed positioning to burst from the click point */
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    /* We set background-color in JS */
+
+    /* Start centered on the letter box (offset by half its own size) */
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+
+    /* Prevents clicks on the particle */
+    pointer-events: none;
+
+    /* Ensure it's on top */
+    z-index: 200;
+}
+
+@keyframes starburst {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        /* Use the custom properties set in JS */
+        transform: translate(calc(var(--dest-x) - 50%), calc(var(--dest-y) - 50%)) scale(1.2);
+        opacity: 0;
+    }
+}

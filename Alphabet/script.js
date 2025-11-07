@@ -69,12 +69,56 @@ loadVoices();
 // call loadVoices() manually.
 window.speechSynthesis.onvoiceschanged = loadVoices;
 
+/**
+     * Creates a DOM-based starburst effect on a target element.
+     * @param {HTMLElement} targetElement - The element to burst from.
+     */
+    function playDomStarEffect(targetElement) {
+        const numStars = 10; // Number of star particles
+        const container = document.body; // Attach to body for positioning
+
+        // Get the position of the letter box
+        const rect = targetElement.getBoundingClientRect();
+        const startX = rect.left + rect.width / 2;
+        const startY = rect.top + rect.height / 2;
+
+        for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star-particle');
+            // Each star gets a random color, just like in the tracing game
+            star.style.backgroundColor = `hsl(${Math.random() * 360}, 90%, 70%)`;
+
+            container.appendChild(star);
+
+            // Set initial position
+            star.style.left = `${startX}px`;
+            star.style.top = `${startY}px`;
+
+            // Calculate random destination
+            const angle = Math.random() * 2 * Math.PI;
+            const distance = Math.random() * 80 + 50; // 50px to 130px
+            const destX = Math.cos(angle) * distance;
+            const destY = Math.sin(angle) * distance;
+
+            // Apply animation
+            // We use a custom property to pass the random values to the CSS animation
+            star.style.setProperty('--dest-x', `${destX}px`);
+            star.style.setProperty('--dest-y', `${destY}px`);
+            star.style.animation = `starburst 0.8s ease-out forwards`;
+
+            // Remove the star after the animation finishes
+            setTimeout(() => {
+                star.remove();
+            }, 800);
+        }
+    }
 
 /**
  * The robust, Safari-compatible text-to-speech function.
  * @param {string} text - The text to speak.
  * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
  */
+
 function speakText(text, onEndCallback) {
     // Always cancel any previous speech to avoid overlaps.
     window.speechSynthesis.cancel();
@@ -275,6 +319,7 @@ function speakText(text, onEndCallback) {
         }
 
         // --- NEW: Logic for Level 2 (Sticker Book Mode) ---
+        // --- NEW: Logic for Level 2 (Sticker Book Mode) ---
         function handleLevel2Click(targetElement) {
             // Don't do anything if the box is already found or marked wrong
             if (targetElement.classList.contains('found') || targetElement.classList.contains('wrong')) {
@@ -286,6 +331,10 @@ function speakText(text, onEndCallback) {
             if (clickedLetter === currentTargetLetter) {
                 // CORRECT!
                 playSound(goodSound);
+
+                // --- ADD THIS LINE ---
+                playDomStarEffect(targetElement);
+                // ---------------------
 
                 // 1. Fill it with a permanent random color
                 const randomBgColor = getRandomBrightColor();

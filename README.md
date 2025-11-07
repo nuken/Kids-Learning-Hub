@@ -11,12 +11,11 @@ The applications are designed to work perfectly on desktops, tablets (iPad, Andr
 ### 1. Alphabet Fun
 
 * **Location:** `/Alphabet/`
-* **Description:** A classic alphabet learner where children can tap or drag their finger across letters (A-Z) to see them light up with color and hear their names spoken.
+* **Description:** A classic alphabet learner where children can tap or drag their finger across letters (A-Z) to see them light up with color and hear their names spoken. **Now includes a new "Level 2" find-the-letter game.**
 * **Features:**
-    * Interactive touch-and-drag grid.
-    * Randomized colors for a fun visual effect.
+    * Interactive touch-and-drag grid (Level 1) and a "Find the Letter" game (Level 2).
     * High-quality, platform-specific text-to-speech (Web Speech API) for clear audio on PC, iOS, and Android.
-    * Controls to reset the board, toggle between letter names ("Bee") and words ("Boy"), or switch between uppercase and lowercase letters.
+    * Controls to toggle between letter names ("Bee") and words ("Boy"), or switch between uppercase and lowercase letters.
 
 ### 2. Numbers Fun
 
@@ -26,6 +25,7 @@ The applications are designed to work perfectly on desktops, tablets (iPad, Andr
     * **Counting Game:** Tap the correct number of items on the screen (e.g., "Tap 3 ducks").
     * **Tracing Game:** Uses the Konva.js canvas to let children trace numbers 1-9.
     * **Patterns Game:** A simple "What comes next?" game to teach basic number sequences.
+    * **Egg-dition Game:** A visual addition game where kids combine two groups of eggs to find the total sum.
     * All games include high-quality speech for instructions and feedback.
 
 ### 3. Coloring Book

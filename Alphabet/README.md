@@ -6,11 +6,12 @@ The app is built with plain HTML, CSS, and JavaScript, using the browser's built
 
 ## Features
 
-* **Interactive Grid:** A-Z letters in a large, touch-friendly grid.
-* **Touch & Drag:** Children can tap or drag their finger across the letters.
-* **Random Colors:** Each new letter touched lights up with a random bright color.
-* **Text-to-Speech:** Says the letter's name.
-* **Speech Toggle:** A button lets you switch between hearing just the "Letter Name" (like "Bee") or both the "Name + Phonics" (like "Bee... buh").
+* **Two Learning Modes:**
+    * **Level 1 (Free Play):** The classic mode. Children can tap or drag their finger across letters to see them light up with color and hear their names.
+    * **Level 2 (Find the Letter):** A simple "find the letter" game. The app speaks a letter (e.g., "Find B"), and the child must find and click the correct one on the grid.
+* **Audio Feedback:** Level 2 includes fun sound effects (from the Spelling app) for correct and incorrect answers.
+* **Speech Toggle:** A button lets you switch between hearing just the "Letter Name" ("Bee") or the "Letter & Word" ("Bee... Boy").
+* **Case Toggle:** A button to switch the entire grid between uppercase and lowercase letters.
 * **Custom Background:** A color palette at the top to change the page's background color.
 * **Fully Responsive:** Designed to work on phones and tablets in both portrait and landscape mode.
 * **100% Ad-Free:** No tracking, no ads, no in-app purchases.
@@ -23,7 +24,7 @@ You can download this project's code directly from GitHub:
 
 1.  Click the green **<> Code** button at the top-right of the project file list.
 2.  Select **Download ZIP** from the dropdown menu.
-3.  Unzip the downloaded file on your computer. You will have a folder containing `index.html`, `style.css`, and `script.js`.
+3.  Unzip the downloaded file on your computer. You will have a folder containing `index.html`, `style.css`, `script.js`, and other files.
 
 ### 2. How to Run This App
 
@@ -43,6 +44,5 @@ This application was designed and tested primarily for **tablets (e.g., iPad) an
 
 It also functions on a desktop browser (like Chrome or Edge), but please be aware:
 
-* The touch-and-drag feature works by holding the mouse button down while moving.
+* The touch-and-drag feature (in Level 1) works by holding the mouse button down while moving.
 * The text-to-speech voice quality is **entirely dependent on your operating system**. It will sound great on iOS/Android, but may sound more robotic on a Windows PC, as it uses the default built-in Windows voices.
-

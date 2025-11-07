@@ -18,7 +18,8 @@
         const gameButtons = {
             'start-counting-btn': 'counting-game',
             'start-tracing-btn': 'tracing-game',
-            'start-patterns-btn': 'patterns-game'
+            'start-patterns-btn': 'patterns-game',
+            'start-egg-dition-btn': 'egg-dition-game'
         };
 
         // Function to switch screens
@@ -35,6 +36,7 @@
                 if (screenId === 'counting-game') startCountingGame();
                 if (screenId === 'tracing-game') initTracingGame();
                 if (screenId === 'patterns-game') startPatternsGame();
+                if (screenId === 'egg-dition-game') startEggDitionGame();
             }
         }
 
@@ -136,7 +138,7 @@ function speakText(text, onEndCallback) {
 }
 
 // --- END: NEW SPEECH SYSTEM ---
-       
+
         // ==========================================================
         // --- GAME 1: COUNTING GAME ---
         // ==========================================================
@@ -206,6 +208,12 @@ function speakText(text, onEndCallback) {
         let currentNumberToTrace = 1;
         let konvaInitialized = false;
 
+        // --- NEW: Simplified trace logic ---
+        let traceStartTime = 0;
+        const MIN_TRACE_DURATION = 1000; // 1 second
+        // --- END NEW ---
+
+
         // This logic is adapted from your coloring-book/app.js
         function initTracingGame() {
             // Only initialize Konva once
@@ -231,6 +239,9 @@ function speakText(text, onEndCallback) {
             // 3. Add Event Listeners (copied from coloring-book/app.js)
             traceStage.on('mousedown touchstart', (e) => {
                 isTracing = true;
+                // --- NEW: Record start time ---
+                traceStartTime = Date.now();
+                // --- END NEW ---
                 const pos = traceStage.getPointerPosition();
                 lastTraceLine = new Konva.Line({
                     stroke: '#007bff', // Blue color
@@ -245,6 +256,12 @@ function speakText(text, onEndCallback) {
 
             traceStage.on('mouseup touchend', () => {
                 isTracing = false;
+                // --- NEW: Check trace duration ---
+                const traceDuration = Date.now() - traceStartTime;
+                if (traceDuration > MIN_TRACE_DURATION) {
+                    playStarEffect();
+                }
+                // --- END NEW ---
             });
 
             traceStage.on('mousemove touchmove', (e) => {
@@ -254,6 +271,8 @@ function speakText(text, onEndCallback) {
                 const newPoints = lastTraceLine.points().concat([pos.x, pos.y]);
                 lastTraceLine.points(newPoints);
                 drawingLayer.batchDraw();
+
+                // --- REMOVED: All checkpoint logic removed from here ---
             });
 
             // 4. Add button listeners
@@ -272,6 +291,49 @@ function speakText(text, onEndCallback) {
 
             konvaInitialized = true;
         }
+
+        // --- REMOVED: checkTrace() function is no longer needed ---
+
+        // --- NEW: Function to play star effect (unchanged from before) ---
+        function playStarEffect() {
+            const stageWidth = traceStage.width();
+            const stageHeight = traceStage.height();
+            const numStars = 30;
+
+            for (let i = 0; i < numStars; i++) {
+                const star = new Konva.Star({
+                    x: stageWidth / 2,
+                    y: stageHeight / 2,
+                    numPoints: 5,
+                    innerRadius: 10,
+                    outerRadius: 20,
+                    fill: `hsl(${Math.random() * 360}, 90%, 70%)`,
+                    opacity: 1,
+                    scaleX: 0.5,
+                    scaleY: 0.5,
+                });
+                drawingLayer.add(star);
+
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * (stageWidth / 3) + (stageWidth / 4);
+                const destX = (stageWidth / 2) + Math.cos(angle) * distance;
+                const destY = (stageHeight / 2) + Math.sin(angle) * distance;
+
+                star.to({
+                    x: destX,
+                    y: destY,
+                    scaleX: 1.2,
+                    scaleY: 1.2,
+                    opacity: 0,
+                    duration: 0.8 + Math.random() * 0.5, // 0.8 to 1.3 seconds
+                    easing: Konva.Easings.EaseOut,
+                    onFinish: () => {
+                        star.destroy();
+                    }
+                });
+            }
+        }
+        // --- END NEW ---
 
         function loadNumberToTrace(number) {
             // Clear both layers
@@ -293,6 +355,9 @@ function speakText(text, onEndCallback) {
                 height: stageHeight,
                 align: 'center',
                 verticalAlign: 'middle',
+                // --- NEW: Disable hit detection on the number itself ---
+                listening: false,
+                // --- END NEW ---
             });
 
             textLayer.add(numberText);
@@ -301,6 +366,7 @@ function speakText(text, onEndCallback) {
             textLayer.batchDraw();
             drawingLayer.batchDraw();
 
+            // --- This is now the ONLY place the number is spoken ---
             speakText(String(number));
         }
 
@@ -311,7 +377,37 @@ function speakText(text, onEndCallback) {
             if (container.clientWidth > 0 && container.clientHeight > 0) {
                 traceStage.width(container.clientWidth);
                 traceStage.height(container.clientHeight);
-                loadNumberToTrace(currentNumberToTrace);
+
+                // --- FIX: Call loadNumberToTrace BUT DO NOT SPEAK ---
+                // We just want to reload the number, not speak it again.
+                // Easiest way: create a "silent" version of the load function
+
+                // Clear both layers
+                textLayer.destroyChildren();
+                drawingLayer.destroyChildren();
+
+                // Get stage dimensions
+                const stageWidth = traceStage.width();
+                const stageHeight = traceStage.height();
+
+                // Create the large, faint number text
+                const numberText = new Konva.Text({
+                    text: String(currentNumberToTrace), // Use the *current* number
+                    fontSize: Math.min(stageWidth, stageHeight) * 0.8,
+                    fontFamily: 'Comic Neue, sans-serif',
+                    fontStyle: '700',
+                    fill: '#e0e0e0',
+                    width: stageWidth,
+                    height: stageHeight,
+                    align: 'center',
+                    verticalAlign: 'middle',
+                    listening: false,
+                });
+
+                textLayer.add(numberText);
+                textLayer.batchDraw();
+                drawingLayer.batchDraw();
+                // --- Notice: no speakText() call here! ---
             }
         }).observe(traceContainer);
 
@@ -438,6 +534,116 @@ function speakText(text, onEndCallback) {
                 }, 1000);
             }
         }
+        // ==========================================================
+// --- GAME 4: EGG-DITION GAME ---
+// ==========================================================
+const eggGroup1 = document.getElementById('egg-group-1');
+const eggGroup2 = document.getElementById('egg-group-2');
+const eggSolutionContainer = document.getElementById('egg-solution-container');
+const eggChoicesContainer = document.getElementById('egg-choices');
+
+let currentEggProblem = {};
+const eggColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7D842', '#84DCC6', '#FFA07A'];
+
+function startEggDitionGame() {
+    generateEggProblem();
+}
+
+function createEgg(color) {
+    const egg = document.createElement('div');
+    egg.className = 'egg';
+    egg.style.backgroundColor = color;
+    return egg;
+}
+
+function generateEggProblem() {
+    // Simple problems, sum less than 10
+    const num1 = Math.floor(Math.random() * 4) + 1; // 1 to 4
+    let num2 = Math.floor(Math.random() * 4) + 1; // 1 to 4
+    const answer = num1 + num2;
+
+    // Ensure sum is not too high, e.g., max 8
+    if (answer > 8) {
+        num2 = 1; // Adjust if too high
+    }
+
+    currentEggProblem = { num1, num2, answer };
+
+    // Pick two different colors
+    const color1 = eggColors[Math.floor(Math.random() * eggColors.length)];
+    let color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
+    while (color1 === color2) {
+        color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
+    }
+
+    // Clear previous problem
+    eggGroup1.innerHTML = '';
+    eggGroup2.innerHTML = '';
+    eggSolutionContainer.innerHTML = '';
+    eggChoicesContainer.innerHTML = '';
+
+    // 1. Show the first group of eggs
+    for (let i = 0; i < num1; i++) {
+        eggGroup1.appendChild(createEgg(color1));
+    }
+
+    // 2. Show the second group of eggs
+    for (let i = 0; i < num2; i++) {
+        eggGroup2.appendChild(createEgg(color2));
+    }
+
+    // 3. Show the combined eggs
+    for (let i = 0; i < num1; i++) {
+        eggSolutionContainer.appendChild(createEgg(color1));
+    }
+    for (let i = 0; i < num2; i++) {
+        eggSolutionContainer.appendChild(createEgg(color2));
+    }
+
+    // 4. Create choices (re-using logic from Patterns game)
+    // We can reuse the generateChoices function from the patterns game
+    const choices = generateChoices(answer);
+    choices.sort(() => Math.random() - 0.5); // Shuffle
+
+    choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.classList.add('choice-btn'); // Reuse pattern choice style
+        btn.textContent = choice;
+        btn.dataset.value = choice;
+        btn.addEventListener('click', handleEggChoiceClick);
+        eggChoicesContainer.appendChild(btn);
+    });
+
+    // 5. Use speakText
+    speakText(`What is ${num1} plus ${num2}?`);
+}
+
+function handleEggChoiceClick(e) {
+    const clickedValue = parseInt(e.target.dataset.value);
+
+    // Disable all buttons
+    eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+    if (clickedValue === currentEggProblem.answer) {
+        e.target.classList.add('correct');
+
+        // Use speakText with the callback
+        speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`, () => {
+            // This function will ONLY run after the speech finishes.
+            // I added a small extra delay so it doesn't feel too sudden.
+            setTimeout(generateEggProblem, 500); // New problem
+        });
+
+    } else {
+        e.target.classList.add('incorrect');
+        speakText("Oops, try again!");
+        // Re-enable buttons after a moment
+        setTimeout(() => {
+            e.target.classList.remove('incorrect');
+            eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }, 1000);
+    }
+}
 
     });
 

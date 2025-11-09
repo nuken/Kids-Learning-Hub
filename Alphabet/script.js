@@ -1,5 +1,4 @@
-(function() {
-
+import { EdgeTTS } from 'https://unpkg.com/edge-tts-universal/dist/browser.js';
     // --- MODIFIED: Replaced PHONETIC_SOUNDS with EXAMPLE_WORDS ---
     // This list uses simple, common words for each letter.
     const EXAMPLE_WORDS = {
@@ -44,132 +43,71 @@
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 
-    // --- START: NEW SPEECH SYSTEM (SAFARI-COMPATIBLE) ---
+  // --- START: NEW SPEECH SYSTEM (edge-tts-universal) ---
 
-// Make voiceList global to persist across calls.
-let voiceList = [];
-
-/**
- * Populates the global voiceList. This function is designed to be
- * called multiple times if needed, as Safari can be slow to load voices.
- */
-function loadVoices() {
-    // If we've already loaded voices, don't do it again.
-    if (voiceList.length > 0) {
-        return;
-    }
-    voiceList = window.speechSynthesis.getVoices();
-}
-
-// Try to load voices immediately when the script runs.
-loadVoices();
-
-// Also, set up the event listener which is the "correct" way to do it.
-// Safari may or may not fire this event reliably, which is why we also
-// call loadVoices() manually.
-window.speechSynthesis.onvoiceschanged = loadVoices;
+// Keep track of the current audio to prevent overlaps
+let currentAudio = null;
 
 /**
-     * Creates a DOM-based starburst effect on a target element.
-     * @param {HTMLElement} targetElement - The element to burst from.
-     */
-    function playDomStarEffect(targetElement) {
-        const numStars = 10; // Number of star particles
-        const container = document.body; // Attach to body for positioning
-
-        // Get the position of the letter box
-        const rect = targetElement.getBoundingClientRect();
-        const startX = rect.left + rect.width / 2;
-        const startY = rect.top + rect.height / 2;
-
-        for (let i = 0; i < numStars; i++) {
-            const star = document.createElement('div');
-            star.classList.add('star-particle');
-            // Each star gets a random color, just like in the tracing game
-            star.style.backgroundColor = `hsl(${Math.random() * 360}, 90%, 70%)`;
-
-            container.appendChild(star);
-
-            // Set initial position
-            star.style.left = `${startX}px`;
-            star.style.top = `${startY}px`;
-
-            // Calculate random destination
-            const angle = Math.random() * 2 * Math.PI;
-            const distance = Math.random() * 80 + 50; // 50px to 130px
-            const destX = Math.cos(angle) * distance;
-            const destY = Math.sin(angle) * distance;
-
-            // Apply animation
-            // We use a custom property to pass the random values to the CSS animation
-            star.style.setProperty('--dest-x', `${destX}px`);
-            star.style.setProperty('--dest-y', `${destY}px`);
-            star.style.animation = `starburst 0.8s ease-out forwards`;
-
-            // Remove the star after the animation finishes
-            setTimeout(() => {
-                star.remove();
-            }, 800);
-        }
-    }
-
-/**
- * The robust, Safari-compatible text-to-speech function.
+ * The robust, cloud-based text-to-speech function.
  * @param {string} text - The text to speak.
  * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
  */
+async function speakText(text, onEndCallback) {
+  // If audio is already playing, stop it
+ if (currentAudio) {
+    // --- THIS IS THE FIX ---
+    // Remove the event listeners to prevent
+    // the old, orphaned callback from ever firing.
+    currentAudio.onended = null;
+    currentAudio.onerror = null;
+    // --- END OF FIX ---
 
-function speakText(text, onEndCallback) {
-    // Always cancel any previous speech to avoid overlaps.
-    window.speechSynthesis.cancel();
+    currentAudio.pause();
+    currentAudio.src = ''; // Detach the source
+    currentAudio = null;
+  }
 
-    // If the voice list is still empty, make another attempt to load them.
-    // This is a crucial step for Safari.
-    if (voiceList.length === 0) {
-        loadVoices();
-    }
+  try {
+    // 1. Create the TTS request.
+    // We can pick a high-quality, friendly voice.
+    // 'en-US-JennyNeural' is a great choice.
+   const tts = new EdgeTTS(text, 'en-US-JennyNeural', {
+  rate: "+15%", 
+});
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // A good rate for kids
+    // 2. Synthesize the speech (this fetches it from the server)
+    const result = await tts.synthesize();
 
-    // Set the language as a fallback. This is the most important property
-    // if a specific voice cannot be found or assigned.
-    utterance.lang = 'en-US';
+    // 3. Create an audio object to play the result
+    const audioBlob = new Blob([result.audio], { type: 'audio/mpeg' });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    currentAudio = new Audio(audioUrl);
 
+    // 4. Handle the callback when the audio finishes
+    const onEnd = () => {
+      if (onEndCallback) {
+        onEndCallback();
+      }
+      currentAudio = null; // Clear the audio
+      URL.revokeObjectURL(audioUrl); // Clean up the object URL
+    };
+    
+    currentAudio.onended = onEnd;
+    currentAudio.onerror = onEnd; // Also trigger callback on error
+
+    // 5. Play the audio
+    // The existing 'unlock-speech.js' should handle any gesture requirements
+    await currentAudio.play();
+
+  } catch (error) {
+    console.error("Error synthesizing speech:", error);
+    // If there's an error (e.g., no internet), still call the callback
     if (onEndCallback) {
-        utterance.onend = onEndCallback;
+      onEndCallback();
     }
-
-    // Only try to select a specific voice if the list has been populated.
-    if (voiceList.length > 0) {
-        let selectedVoice = null;
-
-        // --- Voice Selection Logic ---
-        // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
-        selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
-
-        // 2. If not found, look for any voice that is the browser's default for US English.
-        if (!selectedVoice) {
-            selectedVoice = voiceList.find(v => v.lang === 'en-US' && v.default);
-        }
-
-        // 3. If still no voice, just grab the very first US English voice available.
-        if (!selectedVoice) {
-            selectedVoice = voiceList.find(v => v.lang === 'en-US');
-        }
-
-        // If we successfully found a voice, assign it to the utterance.
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-            // **CRITICAL SAFARI FIX**: Re-set the lang property from the
-            // voice object itself. This strongly tells Safari which synthesizer to use.
-            utterance.lang = selectedVoice.lang;
-        }
-    }
-
-    // Finally, speak. For Safari, this first call to speak() might be what
-    // actually triggers the voice list to load for all subsequent calls.
-    window.speechSynthesis.speak(utterance);
+  }
 }
 
 // --- END: NEW SPEECH SYSTEM ---
@@ -296,7 +234,49 @@ function speakText(text, onEndCallback) {
                 handleLevel2Click(targetElement);
             }
         }
+/**
+     * Creates a DOM-based starburst effect on a target element.
+     * @param {HTMLElement} targetElement - The element to burst from.
+     */
+    function playDomStarEffect(targetElement) {
+        const numStars = 10; // Number of star particles
+        const container = document.body; // Attach to body for positioning
 
+        // Get the position of the letter box
+        const rect = targetElement.getBoundingClientRect();
+        const startX = rect.left + rect.width / 2;
+        const startY = rect.top + rect.height / 2;
+
+        for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star-particle');
+            // Each star gets a random color, just like in the tracing game
+            star.style.backgroundColor = `hsl(${Math.random() * 360}, 90%, 70%)`;
+
+            container.appendChild(star);
+
+            // Set initial position
+            star.style.left = `${startX}px`;
+            star.style.top = `${startY}px`;
+
+            // Calculate random destination
+            const angle = Math.random() * 2 * Math.PI;
+            const distance = Math.random() * 80 + 50; // 50px to 130px
+            const destX = Math.cos(angle) * distance;
+            const destY = Math.sin(angle) * distance;
+
+            // Apply animation
+            // We use a custom property to pass the random values to the CSS animation
+            star.style.setProperty('--dest-x', `${destX}px`);
+            star.style.setProperty('--dest-y', `${destY}px`);
+            star.style.animation = `starburst 0.8s ease-out forwards`;
+
+            // Remove the star after the animation finishes
+            setTimeout(() => {
+                star.remove();
+            }, 800);
+        }
+    }
         // --- NEW: Logic for Level 1 (Original Game) ---
         function handleLevel1Click(targetElement) {
             // hasn't been visited yet
@@ -346,17 +326,26 @@ function speakText(text, onEndCallback) {
                 // 2. Remove it from the list of letters to find
                 lettersToFind = lettersToFind.filter(l => l !== currentTargetLetter);
 
-                // 3. Speak feedback, then pick the next letter
-                speakText(`You found ${currentTargetLetter}!`, () => {
-                    // Check if the game is over
-                    if (lettersToFind.length === 0) {
-                        finishLevel2();
-                    } else {
-                        // Otherwise, pick the next letter
-                        pickNewTargetLetter();
-                    }
-                });
-            } else {
+                // 3. Check if the game is over
+                if (lettersToFind.length === 0) {
+                    // Game is over, call the finish function
+                    finishLevel2();
+                } else {
+                    // Game is not over, let's pick the next letter *now*
+                    const foundLetter = currentTargetLetter; // Store the letter they just found
+                    
+                    // This logic is moved from pickNewTargetLetter()
+                    currentTargetLetter = lettersToFind[Math.floor(Math.random() * lettersToFind.length)];
+                    alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
+
+                    // Now, create ONE speech call with both phrases.
+                    // We add "..." to create a natural pause.
+                    const speechString = `You found ${foundLetter}! ... Now, find the letter ${currentTargetLetter}`;
+                    
+                    // Call speakText *without* a callback
+                    speakText(speechString);
+                }
+                } else {
                 // WRONG
                 playSound(badSound);
                 targetElement.classList.add('wrong');
@@ -504,7 +493,7 @@ function speakText(text, onEndCallback) {
 
             // Update and speak the prompt
             alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
-            speakText(`Find ${currentTargetLetter}`);
+            speakText(`Okay, find the letter ${currentTargetLetter}`);
         }
 
         function finishLevel2() {
@@ -519,4 +508,3 @@ function speakText(text, onEndCallback) {
 
     });
 
-})();

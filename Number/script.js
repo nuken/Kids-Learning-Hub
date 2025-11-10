@@ -1,27 +1,4 @@
-// --- START: Robust Audio Unlocker ---
-// This unlocker plays a silent sound and waits for it to finish,
-// guaranteeing the audio system is "awake" before any real
-// sounds are played.
-let audioUnlocked = false;
-async function unlockAudio() {
-    if (audioUnlocked) return; // Only run once
-    
-    // A tiny, silent WAV file encoded in base64.
-    const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
-    
-    try {
-        // We MUST 'await' this play() promise.
-        // This ensures the browser has fully un-paused its
-        // audio system before we continue.
-        await silentAudio.play();
-    } catch (error) {
-        // This is fine. The user interaction still registered.
-    }
-    
-    console.log("Audio Unlocked");
-    audioUnlocked = true;
-}
-// --- END: Robust Audio Unlocker ---
+// --- REMOVED: The 'unlockAudio' function is no longer needed here. ---
 
 
 // --- START: Pre-generated Audio Player ---
@@ -153,23 +130,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
+    // --- REMOVED: async and await. Audio is unlocked by index.html ---
     // Add click listeners to main menu buttons
     for (const btnId in gameButtons) {
         const btn = document.getElementById(btnId);
         if (btn) {
-            btn.addEventListener('click', async () => {
-                await unlockAudio(); // Unlock on game selection
+            btn.addEventListener('click', () => {
                 showScreen(gameButtons[btnId]);
             });
         }
     }
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
+    // --- REMOVED: async and await ---
     // Add click listeners to all "Back" buttons
     backButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            await unlockAudio(); // Unlock on going "Back"
+        btn.addEventListener('click', () => {
             showScreen('main-menu');
         });
     });
@@ -577,7 +552,6 @@ function generateEggProblem() {
     for (let i = 0; i < num1; i++) {
         eggSolutionContainer.appendChild(createEgg(color1));
     }
-    // --- BUG FIX: This loop was starting at 'm2' ---
     for (let i = 0; i < num2; i++) {
         eggSolutionContainer.appendChild(createEgg(color2));
     }

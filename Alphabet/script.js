@@ -1,248 +1,269 @@
-import { EdgeTTS } from 'https://unpkg.com/edge-tts-universal/dist/browser.js';
-    // --- MODIFIED: Replaced PHONETIC_SOUNDS with EXAMPLE_WORDS ---
-    // This list uses simple, common words for each letter.
-    const EXAMPLE_WORDS = {
-        'A': 'Apple',
-        'B': 'Boy',
-        'C': 'Cat',
-        'D': 'Dog',
-        'E': 'Egg',
-        'F': 'Fish',
-        'G': 'Goat',
-        'H': 'Hat',
-        'I': 'Igloo',
-        'J': 'Jar',
-        'K': 'Kite',
-        'L': 'Lion',
-        'M': 'Moon',
-        'N': 'Nest',
-        'O': 'Octopus',
-        'P': 'Pig',
-        'Q': 'Queen',
-        'R': 'Ring',
-        'S': 'Sun',
-        'T': 'Turtle',
-        'U': 'Umbrella',
-        'V': 'Volcano',
-        'W': 'Watch',
-        'X': 'X-ray',
-        'Y': 'Yo-yo',
-        'Z': 'Zebra'
-    };
-
-    // NEW: Full alphabet for Level 2
-    const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-    // This function generates a random bright color (RGB between 100-250)
-    function getRandomBrightColor() {
-        let r = Math.floor(Math.random() * 150) + 100; // 100-250
-        let g = Math.floor(Math.random() * 150) + 100; // 100-250
-        let b = Math.floor(Math.random() * 150) + 100; // 100-250
-
-        const toHex = (c) => `0${c.toString(16)}`.slice(-2);
-        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+// --- START: Robust Audio Unlocker ---
+// This unlocker plays a silent sound and waits for it to finish,
+// guaranteeing the audio system is "awake" before any real
+// sounds are played.
+let audioUnlocked = false;
+async function unlockAudio() {
+    if (audioUnlocked) return; // Only run once
+    
+    // A tiny, silent WAV file encoded in base64.
+    const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+    
+    try {
+        // We MUST 'await' this play() promise.
+        // This ensures the browser has fully un-paused its
+        // audio system before we continue.
+        await silentAudio.play();
+    } catch (error) {
+        // This is fine. The user interaction still registered.
     }
+    
+    console.log("Audio Unlocked");
+    audioUnlocked = true;
+}
+// --- END: Robust Audio Unlocker ---
 
-  // --- START: NEW SPEECH SYSTEM (edge-tts-universal) ---
 
-// Keep track of the current audio to prevent overlaps
-let currentAudio = null;
+// --- START: Pre-generated Audio Player ---
+// (No changes here, this part is correct)
+
+const audioCache = {};
+const audioQueue = [];
+let isPlaying = false;
+const SOUND_DIR = 'sounds/'; // Path to your new audio files
 
 /**
- * The robust, cloud-based text-to-speech function.
- * @param {string} text - The text to speak.
- * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
+ * Pre-loads audio files into a cache.
+ * @param {string[]} filenames - An array of filenames (e.g., ['tap.mp3', 'plus.mp3'])
  */
-async function speakText(text, onEndCallback) {
-  // If audio is already playing, stop it
- if (currentAudio) {
-    // --- THIS IS THE FIX ---
-    // Remove the event listeners to prevent
-    // the old, orphaned callback from ever firing.
-    currentAudio.onended = null;
-    currentAudio.onerror = null;
-    // --- END OF FIX ---
-
-    currentAudio.pause();
-    currentAudio.src = ''; // Detach the source
-    currentAudio = null;
-  }
-
-  try {
-    // 1. Create the TTS request.
-    // We can pick a high-quality, friendly voice.
-    // 'en-US-JennyNeural' is a great choice.
-   const tts = new EdgeTTS(text, 'en-US-JennyNeural', {
-  rate: "+15%", 
-});
-
-    // 2. Synthesize the speech (this fetches it from the server)
-    const result = await tts.synthesize();
-
-    // 3. Create an audio object to play the result
-    const audioBlob = new Blob([result.audio], { type: 'audio/mpeg' });
-    const audioUrl = URL.createObjectURL(audioBlob);
-    
-    currentAudio = new Audio(audioUrl);
-
-    // 4. Handle the callback when the audio finishes
-    const onEnd = () => {
-      if (onEndCallback) {
-        onEndCallback();
-      }
-      currentAudio = null; // Clear the audio
-      URL.revokeObjectURL(audioUrl); // Clean up the object URL
-    };
-    
-    currentAudio.onended = onEnd;
-    currentAudio.onerror = onEnd; // Also trigger callback on error
-
-    // 5. Play the audio
-    // The existing 'unlock-speech.js' should handle any gesture requirements
-    await currentAudio.play();
-
-  } catch (error) {
-    console.error("Error synthesizing speech:", error);
-    // If there's an error (e.g., no internet), still call the callback
-    if (onEndCallback) {
-      onEndCallback();
-    }
-  }
+function preloadAudio(filenames) {
+    filenames.forEach(file => {
+        const fullPath = `${SOUND_DIR}${file}`;
+        if (!audioCache[fullPath]) {
+            audioCache[fullPath] = new Audio(fullPath);
+        }
+    });
 }
 
-// --- END: NEW SPEECH SYSTEM ---
+/**
+ * Plays one or more audio files in sequence.
+ * @param {string|string[]} audioFiles - A single filename or an array of filenames.
+ * @param {function} [onEndCallback] - Optional: A function to run when the *entire sequence* finishes.
+ */
+function speakText(audioFiles, onEndCallback) {
+    // 1. Ensure audioFiles is an array
+    const filesToPlay = Array.isArray(audioFiles) ? audioFiles : [audioFiles];
+    
+    // 2. Add this "job" to the queue
+    audioQueue.push({
+        files: filesToPlay,
+        callback: onEndCallback
+    });
 
-    // --- NEW: Sound playback function (from Spelling game) ---
-    async function playSound(sound) {
-        sound.currentTime = 0; // Rewind to start
-        try {
-            await sound.play();
-        } catch (err) {
-            // Log the error but don't crash the app
-            console.error("Audio play failed:", err);
-        }
+    // 3. If nothing is currently playing, start the queue
+    if (!isPlaying) {
+        playNextInQueue();
+    }
+}
+
+function playNextInQueue() {
+    if (audioQueue.length === 0) {
+        isPlaying = false;
+        return;
     }
 
+    isPlaying = true;
+    const job = audioQueue[0]; // Get the next job (files + callback)
 
-    // Wait for the page to be fully loaded
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- ADD THIS LINE TO UNLOCK SPEECH ---
-        if (window.unlockSpeechIfNeeded) {
-            window.unlockSpeechIfNeeded();
+    function playFile(index) {
+        if (index >= job.files.length) {
+            // This job is done
+            if (job.callback) {
+                job.callback();
+            }
+            // Remove this job and play the next one
+            audioQueue.shift(); 
+            playNextInQueue();
+            return;
         }
-        // --- END OF ADDITION ---
-        const container = document.getElementById('alphabet-container');
-
-        // MODIFIED: Renamed reset button
-        const level1Button = document.getElementById('level-1-button');
-
-        const colorPalette = document.getElementById('color-palette');
-        const bodyElement = document.body;
-        const speechToggleButton = document.getElementById('speech-toggle-button');
-        const caseToggleButton = document.getElementById('case-toggle-button');
-
-        // --- NEW: Level 2 Elements ---
-        const level2Button = document.getElementById('level-2-button');
-        const alphabetPrompt = document.getElementById('alphabet-prompt');
-
-        // --- Corrected path to sounds folder ---
-        const goodSound = new Audio('sounds/correct.mp3');
-        const badSound = new Audio('sounds/wrong.mp3');
-
-        // --- NEW: Game State ---
-        let currentGameMode = 'level1'; // 'level1' or 'level2'
-        let currentTargetLetter = null; // For Level 2
-
-        // --- NEW: List for "Sticker Book" mode ---
-        let lettersToFind = [];
-
-        // --- MODIFIED: State names and button text ---
-        let speechMode = 'letter'; // Can be 'letter' or 'letterAndWord'
-        speechToggleButton.textContent = 'Switch to Words'; // Set initial button text
-
-        // --- MODIFICATION ---
-        // Add state for letter case
-        let caseMode = 'upper'; // Can be 'upper' or 'lower'
-        // --- END MODIFICATION ---
-
-        // ... your colorPalette listener ...
-        colorPalette.addEventListener('click', (event) => {
-            // Check that we actually clicked on a color swatch
-            if (event.target.classList.contains('color-swatch')) {
-                // Get the color from the 'data-color' attribute we set in the HTML
-                const newColor = event.target.dataset.color;
-
-                // Set the page's background color
-                bodyElement.style.backgroundColor = newColor;
-            }
-        });
-
-        // --- MODIFIED: Button logic to use new states and text ---
-        speechToggleButton.addEventListener('click', () => {
-            if (speechMode === 'letter') {
-                speechMode = 'letterAndWord';
-                speechToggleButton.textContent = 'Switch to Letters';
-            } else {
-                speechMode = 'letter';
-                speechToggleButton.textContent = 'Switch to Words';
-            }
-        });
-
-        // --- MODIFICATION ---
-        // Add click listener for the new case toggle button
-        caseToggleButton.addEventListener('click', () => {
-            if (caseMode === 'upper') {
-                caseMode = 'lower';
-                caseToggleButton.textContent = 'Switch to Uppercase';
-            } else {
-                caseMode = 'upper';
-                caseToggleButton.textContent = 'Switch to Lowercase';
-            }
-            updateCase(); // Call the function to update letters
-        });
-        // --- END MODIFICATION ---
-
-        // --- 1. Create all the letter blocks ---
-        ALPHABET.forEach(letter => {
-            const letterBox = document.createElement('div');
-            letterBox.classList.add('letter-box');
-
-            // --- MODIFICATION ---
-            // Set text based on initial caseMode
-            letterBox.textContent = (caseMode === 'upper') ? letter : letter.toLowerCase();
-
-            // Store the letter (uppercase) in the element for speech
-            letterBox.dataset.letter = letter;
-
-            // Store both cases for easy toggling
-            letterBox.dataset.letterUpper = letter;
-            letterBox.dataset.letterLower = letter.toLowerCase();
-            // --- END MODIFICATION ---
-
-            container.appendChild(letterBox);
-        });
-
-        // --- 2. Create the function that handles the interaction ---
-        function handleInteraction(targetElement) {
-            // Check if it's a letter box
-            if (!targetElement.classList.contains('letter-box')) return;
-
-            // --- NEW: Route logic based on game mode ---
-            if (currentGameMode === 'level1') {
-                handleLevel1Click(targetElement);
-            } else if (currentGameMode === 'level2') {
-                handleLevel2Click(targetElement);
-            }
+        
+        const filename = job.files[index];
+        const fullPath = `${SOUND_DIR}${filename}`;
+        let audio = audioCache[fullPath];
+        
+        if (!audio) {
+            // Load on-demand if not pre-cached
+            audio = new Audio(fullPath);
+            audioCache[fullPath] = audio;
         }
-/**
+
+        audio.currentTime = 0;
+        
+        audio.onended = () => {
+            // When this file finishes, play the next file in the job
+            playFile(index + 1);
+        };
+        
+        audio.onerror = () => {
+            console.error(`Could not play audio: ${fullPath}`);
+            // Skip this file and play the next
+            playFile(index + 1);
+        };
+
+        audio.play().catch(e => {
+            console.error(`Audio play error: ${e.message}`);
+            // Skip this file and play the next
+            playFile(index + 1);
+        });
+    }
+
+    // Start playing the first file in this job
+    playFile(0);
+}
+// --- END: Pre-generated Audio Player ---
+
+
+// --- This is your original list, which is correct ---
+const EXAMPLE_WORDS = {
+    'A': 'Apple',
+    'B': 'Boy',
+    'C': 'Cat',
+    'D': 'Dog',
+    'E': 'Egg',
+    'F': 'Fish',
+    'G': 'Goat',
+    'H': 'Hat',
+    'I': 'Igloo',
+    'J': 'Jar',
+    'K': 'Kite',
+    'L': 'Lion',
+    'M': 'Moon',
+    'N': 'Nest',
+    'O': 'Octopus',
+    'P': 'Pig',
+    'Q': 'Queen',
+    'R': 'Ring',
+    'S': 'Sun',
+    'T': 'Turtle',
+    'U': 'Umbrella',
+    'V': 'Volcano',
+    'W': 'Watch',
+    'X': 'X-ray',
+    'Y': 'Yo-yo',
+    'Z': 'Zebra'
+};
+
+// NEW: Full alphabet for Level 2
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+// This function generates a random bright color (RGB between 100-250)
+function getRandomBrightColor() {
+    let r = Math.floor(Math.random() * 150) + 100; // 100-250
+    let g = Math.floor(Math.random() * 150) + 100; // 100-250
+    let b = Math.floor(Math.random() * 150) + 100; // 100-250
+
+    const toHex = (c) => `0${c.toString(16)}`.slice(-2);
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+
+// --- KEPT: Your original function for instant sound effects ---
+async function playSound(sound) {
+    sound.currentTime = 0; // Rewind to start
+    try {
+        await sound.play();
+    } catch (err) {
+        // Log the error but don't crash the app
+        console.error("Audio play failed:", err);
+    }
+}
+
+
+// Wait for the page to be fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const container = document.getElementById('alphabet-container');
+    const level1Button = document.getElementById('level-1-button');
+    const colorPalette = document.getElementById('color-palette');
+    const bodyElement = document.body;
+    const speechToggleButton = document.getElementById('speech-toggle-button');
+    const caseToggleButton = document.getElementById('case-toggle-button');
+    const level2Button = document.getElementById('level-2-button');
+    const alphabetPrompt = document.getElementById('alphabet-prompt');
+
+    // --- Corrected path to sounds folder ---
+    const goodSound = new Audio('sounds/correct.mp3');
+    const badSound = new Audio('sounds/wrong.mp3');
+
+    let currentGameMode = 'level1';
+    let currentTargetLetter = null; 
+    let lettersToFind = [];
+    let speechMode = 'letter'; 
+    speechToggleButton.textContent = 'Switch to Words'; 
+    let caseMode = 'upper'; 
+
+    // ... your colorPalette listener ...
+    colorPalette.addEventListener('click', (event) => {
+        if (event.target.classList.contains('color-swatch')) {
+            const newColor = event.target.dataset.color;
+            bodyElement.style.backgroundColor = newColor;
+        }
+    });
+
+    speechToggleButton.addEventListener('click', () => {
+        if (speechMode === 'letter') {
+            speechMode = 'letterAndWord';
+            speechToggleButton.textContent = 'Switch to Letters';
+        } else {
+            speechMode = 'letter';
+            speechToggleButton.textContent = 'Switch to Words';
+        }
+    });
+
+    caseToggleButton.addEventListener('click', () => {
+        if (caseMode === 'upper') {
+            caseMode = 'lower';
+            caseToggleButton.textContent = 'Switch to Uppercase';
+        } else {
+            caseMode = 'upper';
+            caseToggleButton.textContent = 'Switch to Lowercase';
+        }
+        updateCase();
+    });
+
+    // --- 1. Create all the letter blocks ---
+    ALPHABET.forEach(letter => {
+        const letterBox = document.createElement('div');
+        letterBox.classList.add('letter-box');
+        letterBox.textContent = (caseMode === 'upper') ? letter : letter.toLowerCase();
+        letterBox.dataset.letter = letter;
+        letterBox.dataset.letterUpper = letter;
+        letterBox.dataset.letterLower = letter.toLowerCase();
+        container.appendChild(letterBox);
+    });
+
+    // --- 2. Create the function that handles the interaction ---
+    // --- REMOVED: async and await from here ---
+    function handleInteraction(targetElement) {
+        // Check if it's a letter box
+        if (!targetElement.classList.contains('letter-box')) return;
+
+        // Route logic based on game mode
+        if (currentGameMode === 'level1') {
+            handleLevel1Click(targetElement);
+        } else if (currentGameMode === 'level2') {
+            handleLevel2Click(targetElement);
+        }
+    }
+    
+    /**
      * Creates a DOM-based starburst effect on a target element.
      * @param {HTMLElement} targetElement - The element to burst from.
      */
     function playDomStarEffect(targetElement) {
-        const numStars = 10; // Number of star particles
-        const container = document.body; // Attach to body for positioning
+        const numStars = 10; 
+        const container = document.body; 
 
-        // Get the position of the letter box
         const rect = targetElement.getBoundingClientRect();
         const startX = rect.left + rect.width / 2;
         const startY = rect.top + rect.height / 2;
@@ -250,261 +271,198 @@ async function speakText(text, onEndCallback) {
         for (let i = 0; i < numStars; i++) {
             const star = document.createElement('div');
             star.classList.add('star-particle');
-            // Each star gets a random color, just like in the tracing game
             star.style.backgroundColor = `hsl(${Math.random() * 360}, 90%, 70%)`;
-
             container.appendChild(star);
-
-            // Set initial position
             star.style.left = `${startX}px`;
             star.style.top = `${startY}px`;
-
-            // Calculate random destination
             const angle = Math.random() * 2 * Math.PI;
-            const distance = Math.random() * 80 + 50; // 50px to 130px
+            const distance = Math.random() * 80 + 50; 
             const destX = Math.cos(angle) * distance;
             const destY = Math.sin(angle) * distance;
-
-            // Apply animation
-            // We use a custom property to pass the random values to the CSS animation
             star.style.setProperty('--dest-x', `${destX}px`);
             star.style.setProperty('--dest-y', `${destY}px`);
             star.style.animation = `starburst 0.8s ease-out forwards`;
-
-            // Remove the star after the animation finishes
             setTimeout(() => {
                 star.remove();
             }, 800);
         }
     }
-        // --- NEW: Logic for Level 1 (Original Game) ---
-        function handleLevel1Click(targetElement) {
-            // hasn't been visited yet
-            if (!targetElement.dataset.hasVisited) {
-                const letter = targetElement.dataset.letter;
 
-                // Generate a random bright background color
-                const randomBgColor = getRandomBrightColor();
-                targetElement.style.backgroundColor = randomBgColor;
-                targetElement.style.color = 'white';
-                targetElement.style.borderColor = randomBgColor;
-                targetElement.style.transform = 'scale(1.05)';
+    function handleLevel1Click(targetElement) {
+        if (!targetElement.dataset.hasVisited) {
+            const letter = targetElement.dataset.letter;
+            const randomBgColor = getRandomBrightColor();
+            targetElement.style.backgroundColor = randomBgColor;
+            targetElement.style.color = 'white';
+            targetElement.style.borderColor = randomBgColor;
+            targetElement.style.transform = 'scale(1.05)';
+            targetElement.dataset.hasVisited = 'true';
+            speakLetter(letter);
+        }
+    }
 
-                // Mark this letter as visited using a data attribute
-                targetElement.dataset.hasVisited = 'true';
-
-                // Speak the letter
-                speakLetter(letter);
-            }
+    function handleLevel2Click(targetElement) {
+        if (targetElement.classList.contains('found') || targetElement.classList.contains('wrong')) {
+            return;
         }
 
-        // --- NEW: Logic for Level 2 (Sticker Book Mode) ---
-        // --- NEW: Logic for Level 2 (Sticker Book Mode) ---
-        function handleLevel2Click(targetElement) {
-            // Don't do anything if the box is already found or marked wrong
-            if (targetElement.classList.contains('found') || targetElement.classList.contains('wrong')) {
-                return;
-            }
+        const clickedLetter = targetElement.dataset.letter;
 
-            const clickedLetter = targetElement.dataset.letter;
+        if (clickedLetter === currentTargetLetter) {
+            playSound(goodSound); 
+            playDomStarEffect(targetElement);
+            const randomBgColor = getRandomBrightColor();
+            targetElement.style.backgroundColor = randomBgColor;
+            targetElement.style.color = 'white';
+            targetElement.style.borderColor = randomBgColor;
+            targetElement.classList.add('found'); 
+            lettersToFind = lettersToFind.filter(l => l !== currentTargetLetter);
 
-            if (clickedLetter === currentTargetLetter) {
-                // CORRECT!
-                playSound(goodSound);
-
-                // --- ADD THIS LINE ---
-                playDomStarEffect(targetElement);
-                // ---------------------
-
-                // 1. Fill it with a permanent random color
-                const randomBgColor = getRandomBrightColor();
-                targetElement.style.backgroundColor = randomBgColor;
-                targetElement.style.color = 'white';
-                targetElement.style.borderColor = randomBgColor;
-                targetElement.classList.add('found'); // Mark as found
-
-                // 2. Remove it from the list of letters to find
-                lettersToFind = lettersToFind.filter(l => l !== currentTargetLetter);
-
-                // 3. Check if the game is over
-                if (lettersToFind.length === 0) {
-                    // Game is over, call the finish function
-                    finishLevel2();
-                } else {
-                    // Game is not over, let's pick the next letter *now*
-                    const foundLetter = currentTargetLetter; // Store the letter they just found
-                    
-                    // This logic is moved from pickNewTargetLetter()
-                    currentTargetLetter = lettersToFind[Math.floor(Math.random() * lettersToFind.length)];
-                    alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
-
-                    // Now, create ONE speech call with both phrases.
-                    // We add "..." to create a natural pause.
-                    const speechString = `You found ${foundLetter}! ... Now, find the letter ${currentTargetLetter}`;
-                    
-                    // Call speakText *without* a callback
-                    speakText(speechString);
-                }
-                } else {
-                // WRONG
-                playSound(badSound);
-                targetElement.classList.add('wrong');
-                // Remove the 'wrong' class after the shake animation
-                setTimeout(() => {
-                    targetElement.classList.remove('wrong');
-                }, 500);
-            }
-        }
-
-
-        // --- 3. Create the function that speaks (--- MODIFIED ---) ---
-        function speakLetter(letter) {
-            // 1. Get the two different sounds
-            //    'letter' is always uppercase ('A'), so this works correctly.
-            const nameSound = letter.toLowerCase();           // e.g., "b" (spoken as "Bee")
-            const exampleWord = EXAMPLE_WORDS[letter];        // e.g., "Boy"
-
-            // 2. Check the speech mode
-            if (speechMode === 'letterAndWord') {
-                // If 'letterAndWord', speak the name, and use the callback to speak
-                // the example word right after the first one finishes.
-                speakText(nameSound, () => {
-                    speakText(exampleWord);
-                });
-            } else {
-                // Otherwise (speechMode === 'letter'), just speak the name.
-                speakText(nameSound);
-            }
-        }
-
-        // --- MODIFICATION ---
-        // --- 4. Create the function to update letter case ---
-        function updateCase() {
-            const allBoxes = document.querySelectorAll('.letter-box');
-            allBoxes.forEach(box => {
-                if (caseMode === 'upper') {
-                    box.textContent = box.dataset.letterUpper;
-                } else {
-                    box.textContent = box.dataset.letterLower;
-                }
-            });
-        }
-        // --- END MODIFICATION ---
-
-
-        // --- 4. Set up all the event listeners --- (Now #5)
-
-        // For a simple tap on a tablet or a click with a mouse
-        container.addEventListener('click', (event) => {
-            handleInteraction(event.target);
-        });
-
-        // This handles "running a finger over" the letters
-        container.addEventListener('touchmove', (event) => {
-            // --- NEW: Only run this interaction for level 1 ---
-            if (currentGameMode !== 'level1') return;
-
-            // Find the element that is *currently* under the user's finger
-            const touch = event.touches[0];
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-            if (element) {
-                handleInteraction(element);
-            }
-        });
-
-        // This does the same for a mouse (for testing on your computer)
-        container.addEventListener('mouseover', (event) => {
-            // --- NEW: Only run this interaction for level 1 ---
-            if (currentGameMode !== 'level1') return;
-
-            // 'event.buttons === 1' means it only works if the mouse button is held down
-            if (event.buttons === 1) {
-                handleInteraction(event.target);
-            }
-        });
-
-        // --- 5. Make the level buttons work --- (Now #6)
-
-        // MODIFIED: This is now the Level 1 button
-        level1Button.addEventListener('click', startLevel1);
-
-        // NEW: Add listener for Level 2
-        level2Button.addEventListener('click', startLevel2);
-
-
-        // --- NEW: Functions to start/reset levels ---
-
-        function clearAllBoxes() {
-            const allBoxes = document.querySelectorAll('.letter-box');
-            allBoxes.forEach(box => {
-                // Clear inline styles
-                box.style.backgroundColor = '';
-                box.style.color = '';
-                box.style.borderColor = '';
-                box.style.transform = '';
-                // Clear state flags
-                delete box.dataset.hasVisited;
-                // Clear level 2 classes
-                box.classList.remove('found', 'wrong');
-            });
-        }
-
-        function startLevel1() {
-            currentGameMode = 'level1';
-            bodyElement.classList.remove('level-2-active'); // Use CSS to hide/show elements
-
-            clearAllBoxes();
-
-            // Also reset the case mode and button text
-            caseMode = 'upper';
-            caseToggleButton.textContent = 'Switch to Lowercase';
-            updateCase(); // Update the letters back to uppercase
-        }
-
-        function startLevel2() {
-            currentGameMode = 'level2';
-            bodyElement.classList.add('level-2-active'); // Use CSS to hide/show elements
-
-            // --- MODIFICATION ---
-            // The two lines that forced uppercase have been REMOVED.
-            // The game will now respect the current `caseMode`.
-            // --- END OF MODIFICATION ---
-
-            // Clear all styles and classes from all boxes
-            clearAllBoxes();
-
-            // Create a fresh list of all letters to find
-            lettersToFind = [...ALPHABET];
-
-            // Start the game by picking the first letter
-            pickNewTargetLetter();
-        }
-
-        function pickNewTargetLetter() {
-            // This shouldn't happen, but good to check
             if (lettersToFind.length === 0) {
                 finishLevel2();
-                return;
+            } else {
+                const foundLetter = currentTargetLetter; 
+                currentTargetLetter = lettersToFind[Math.floor(Math.random() * lettersToFind.length)];
+                alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
+                const speechFiles = [
+                    'you-found.mp3',
+                    `${foundLetter.toLowerCase()}.mp3`,
+                    'now-find-the-letter.mp3',
+                    `${currentTargetLetter.toLowerCase()}.mp3`
+                ];
+                speakText(speechFiles);
             }
-
-            // Pick a new random letter *from the remaining list*
-            currentTargetLetter = lettersToFind[Math.floor(Math.random() * lettersToFind.length)];
-
-            // Update and speak the prompt
-            alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
-            speakText(`Okay, find the letter ${currentTargetLetter}`);
+            } else {
+            playSound(badSound); 
+            targetElement.classList.add('wrong');
+            setTimeout(() => {
+                targetElement.classList.remove('wrong');
+            }, 500);
         }
+    }
 
-        function finishLevel2() {
-            alphabetPrompt.textContent = "You found them all!";
-            speakText("You found them all! Great job!", () => {
-                // After 2 seconds, restart Level 2
-                setTimeout(startLevel2, 2000);
-            });
+
+    // --- 3. Create the function that speaks ---
+    function speakLetter(letter) {
+        const nameSound = `${letter.toLowerCase()}.mp3`;   
+        const exampleWordFilename = `${EXAMPLE_WORDS[letter].toLowerCase()}.mp3`; 
+
+        if (speechMode === 'letterAndWord') {
+            speakText([nameSound, exampleWordFilename]);
+        } else {
+            speakText(nameSound);
         }
+    }
 
-        // --- END NEW FUNCTIONS ---
+    // --- 4. Create the function to update letter case ---
+    function updateCase() {
+        const allBoxes = document.querySelectorAll('.letter-box');
+        allBoxes.forEach(box => {
+            if (caseMode === 'upper') {
+                box.textContent = box.dataset.letterUpper;
+            } else {
+                box.textContent = box.dataset.letterLower;
+            }
+        });
+    }
 
+    // --- 5. Set up all the event listeners ---
+
+    // --- MODIFIED: Added async and await unlockAudio() ---
+    container.addEventListener('click', async (event) => {
+        await unlockAudio();
+        handleInteraction(event.target);
     });
 
+    // --- MODIFIED: Added async and await unlockAudio() ---
+    container.addEventListener('touchmove', async (event) => {
+        if (currentGameMode !== 'level1') return;
+        await unlockAudio(); // Unlock on first drag
+        const touch = event.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element) {
+            handleInteraction(element);
+        }
+    });
+
+    // --- MODIFIED: Added async and await unlockAudio() ---
+    container.addEventListener('mouseover', async (event) => {
+        if (currentGameMode !== 'level1') return;
+        if (event.buttons === 1) {
+            await unlockAudio(); // Unlock on first mouse drag
+            handleInteraction(event.target);
+        }
+    });
+
+    // --- 6. Make the level buttons work ---
+
+    // --- MODIFIED: Added async and await unlockAudio() ---
+    level1Button.addEventListener('click', async () => {
+        await unlockAudio();
+        startLevel1();
+    });
+
+    // --- MODIFIED: Added async and await unlockAudio() ---
+    level2Button.addEventListener('click', async () => {
+        await unlockAudio();
+        startLevel2();
+    });
+
+
+    // --- Functions to start/reset levels ---
+    function clearAllBoxes() {
+        const allBoxes = document.querySelectorAll('.letter-box');
+        allBoxes.forEach(box => {
+            box.style.backgroundColor = '';
+            box.style.color = '';
+            box.style.borderColor = '';
+            box.style.transform = '';
+            delete box.dataset.hasVisited;
+            box.classList.remove('found', 'wrong');
+        });
+    }
+
+    function startLevel1() {
+        currentGameMode = 'level1';
+        bodyElement.classList.remove('level-2-active');
+        clearAllBoxes();
+        caseMode = 'upper';
+        caseToggleButton.textContent = 'Switch to Lowercase';
+        updateCase(); 
+    }
+
+    function startLevel2() {
+        currentGameMode = 'level2';
+        bodyElement.classList.add('level-2-active'); 
+        clearAllBoxes();
+        lettersToFind = [...ALPHABET];
+        pickNewTargetLetter();
+    }
+
+    function pickNewTargetLetter() {
+        if (lettersToFind.length === 0) {
+            finishLevel2();
+            return;
+        }
+        currentTargetLetter = lettersToFind[Math.floor(Math.random() * lettersToFind.length)];
+        alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
+        speakText(['okay-find-the-letter.mp3', `${currentTargetLetter.toLowerCase()}.mp3`]);
+    }
+
+    function finishLevel2() {
+        alphabetPrompt.textContent = "You found them all!";
+        speakText("you-found-them-all.mp3", () => {
+            setTimeout(startLevel2, 2000);
+        });
+    }
+
+    // --- Preload static audio files ---
+    const staticAudioFiles = [
+        'you-found.mp3', 'now-find-the-letter.mp3', 
+        'okay-find-the-letter.mp3', 'you-found-them-all.mp3'
+    ];
+    const letterFiles = ALPHABET.map(l => `${l.toLowerCase()}.mp3`);
+    const wordFiles = Object.values(EXAMPLE_WORDS).map(w => `${w.toLowerCase()}.mp3`);
+    preloadAudio(staticAudioFiles.concat(letterFiles).concat(wordFiles));
+
+});

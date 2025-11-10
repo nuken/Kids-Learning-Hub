@@ -1,27 +1,4 @@
-// --- START: Robust Audio Unlocker ---
-// This unlocker plays a silent sound and waits for it to finish,
-// guaranteeing the audio system is "awake" before any real
-// sounds are played.
-let audioUnlocked = false;
-async function unlockAudio() {
-    if (audioUnlocked) return; // Only run once
-    
-    // A tiny, silent WAV file encoded in base64.
-    const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
-    
-    try {
-        // We MUST 'await' this play() promise.
-        // This ensures the browser has fully un-paused its
-        // audio system before we continue.
-        await silentAudio.play();
-    } catch (error) {
-        // This is fine. The user interaction still registered.
-    }
-    
-    console.log("Audio Unlocked");
-    audioUnlocked = true;
-}
-// --- END: Robust Audio Unlocker ---
+// --- REMOVED: The 'unlockAudio' function is no longer needed here. ---
 
 
 // --- START: Pre-generated Audio Player ---
@@ -368,16 +345,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 5. Set up all the event listeners ---
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
-    container.addEventListener('click', async (event) => {
-        await unlockAudio();
+    // --- REMOVED: async and await. Audio is unlocked by index.html ---
+    container.addEventListener('click', (event) => {
         handleInteraction(event.target);
     });
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
-    container.addEventListener('touchmove', async (event) => {
+    // --- REMOVED: async and await ---
+    container.addEventListener('touchmove', (event) => {
         if (currentGameMode !== 'level1') return;
-        await unlockAudio(); // Unlock on first drag
         const touch = event.touches[0];
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         if (element) {
@@ -385,26 +360,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
-    container.addEventListener('mouseover', async (event) => {
+    // --- REMOVED: async and await ---
+    container.addEventListener('mouseover', (event) => {
         if (currentGameMode !== 'level1') return;
         if (event.buttons === 1) {
-            await unlockAudio(); // Unlock on first mouse drag
             handleInteraction(event.target);
         }
     });
 
     // --- 6. Make the level buttons work ---
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
-    level1Button.addEventListener('click', async () => {
-        await unlockAudio();
+    // --- REMOVED: async and await ---
+    level1Button.addEventListener('click', () => {
         startLevel1();
     });
 
-    // --- MODIFIED: Added async and await unlockAudio() ---
-    level2Button.addEventListener('click', async () => {
-        await unlockAudio();
+    // --- REMOVED: async and await ---
+    level2Button.addEventListener('click', () => {
         startLevel2();
     });
 

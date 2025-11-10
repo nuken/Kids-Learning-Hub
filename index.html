@@ -5,13 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fun Learning Apps</title>
 	<link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut" href="favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-</head>
+    
+    <style>
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f8ff; /* Match body background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #start-button {
+            font-family: 'Comic Neue', sans-serif;
+            font-size: 3em;
+            font-weight: 700;
+            padding: 25px 50px;
+            border-radius: 20px;
+            border: 4px solid #555;
+            color: white;
+            background-color: #4CAF50; /* Green */
+            cursor: pointer;
+            /* Re-using pulse animation from other styles */
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        /* Pulse animation (copied from style.css) */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Hide main content initially */
+        h1, .menu-container {
+            visibility: hidden; /* Hide but keep in layout for no "pop" */
+        }
+    </style>
+    </head>
 <body>
+
+    <div id="start-overlay">
+        <button id="start-button">Click to Start!</button>
+    </div>
     <h1>Fun Learning Apps</h1>
     <div class="menu-container">
         <a href="Alphabet/index.html" class="menu-btn" id="alphabet-btn">
@@ -33,41 +78,73 @@
         <a href="VideoTime/index.html" class="menu-btn" id="videotime-btn">
             Video Time
         </a>
-        </div>
-<script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let speechApiWarmedUp = false;
+    </div>
 
-            /**
-             * This function speaks a silent, empty utterance in response to a user
-             * gesture. This is required to "unlock" the Web Speech API in
-             * many desktop browsers (like Chrome on Windows).
-             */
+    <script>
+        // This is now the *only* place the audio unlock logic will live.
+        let allAudioUnlocked = false;
+        async function unlockAllAudio() {
+            if (allAudioUnlocked) return;
+            
+            // 1. Play silent base64 sound to unlock HTMLMediaElement (for MP3s)
+            const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+            
+            // 2. Resume AudioContext (for Konva/Tracing game)
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            
+            try {
+                // We MUST await the silent play to ensure it completes.
+                await silentAudio.play();
+                
+                // We also await the context resume.
+                if (context.state === 'suspended') {
+                    await context.resume();
+                }
+            } catch (e) {
+                // Ignore errors, the interaction was still registered.
+            }
+            
+            allAudioUnlocked = true;
+            console.log("All Audio Systems Unlocked.");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const startOverlay = document.getElementById('start-overlay');
+            const startButton = document.getElementById('start-button');
+            const h1 = document.querySelector('h1');
+            const menu = document.querySelector('.menu-container');
+            
+            // --- This is your original speech API warmer ---
+            // We'll keep it here as it's harmless and
+            // warms up the *other* speech system.
+            let speechApiWarmedUp = false;
             function warmUpSpeechAPI() {
                 if (speechApiWarmedUp || !window.speechSynthesis) {
                     return;
                 }
-                
-                // Create a silent, empty utterance
                 const utterance = new SpeechSynthesisUtterance("");
                 utterance.volume = 0;
-                
-                // Speak it to unlock the API
                 window.speechSynthesis.speak(utterance);
-                
-                // Also, proactively start fetching the voice list
                 window.speechSynthesis.getVoices();
-                
                 speechApiWarmedUp = true;
             }
+            // --- End warm up ---
 
-            // Add the listener to all menu buttons
-            const buttons = document.querySelectorAll('.menu-btn');
-            buttons.forEach(btn => {
-                // We use 'mousedown' as it fires just before navigation,
-                // giving the command the best chance to execute.
-                btn.addEventListener('mousedown', warmUpSpeechAPI);
+            startButton.addEventListener('click', async () => {
+                // 1. Unlock both audio systems
+                await unlockAllAudio();
+                
+                // 2. Warm up the speech API
+                warmUpSpeechAPI();
+                
+                // 3. Hide overlay and show menu
+                startOverlay.style.display = 'none';
+                h1.style.visibility = 'visible';
+                menu.style.visibility = 'visible';
             });
+
+            // The old 'mousedown' listeners on the menu buttons
+            // have been removed, as they are no longer needed.
         });
     </script>
 </body>

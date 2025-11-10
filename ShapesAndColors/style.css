@@ -238,10 +238,11 @@ h2 {
 .leaf.yellow { background-image: url('images/leaf-yellow.png'); }
 .leaf.brown { background-image: url('images/leaf-brown.png'); }
 
-.basket.green { border-color: #4CAF50; }
-.basket.red { border-color: #F44336; }
-.basket.yellow { border-color: #FFEB3B; }
-.basket.brown { border-color: #795548; }
+/* --- FIX: Use the full 'border' property to override the default --- */
+.basket.green { border: 5px solid #4CAF50; }
+.basket.red { border: 5px solid #F44336; }
+.basket.yellow { border: 5px solid #FFEB3B; }
+.basket.brown { border: 5px solid #795548; }
 
 
 /* --- Shape Web Game --- */

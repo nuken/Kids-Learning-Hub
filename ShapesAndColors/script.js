@@ -153,6 +153,12 @@
                 basket.appendChild(selectedLeaf);
                 selectedLeaf.classList.remove('selected');
                 selectedLeaf.style.position = 'static'; // Clear positioning
+
+                // --- ADD THESE TWO LINES ---
+                selectedLeaf.style.left = '';   // Clear old inline style
+                selectedLeaf.style.top = '';    // Clear old inline style
+                // --- END OF FIX ---
+
                 selectedLeaf.removeEventListener('click', handleLeafClick); // Make un-clickable
 
                 selectedLeaf = null; // Clear selection

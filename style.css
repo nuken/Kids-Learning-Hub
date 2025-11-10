@@ -54,10 +54,7 @@ h1 {
 #number-btn   { background-color: #3F51B5; /* Indigo */ }
 #coloring-btn { background-color: #FF9800; /* Orange */ }
 #spelling-btn { background-color: #90D5FF; /* Light Blue */ }
-
-/* --- ADD THIS STYLE --- */
-#videotime-btn { background-color: #f44336; /* Red */ }
-/* --- END OF ADDITION --- */
+#shapes-colors-btn { background-color: #9C27B0; /* Purple */ }
 
 
 /* Responsive styles for smaller screens */

@@ -94,7 +94,39 @@ h2 {
 .menu-btn:active {
     transform: scale(0.95);
 }
+/* --- Menu Button Colors --- */
+#start-leaf-sort-btn { background-color: #4CAF50; /* Green */ }
+#start-shape-web-btn { background-color: #9C27B0; /* Purple */ }
 
+
+/* --- Re-used style for Shape Game (from Spelling/style.css) --- */
+.letter-button {
+  width: 90px;
+  height: 90px;
+  font-size: 60px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 3px solid #555;
+  border-radius: 10px;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.letter-button:active {
+  transform: scale(0.95);
+}
+
+/* --- Shake Animation (from Spelling/style.css) --- */
+/* This 5-step shake feels a bit better than the 3-step one */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  50% { transform: translateX(10px); }
+  75% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
 #start-counting-btn { background-color: #4CAF50; /* Green */ }
 #start-tracing-btn  { background-color: #F44336; /* Red */ }
 #start-patterns-btn { background-color: #3F51B5; /* Indigo */ }

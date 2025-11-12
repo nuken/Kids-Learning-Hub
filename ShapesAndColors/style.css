@@ -149,9 +149,13 @@ h2 {
   border-radius: 10px;
   cursor: pointer;
   margin-top: 20px;
-  animation: pulse 1.5s infinite ease-in-out;
+  /* animation: pulse 1.5s infinite ease-in-out; */ /* <-- REMOVED this line */
+  transition: background-color 0.2s; /* <-- ADDED this line */
 }
 
+#next-shape-button:hover {
+  background-color: #45a049; /* A slightly darker green */
+}
 
 /* --- Style for Home Button --- */
 .home-btn-subpage {
@@ -255,6 +259,18 @@ h2 {
     background-repeat: no-repeat;
     background-position: center;
     flex-shrink: 0; /* Prevent it from shrinking */
+	position: relative;
+}
+#friendly-spider {
+    position: absolute;  /* Now relative to #spider-web-display */
+    
+    /* === Adjust these percentages as you like === */
+    width: 30%;         /* e.g., 30% of the web's width */
+    top: 10%;           /* 10% from the top of the web */
+    left: 10%;          /* 10% from the left of the web */
+    /* ============================================ */
+    
+    z-index: 10; 
 }
 #shape-choices-container {
     display: flex;

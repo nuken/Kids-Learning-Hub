@@ -1,7 +1,7 @@
 // --- MODIFICATION ---
 // Wrapped entire file in an IIFE to create a private scope
 (function() {
-
+    let audioPrimed = false;
     document.addEventListener('DOMContentLoaded', () => {
 
         // --- 1. NAVIGATION ---
@@ -14,23 +14,28 @@
         const backButtons = document.querySelectorAll('.back-btn');
 
         function showScreen(screenId) {
+            // --- NEW: Prime audio on first user interaction ---
+            primeAudioAndSpeech();
+
             screens.forEach(screen => screen.classList.remove('visible'));
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
                 targetScreen.classList.add('visible');
             }
 
-            // --- MODIFICATION ---
-            // Changed to call the refactored 'start' functions
             // This ensures games are reset properly when viewed
+            // --- NEW: Added speech for game titles ---
             if (screenId === 'spell-image-game') {
+                if (window.speakText) window.speakText("Spell the word!");
                 startGameImage();
-            } else if (screenId === 'spell-missing-game') { // NEW
+            } else if (screenId === 'spell-missing-game') {
+                if (window.speakText) window.speakText("Find the missing letter!");
                 startGameMissing();
             } else if (screenId === 'spell-color-game') {
+                if (window.speakText) window.speakText("Spell the color!");
                 startGameColor();
             }
-            // --- END MODIFICATION ---
+            // --- END NEW ---
         }
 
         for (const btnId in menuButtons) {
@@ -39,9 +44,15 @@
                 btn.addEventListener('click', () => showScreen(menuButtons[btnId]));
             }
         }
-
-        backButtons.forEach(btn => {
-            btn.addEventListener('click', () => showScreen('main-menu'));
+backButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // --- NEW: Stop any speech ---
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                }
+                // --- END NEW ---
+                showScreen('main-menu');
+            });
         });
 
         // (Optional) Load the sounds
@@ -69,6 +80,41 @@
             }
         }
         // --- END MODIFICATION ---
+
+
+        // --- NEW: Audio and Speech Priming Function ---
+        function primeAudioAndSpeech() {
+            if (audioPrimed) return; // Only run once
+
+            // 1. "Wake up" the sound effects (for iOS)
+            try {
+                goodSound.play().catch(() => {});
+                goodSound.pause();
+                goodSound.currentTime = 0;
+
+                badSound.play().catch(() => {});
+                badSound.pause();
+                badSound.currentTime = 0;
+            } catch (err) {
+                console.error("Audio priming failed:", err);
+            }
+
+            // 2. "Wake up" the speech engine (for iOS)
+            if (window.unlockSpeechIfNeeded) {
+                window.unlockSpeechIfNeeded();
+            }
+            
+            // 3. "Wake up" the speech voice list
+            if (window.loadVoices) {
+                window.loadVoices(); 
+            }
+            
+            audioPrimed = true;
+        }
+        // --- END NEW ---
+
+
+        // --- 3. GAME 1: IMAGE SPELLING (Original Game Logic) ---
 
         // RENAMED from generateColorChoices to be reusable
         // --- MODIFICATION ---
@@ -142,6 +188,13 @@
         function loadWord(wordIndex) {
           const currentWordData = imageGameData[wordIndex];
           wordImage.src = currentWordData.image;
+          
+          // --- NEW: Speak the word ---
+          if (window.speakText) {
+            window.speakText(currentWordData.word);
+          }
+          // --- END NEW ---
+
           lettersToSpell = currentWordData.word.split('');
 
           wordBlanksContainerImage.innerHTML = '';
@@ -228,6 +281,12 @@
         function loadMissingWord(wordIndex) {
             const currentWordData = imageGameData[wordIndex];
             const word = currentWordData.word;
+            
+            // --- NEW: Speak the word ---
+            if (window.speakText) {
+                window.speakText(word);
+            }
+            // --- END NEW ---
 
             // 1. Pick a random letter to be the missing one
             const missingIndex = Math.floor(Math.random() * word.length);
@@ -352,6 +411,12 @@
             const currentWordData = colorGameData[wordIndex];
             const word = currentWordData.word;
             const correctLetter = word[0];
+
+            // --- NEW: Speak the color name ---
+            if (window.speakText) {
+                window.speakText(word);
+            }
+            // --- END NEW ---
 
             colorBoxDisplay.style.backgroundColor = currentWordData.color;
             if (word === 'white') {

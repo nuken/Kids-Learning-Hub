@@ -98,90 +98,214 @@
         }
 
 
-        // --- 3. GAME 1: LEAF COLOR SORT (Tap-to-Sort logic) ---
-        const leafPileContainer = document.getElementById('leaf-pile-container');
-        const basketContainer = document.getElementById('basket-container');
-        const leafColors = ['green', 'red', 'yellow', 'brown'];
-        let selectedLeaf = null;
+        // --- 3. GAME 1: LEAF COLOR SORT (Konva Drag-and-Drop) ---
 
-        function startLeafSortGame() {
-            leafPileContainer.innerHTML = '';
-            basketContainer.innerHTML = '';
-            selectedLeaf = null;
+const leafColors = ['green', 'red', 'yellow', 'brown'];
+const LEAF_IMAGES = {}; // To store preloaded leaf images
+let leafStage, leafLayer;
+let leafGameInitialized = false;
+let leafPieces = [];
+let basketTargets = [];
 
-            let leavesToCreate = [];
-            const numPerColor = 3;
+// Helper function to load all our leaf images before starting
+function loadLeafImages(callback) {
+    let imagesToLoad = leafColors.length;
+    if (Object.keys(LEAF_IMAGES).length === leafColors.length) {
+        callback();
+        return;
+    }
 
-            for (const color of leafColors) {
-                for (let i = 0; i < numPerColor; i++) {
-                    leavesToCreate.push(color);
-                }
+    leafColors.forEach(color => {
+        const img = new Image();
+        img.src = `images/leaf-${color}.png`;
+        img.onload = () => {
+            LEAF_IMAGES[color] = img;
+            imagesToLoad--;
+            if (imagesToLoad === 0) {
+                callback();
             }
-            shuffleArray(leavesToCreate);
+        };
+    });
+}
 
-            leavesToCreate.forEach((color, index) => {
-                const leaf = document.createElement('div');
-                leaf.className = `leaf ${color}`;
-                leaf.id = `leaf-${index}`;
-                leaf.dataset.color = color;
-                leaf.style.left = `${Math.floor(Math.random() * 80) + 10}%`;
-                leaf.style.top = `${Math.floor(Math.random() * 80) + 10}%`;
-                leaf.addEventListener('click', handleLeafClick);
-                leafPileContainer.appendChild(leaf);
+function startLeafSortGame() {
+    // 1. Wait for images to be loaded
+    loadLeafImages(() => {
+        // 2. Setup the stage (only once)
+        if (!leafGameInitialized) {
+            const canvasContainer = document.getElementById('leaf-sort-canvas');
+            leafStage = new Konva.Stage({
+                container: 'leaf-sort-canvas',
+                width: canvasContainer.clientWidth,
+                height: canvasContainer.clientHeight
             });
+            leafLayer = new Konva.Layer();
+            leafStage.add(leafLayer);
 
-            leafColors.forEach(color => {
-                const basket = document.createElement('div');
-                basket.className = `basket ${color}`;
-                basket.dataset.color = color;
-                basket.addEventListener('click', handleBasketClick);
-                basketContainer.appendChild(basket);
-            });
+            // Resize observer, just like the puzzle game
+            new ResizeObserver(() => {
+                requestAnimationFrame(() => {
+                    if (leafStage && canvasContainer) {
+                        const newWidth = canvasContainer.clientWidth;
+                        const newHeight = canvasContainer.clientHeight;
+                        if (leafStage.width() !== newWidth || leafStage.height() !== newHeight) {
+                            leafStage.width(newWidth);
+                            leafStage.height(newHeight);
+                            // Reload the current setup if screen resizes
+                            loadLeafSortProblem();
+                        }
+                    }
+                });
+            }).observe(canvasContainer);
 
-            speakText("Sort the leaves!");
+            leafGameInitialized = true;
         }
 
-        function handleLeafClick(e) {
-            if (selectedLeaf) {
-                selectedLeaf.classList.remove('selected');
-            }
-            selectedLeaf = e.currentTarget;
-            selectedLeaf.classList.add('selected');
+        // 3. Load the game pieces
+        loadLeafSortProblem();
+    });
+}
+
+function loadLeafSortProblem() {
+    if (!leafStage) return; // Exit if stage isn't ready
+
+    const stageW = leafStage.width();
+    const stageH = leafStage.height();
+
+    // Clear old pieces and targets
+    leafLayer.destroyChildren();
+    leafPieces = [];
+    basketTargets = [];
+
+    // --- Create Baskets (Targets) ---
+    const basketSize = Math.min(stageW / 4.5, stageH / 4.5, 120);
+    const basketY = stageH - basketSize - 10; // Baskets at the bottom
+    const basketSpacing = (stageW - (basketSize * 4)) / 5;
+
+    const basketColors = {
+        'green': '#4CAF50',
+        'red': '#F44336',
+        'yellow': '#FFEB3B',
+        'brown': '#795548'
+    };
+
+    leafColors.forEach((color, index) => {
+        const basket = new Konva.Rect({
+            x: basketSpacing + (index * (basketSize + basketSpacing)),
+            y: basketY,
+            width: basketSize,
+            height: basketSize,
+            stroke: basketColors[color],
+            strokeWidth: 8,
+            dash: [10, 5],
+            cornerRadius: 10
+        });
+        basket.id(color); // Store the color info
+        leafLayer.add(basket);
+        basketTargets.push(basket);
+    });
+
+    // --- Create Leaves (Pieces) ---
+    const numPerColor = 3;
+    const leafSize = Math.min(stageW / 10, 80);
+    const pileHeight = stageH - basketSize - 30; // Area above baskets
+
+    for (const color of leafColors) {
+        for (let i = 0; i < numPerColor; i++) {
+            const startX = Math.random() * (stageW - leafSize) + (leafSize / 2);
+            const startY = Math.random() * (pileHeight - leafSize) + (leafSize / 2);
+
+            const leaf = new Konva.Image({
+                image: LEAF_IMAGES[color],
+                x: startX,
+                y: startY,
+                width: leafSize,
+                height: leafSize,
+                draggable: true,
+                offsetX: leafSize / 2,
+                offsetY: leafSize / 2
+            });
+
+            leaf.id(color); // Store the color info
+            leaf.data = { originalX: startX, originalY: startY }; // Store snap-back position
+
+            leaf.on('dragstart', (e) => {
+                e.target.moveToTop();
+                leafLayer.batchDraw();
+            });
+
+            leaf.on('dragend', handleLeafDragEnd);
+
+            leafLayer.add(leaf);
+            leafPieces.push(leaf);
         }
+    }
 
-        function handleBasketClick(e) {
-            if (!selectedLeaf) return;
+    leafLayer.batchDraw();
+    speakText("Sort the leaves!");
+}
 
-            const basket = e.currentTarget;
-            const basketColor = basket.dataset.color;
-            const leafColor = selectedLeaf.dataset.color;
+function handleLeafDragEnd(e) {
+    const leaf = e.target;
+    const leafColor = leaf.id();
 
-            if (leafColor === basketColor) {
+    let correctDrop = false;
+
+    // We can reuse the haveIntersection function from the puzzle game!
+    for (const basket of basketTargets) {
+        if (haveIntersection(leaf.getClientRect(), basket.getClientRect())) {
+
+            if (basket.id() === leafColor) {
+                // CORRECT BASKET
                 playSound(correctSound);
-                basket.appendChild(selectedLeaf);
-                selectedLeaf.classList.remove('selected');
-                selectedLeaf.style.position = 'static';
-                selectedLeaf.style.left = '';
-                selectedLeaf.style.top = '';
-                selectedLeaf.removeEventListener('click', handleLeafClick);
-                selectedLeaf = null;
+                leaf.draggable(false);
+                leaf.off('dragend');
+                leaf.to({
+                    x: basket.x() + basket.width() / 2 + (Math.random() - 0.5) * (basket.width() / 2),
+                    y: basket.y() + basket.height() / 2 + (Math.random() - 0.5) * (basket.height() / 2),
+                    scaleX: 0.5,
+                    scaleY: 0.5,
+                    duration: 0.2
+                });
+                correctDrop = true;
                 checkLeafSortWin();
+                break;
             } else {
+                // WRONG BASKET
                 playSound(wrongSound);
-                if (!basket.classList.contains('shake')) {
-                    basket.classList.add('shake');
-                    setTimeout(() => basket.classList.remove('shake'), 500);
-                }
-                selectedLeaf.classList.remove('selected');
-                selectedLeaf = null;
+                basket.to({
+                    scaleX: 1.1,
+                    scaleY: 1.1,
+                    duration: 0.1,
+                    yoyo: true, // Go back to normal
+                    onFinish: () => basket.scaleX(1).scaleY(1)
+                });
             }
         }
+    }
 
-        function checkLeafSortWin() {
-            if (leafPileContainer.children.length === 0) {
-                setTimeout(startLeafSortGame, 1500);
-            }
-        }
+    if (!correctDrop) {
+        // No basket, or wrong basket - snap back
+        leaf.to({
+            x: leaf.data.originalX,
+            y: leaf.data.originalY,
+            duration: 0.3,
+            easing: Konva.Easings.ElasticEaseOut
+        });
+    }
+
+    leafLayer.batchDraw();
+}
+
+function checkLeafSortWin() {
+    // Check if all pieces are no longer draggable
+    const allSorted = leafPieces.every(p => !p.draggable());
+    if (allSorted) {
+        speakText("Great job!");
+        // Reload the game
+        setTimeout(loadLeafSortProblem, 1500);
+    }
+}
 
 
         // --- 4. GAME 2: SPIDER'S SHAPE WEB ---

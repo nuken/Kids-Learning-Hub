@@ -373,7 +373,8 @@ h2 {
 
 }
 /* --- Shape Puzzle Game --- */
-#shape-puzzle-canvas {
+#shape-puzzle-canvas,
+#leaf-sort-canvas {
     width: 95%;
     flex-grow: 1;
 

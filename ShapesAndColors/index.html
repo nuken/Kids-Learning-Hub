@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Shapes & Colors Fun!</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="shortcut" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="main-menu" class="game-screen visible">
+        <a href="../index.html" class="home-btn-subpage" title="Home">
+            <i class="fas fa-home"></i>
+        </a>
+        <h1>Shapes & Colors!</h1>
+        <div class="menu-buttons">
+            <button id="start-leaf-sort-btn" class="menu-btn">Leaf Color Sort</button>
+            <button id="start-shape-web-btn" class="menu-btn">Spider's Shape Web</button>
+        </div>
+    </div>
+
+    <div id="leaf-sort-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Sort the Leaves!</h2>
+        <div id="leaf-pile-container" class="touch-area">
+            </div>
+        <div id="basket-container">
+            </div>
+    </div>
+
+    <div id="shape-web-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Fill the Web!</h2>
+        <div id="spider-web-display" class="touch-area">
+            </div>
+        <div id="shape-choices-container">
+            </div>
+        <button id="next-shape-button" class="hidden">Next Shape!</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

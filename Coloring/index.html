@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coloring Book</title>
+	<link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://unpkg.com/konva@10/konva.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="toolbar">
+		    <div class="tool-group">
+             <p class="tool-label">Navigation</p>
+             <a href="../index.html" id="home-btn" class="home-btn-subpage" title="Home">
+             <i class="fas fa-home"></i>
+             </a>
+            </div>
+            <div class="tool-group">
+                <p class="tool-label">Choose Image</p>
+                <div id="image-selector" class="image-selector">
+                    </div>
+            </div>
+            <div class="tool-group">
+                <p class="tool-label">Tools</p>
+                <button id="brush-btn" class="tool-btn active" title="Brush"><i class="fas fa-paint-brush"></i></button>
+                <button id="fill-btn" class="tool-btn" title="Fill"><i class="fas fa-fill-drip"></i></button>
+            </div>
+            <div class="tool-group">
+                <label for="brush-size" class="tool-label">Size</label>
+                <input type="range" id="brush-size" min="2" max="50" value="10">
+            </div>
+            <div class="tool-group">
+                <p class="tool-label">Colors</p>
+                <div id="color-palette" class="palette"></div>
+            </div>
+            <div class="tool-group">
+                 <p class="tool-label">Actions</p>
+                 <button id="undo-btn" class="util-btn" title="Undo"><i class="fas fa-undo"></i></button>
+                 <button id="clear-btn" class="util-btn" title="Clear"><i class="fas fa-eraser"></i></button>
+                 <button id="save-btn" class="util-btn" title="Save"><i class="fas fa-save"></i></button>
+            </div>
+        </div>
+        <div class="canvas-container" id="container"></div>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

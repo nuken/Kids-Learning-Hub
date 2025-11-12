@@ -1,0 +1,37 @@
+{
+   "name":"Kids Learning Hub",
+   "short_name":"Kids Hub",
+   "description":"A collection of fun, ad-free learning apps for kids.",
+   "start_url":"/index.html",
+   "scope":"/",
+   "display":"standalone",
+   "background_color":"#f0f8ff",
+   "theme_color":"#f0f8ff",
+   "orientation":"portrait-primary",
+   "icons":[
+      {
+         "src":"/android-chrome-192x192.png",
+         "sizes":"192x192",
+         "type":"image/png",
+         "purpose":"any"
+      },
+      {
+         "src":"/android-chrome-512x512.png",
+         "sizes":"512x512",
+         "type":"image/png",
+         "purpose":"any"
+      },
+      {
+         "src":"/android-chrome-192x192.png",
+         "sizes":"192x192",
+         "type":"image/png",
+         "purpose":"maskable"
+      },
+      {
+         "src":"/android-chrome-512x512.png",
+         "sizes":"512x512",
+         "type":"image/png",
+         "purpose":"maskable"
+      }
+   ]
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Learning Hub</title>
+    <meta name="theme-color" content="#f0f8ff">
+    <link rel="manifest" href="manifest.json">   
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">    
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">    
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Kids Learning Hub</h1>
+    <div class="menu-container">
+	<a href="../VideoTime/index.html" class="video-link-btn" title="Video Time!">
+            <i class="fas fa-play-circle"></i>
+        </a>
+        <a href="Alphabet/index.html" class="menu-btn" id="alphabet-btn">
+            Alphabet Fun
+        </a>
+        
+        <a href="Number/index.html" class="menu-btn" id="number-btn">
+            Numbers Fun
+        </a>
+        
+        <a href="Coloring/index.html" class="menu-btn" id="coloring-btn">
+            Coloring Book
+        </a>
+		
+		<a href="Spelling/index.html" class="menu-btn" id="spelling-btn">
+            Let's Spell
+        </a>
+
+         <a href="ShapesAndColors/index.html" class="menu-btn" id="shapes-colors-btn">
+            Shapes & Colors
+        </a>
+        </div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let speechApiWarmedUp = false;
+
+            /**
+             * This function speaks a silent, empty utterance in response to a user
+             * gesture. This is required to "unlock" the Web Speech API in
+             * many desktop browsers (like Chrome on Windows).
+             */
+            function warmUpSpeechAPI() {
+                if (speechApiWarmedUp || !window.speechSynthesis) {
+                    return;
+                }
+                
+                // Create a silent, empty utterance
+                const utterance = new SpeechSynthesisUtterance("");
+                utterance.volume = 0;
+                
+                // Speak it to unlock the API
+                window.speechSynthesis.speak(utterance);
+                
+                // Also, proactively start fetching the voice list
+                window.speechSynthesis.getVoices();
+                
+                speechApiWarmedUp = true;
+            }
+
+            // Add the listener to all menu buttons
+            const buttons = document.querySelectorAll('.menu-btn');
+            buttons.forEach(btn => {
+                // We use 'mousedown' as it fires just before navigation,
+                // giving the command the best chance to execute.
+                btn.addEventListener('mousedown', warmUpSpeechAPI);
+            });
+        });
+    </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered!');
+        })
+        .catch(err => {
+          console.log('Service Worker registration failed: ', err);
+        });
+    });
+  }
+</script>
+</body>
+</html>

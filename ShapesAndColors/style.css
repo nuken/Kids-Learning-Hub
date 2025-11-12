@@ -376,17 +376,18 @@ h2 {
 #shape-puzzle-canvas {
     width: 95%;
     flex-grow: 1;
-    display: flex; /* This is just for the container */
-    justify-content: center;
-    align-items: center;
+
+    /* --- FIXES START --- */
+    display: block;         /* Override 'display: flex' from .touch-area */
+    min-height: 0;          /* Allow the container to shrink on small screens */
+    /* --- FIXES END --- */
+
     padding: 10px;
     box-sizing: border-box;
     background: #f4f4f4;
     border: 3px solid #ccc;
     border-radius: 15px;
     overflow: hidden;
-
-    /* CRITICAL: Prevents page scroll on tablet when dragging shapes */
     touch-action: none;
 }
 

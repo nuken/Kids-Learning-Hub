@@ -320,6 +320,7 @@ function checkLeafSortWin() {
         const webDisplay = document.getElementById('spider-web-display');
         const shapeChoicesContainer = document.getElementById('shape-choices-container');
         const nextShapeButton = document.getElementById('next-shape-button');
+        const friendlySpider = document.getElementById('friendly-spider');
 
         let currentShapeProblem = {};
         let shapeGameInitialized = false;
@@ -376,6 +377,13 @@ function checkLeafSortWin() {
                 playSound(correctSound);
                 webDisplay.style.backgroundImage = `url('${currentShapeProblem.filledImage}')`;
                 nextShapeButton.classList.remove('hidden');
+                if (friendlySpider) {
+            friendlySpider.classList.add('spider-bounces');
+            // Remove the class after the animation finishes (800ms)
+            setTimeout(() => {
+                friendlySpider.classList.remove('spider-bounces');
+            }, 800);
+        }
 
             } else {
                 playSound(wrongSound);

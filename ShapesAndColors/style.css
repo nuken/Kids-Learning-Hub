@@ -99,7 +99,7 @@ h2 {
 /* --- NEW Menu Button Colors --- */
 #start-leaf-sort-btn { background-color: #4CAF50; /* Green */ }
 #start-shape-web-btn { background-color: #9C27B0; /* Purple */ }
-
+#start-shape-puzzle-btn { background-color: #F44336; /* Red */ }
 
 /* --- Re-used style for Shape Game (from Spelling/style.css) --- */
 .letter-button {
@@ -139,7 +139,8 @@ h2 {
   display: none;
 }
 
-#next-shape-button {
+#next-shape-button,
+#next-puzzle-button{
   font-size: 28px;
   font-weight: bold;
   padding: 20px 30px;
@@ -149,11 +150,11 @@ h2 {
   border-radius: 10px;
   cursor: pointer;
   margin-top: 20px;
-  /* animation: pulse 1.5s infinite ease-in-out; */ /* <-- REMOVED this line */
-  transition: background-color 0.2s; /* <-- ADDED this line */
+  transition: background-color 0.2s;
 }
 
-#next-shape-button:hover {
+#next-shape-button:hover,
+#next-puzzle-button:hover{
   background-color: #45a049; /* A slightly darker green */
 }
 
@@ -368,5 +369,41 @@ h2 {
     #shape-choices-container {
         gap: 10px;
         margin-top: 10px;
+    }
+
+}
+/* --- Shape Puzzle Game --- */
+#shape-puzzle-canvas {
+    width: 95%;
+    flex-grow: 1;
+    display: flex; /* This is just for the container */
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+    background: #f4f4f4;
+    border: 3px solid #ccc;
+    border-radius: 15px;
+    overflow: hidden;
+
+    /* CRITICAL: Prevents page scroll on tablet when dragging shapes */
+    touch-action: none;
+}
+
+/* Makes Konva canvas fill its container */
+#shape-puzzle-canvas .konvajs-content {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* --- Responsive Fixes for Puzzle Game --- */
+@media (orientation: portrait) and (max-width: 500px) {
+    #shape-puzzle-canvas {
+        flex-grow: 1;
+        min-height: 400px; /* Give it space */
+    }
+
+    #next-puzzle-button {
+        margin-bottom: 20px;
     }
 }

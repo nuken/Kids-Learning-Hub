@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 
+    <script src="https://unpkg.com/konva@10/konva.min.js"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -23,6 +25,8 @@
         <div class="menu-buttons">
             <button id="start-leaf-sort-btn" class="menu-btn">Leaf Color Sort</button>
             <button id="start-shape-web-btn" class="menu-btn">Spider's Shape Web</button>
+
+            <button id="start-shape-puzzle-btn" class="menu-btn">Shape Puzzles</button>
         </div>
     </div>
 
@@ -46,6 +50,13 @@
         <button id="next-shape-button" class="hidden">Next Shape!</button>
     </div>
 
+    <div id="shape-puzzle-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2 id="puzzle-prompt">Let's build a house!</h2>
+        <div id="shape-puzzle-canvas" class="touch-area"></div>
+        <button id="next-puzzle-button" class="hidden">Next Puzzle!</button>
+    </div>
+    <script src="../Number/unlock-speech.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

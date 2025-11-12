@@ -391,11 +391,7 @@ h2 {
     touch-action: none;
 }
 
-/* Makes Konva canvas fill its container */
-#shape-puzzle-canvas .konvajs-content {
-    width: 100% !important;
-    height: 100% !important;
-}
+
 
 /* --- Responsive Fixes for Puzzle Game --- */
 @media (orientation: portrait) and (max-width: 500px) {

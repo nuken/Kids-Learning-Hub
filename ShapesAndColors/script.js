@@ -274,6 +274,7 @@
         let puzzleGameInitialized = false;
         // === ADD THIS FLAG ===
         let isPuzzleLoading = false;
+        let isPuzzleSolved = false;
         let puzzlePieces = [];
         let puzzleTargets = [];
         let puzzlePieceBin = { x: 10, y: 10, width: 180, height: 500 };
@@ -369,13 +370,21 @@
                 puzzleStage.add(puzzleLayer);
 
                 new ResizeObserver(() => {
-                    // === MODIFY THIS CHECK ===
-                    if (!isPuzzleLoading && puzzleStage && puzzleCanvasContainer && currentPuzzle && currentPuzzle.id) {
-                        puzzleStage.width(puzzleCanvasContainer.clientWidth);
-                        puzzleStage.height(puzzleCanvasContainer.clientHeight);
-                        loadPuzzle(currentPuzzleIndex);
-                    }
-                }).observe(puzzleCanvasContainer);
+    // Use requestAnimationFrame to wait for the browser to finish its layout changes
+    requestAnimationFrame(() => {
+        if (!isPuzzleLoading && !isPuzzleSolved && puzzleStage && puzzleCanvasContainer) {
+            const newWidth = puzzleCanvasContainer.clientWidth;
+            const newHeight = puzzleCanvasContainer.clientHeight;
+
+            // Only redraw if the size actually changed to avoid unnecessary reloads
+            if (puzzleStage.width() !== newWidth || puzzleStage.height() !== newHeight) {
+                puzzleStage.width(newWidth);
+                puzzleStage.height(newHeight);
+                loadPuzzle(PUZZLE_DATA[currentPuzzleIndex]);
+            }
+        }
+    });
+}).observe(puzzleCanvasContainer);
 
                 nextPuzzleButton.addEventListener('click', () => {
                     currentPuzzleIndex++;
@@ -402,7 +411,7 @@
                 return;
             }
 
-            // === ADD THIS LINE ===
+            isPuzzleSolved = false;
             isPuzzleLoading = true;
 
             const stageW = puzzleStage.width();
@@ -572,6 +581,7 @@
         function checkPuzzleWin() {
             const allSolved = puzzlePieces.every(p => !p.draggable());
             if (allSolved) {
+                isPuzzleSolved = true;
                 speakText("Great job!");
                 nextPuzzleButton.classList.remove('hidden');
             }

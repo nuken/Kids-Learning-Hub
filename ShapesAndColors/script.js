@@ -49,7 +49,9 @@
             'sort-leaves': new Audio('sounds/sort-the-leaves.mp3'),
             'find-square': new Audio('sounds/find-the-square.mp3'),
             'find-circle': new Audio('sounds/find-the-circle.mp3'),
-            'find-triangle': new Audio('sounds/find-the-triangle.mp3')
+            'find-triangle': new Audio('sounds/find-the-triangle.mp3'),
+            'find-star': new Audio('sounds/find-the-star.mp3'), // ADDED
+            'find-hexagon': new Audio('sounds/find-the-hexagon.mp3') // ADDED
         };
 
         /**
@@ -188,9 +190,13 @@
         // (Modeled after Spelling/script.js 'Missing Letter' game)
 
         const shapeGameData = [
-            { shape: 'square', webImage: 'images/web-square-gap.png', filledImage: 'images/web-square-filled.png', instruction: sounds['find-square'], choices: ['square', 'circle', 'triangle'] },
-            { shape: 'circle', webImage: 'images/web-circle-gap.png', filledImage: 'images/web-circle-filled.png', instruction: sounds['find-circle'], choices: ['square', 'circle', 'triangle'] },
-            { shape: 'triangle', webImage: 'images/web-triangle-gap.png', filledImage: 'images/web-triangle-filled.png', instruction: sounds['find-triangle'], choices: ['square', 'circle', 'triangle', 'star'] }
+            // UPDATED choices
+            { shape: 'square', webImage: 'images/web-square-gap.png', filledImage: 'images/web-square-filled.png', instruction: sounds['find-square'], choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
+            { shape: 'circle', webImage: 'images/web-circle-gap.png', filledImage: 'images/web-circle-filled.png', instruction: sounds['find-circle'], choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
+            { shape: 'triangle', webImage: 'images/web-triangle-gap.png', filledImage: 'images/web-triangle-filled.png', instruction: sounds['find-triangle'], choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
+            // ADDED new shapes
+            { shape: 'star', webImage: 'images/web-star-gap.png', filledImage: 'images/web-star-filled.png', instruction: sounds['find-star'], choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
+            { shape: 'hexagon', webImage: 'images/web-hexagon-gap.png', filledImage: 'images/web-hexagon-filled.png', instruction: sounds['find-hexagon'], choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] }
         ];
 
         const webDisplay = document.getElementById('spider-web-display');

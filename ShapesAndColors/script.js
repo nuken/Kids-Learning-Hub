@@ -272,7 +272,6 @@
 
         let puzzleStage, puzzleLayer;
         let puzzleGameInitialized = false;
-        let currentPuzzle = {};
         // === ADD THIS FLAG ===
         let isPuzzleLoading = false;
         let puzzlePieces = [];
@@ -374,7 +373,7 @@
                     if (!isPuzzleLoading && puzzleStage && puzzleCanvasContainer && currentPuzzle && currentPuzzle.id) {
                         puzzleStage.width(puzzleCanvasContainer.clientWidth);
                         puzzleStage.height(puzzleCanvasContainer.clientHeight);
-                        loadPuzzle(currentPuzzle);
+                        loadPuzzle(currentPuzzleIndex);
                     }
                 }).observe(puzzleCanvasContainer);
 
@@ -418,7 +417,6 @@
             }
             // --- FIX END ---
 
-            currentPuzzle = puzzleData;
             puzzlePieces = [];
             puzzleTargets = [];
             puzzleLayer.destroyChildren();

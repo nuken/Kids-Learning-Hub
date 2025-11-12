@@ -4,9 +4,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
 
-        if (window.unlockSpeechIfNeeded) {
-            window.unlockSpeechIfNeeded();
-        }
 
         // --- 1. NAVIGATION ---
         const screens = document.querySelectorAll('.game-screen');
@@ -18,6 +15,9 @@
         const backButtons = document.querySelectorAll('.back-btn');
 
         function showScreen(screenId) {
+			if (screenId !== 'main-menu') {
+        primeAudio();
+    }
             screens.forEach(screen => screen.classList.remove('visible'));
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
@@ -42,12 +42,16 @@
         }
 
         backButtons.forEach(btn => {
-            btn.addEventListener('click', () => showScreen('main-menu'));
-        });
+    btn.addEventListener('click', () => {
+        window.speechSynthesis.cancel(); // <-- ADD THIS LINE
+        showScreen('main-menu');
+    });
+});
 
         // --- 2. AUDIO & HELPERS ---
         const correctSound = new Audio('sounds/correct.mp3');
         const wrongSound = new Audio('sounds/wrong.mp3');
+		let audioPrimed = false;
 
         let voiceList = [];
         function loadVoices() {
@@ -58,27 +62,27 @@
         window.speechSynthesis.onvoiceschanged = loadVoices;
 
         function speakText(text, onEndCallback) {
-            window.speechSynthesis.cancel();
-            if (voiceList.length === 0) {
-                loadVoices();
-            }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9;
-            utterance.lang = 'en-US';
-            if (onEndCallback) {
-                utterance.onend = onEndCallback;
-            }
-            if (voiceList.length > 0) {
-                let selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US') ||
-                                    voiceList.find(v => v.lang === 'en-US' && v.default) ||
-                                    voiceList.find(v => v.lang === 'en-US');
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                    utterance.lang = selectedVoice.lang;
-                }
-            }
-            window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.cancel();
+    if (voiceList.length === 0) {
+        loadVoices();
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.lang = 'en-US';
+    if (onEndCallback) {
+        utterance.onend = onEndCallback;
+    }
+    if (voiceList.length > 0) {
+        let selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US') ||
+                            voiceList.find(v => v.lang === 'en-US' && v.default) ||
+                            voiceList.find(v => v.lang === 'en-US');
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            utterance.lang = selectedVoice.lang;
         }
+    }
+    window.speechSynthesis.speak(utterance);
+}
 
         async function playSound(sound) {
             sound.currentTime = 0;
@@ -96,7 +100,35 @@
             }
             return array;
         }
+        function primeAudio() {
+            if (audioPrimed) return; // Only run this once
 
+            // 1. "Wake up" the speech engine (from unlock-speech.js)
+            // This MUST be called from within a user interaction event on iOS.
+            if (window.unlockSpeechIfNeeded) {
+                window.unlockSpeechIfNeeded();
+            }
+            
+            // 2. "Wake up" the sound effects
+            // We play and immediately pause. This is the trick for iOS.
+            // We add a .catch() to suppress errors if it fails.
+            try {
+                correctSound.play().catch(() => {});
+                correctSound.pause();
+                correctSound.currentTime = 0;
+
+                wrongSound.play().catch(() => {});
+                wrongSound.pause();
+                wrongSound.currentTime = 0;
+            } catch (err) {
+                console.error("Audio priming failed:", err);
+            }
+            
+            // 3. "Wake up" the speech voice list
+            loadVoices(); 
+            
+            audioPrimed = true;
+        }
 
         // --- 3. GAME 1: LEAF COLOR SORT (Konva Drag-and-Drop) ---
 
@@ -145,7 +177,10 @@ function startLeafSortGame() {
             // Resize observer, just like the puzzle game
             new ResizeObserver(() => {
                 requestAnimationFrame(() => {
-                    if (leafStage && canvasContainer) {
+                    // --- ADD THIS GUARD ---
+                    const parentScreen = document.getElementById('leaf-sort-game');
+                    if (leafStage && canvasContainer && parentScreen.classList.contains('visible')) {
+                    // --- END ADDITION ---
                         const newWidth = canvasContainer.clientWidth;
                         const newHeight = canvasContainer.clientHeight;
                         if (leafStage.width() !== newWidth || leafStage.height() !== newHeight) {

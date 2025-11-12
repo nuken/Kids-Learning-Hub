@@ -4,7 +4,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- ADD THIS LINE --- (From Number/script.js)
         if (window.unlockSpeechIfNeeded) {
             window.unlockSpeechIfNeeded();
         }
@@ -14,8 +13,6 @@
         const menuButtons = {
             'start-leaf-sort-btn': 'leaf-sort-game',
             'start-shape-web-btn': 'shape-web-game',
-
-            // --- ADD THIS LINE ---
             'start-shape-puzzle-btn': 'shape-puzzle-game'
         };
         const backButtons = document.querySelectorAll('.back-btn');
@@ -27,13 +24,11 @@
                 targetScreen.classList.add('visible');
             }
 
-            // Start/Reset the game when its screen is shown
             if (screenId === 'leaf-sort-game') {
                 startLeafSortGame();
             } else if (screenId === 'shape-web-game') {
                 startShapeGame();
             }
-            // --- ADD THIS LINE ---
             else if (screenId === 'shape-puzzle-game') {
                 startShapePuzzleGame();
             }
@@ -54,10 +49,6 @@
         const correctSound = new Audio('sounds/correct.mp3');
         const wrongSound = new Audio('sounds/wrong.mp3');
 
-        // --- REMOVE THIS OBJECT ---
-        // const sounds = { ... };
-
-        // --- ADD THIS ENTIRE SPEECH SYSTEM (from Number/script.js) ---
         let voiceList = [];
         function loadVoices() {
             if (voiceList.length > 0) return;
@@ -88,14 +79,9 @@
             }
             window.speechSynthesis.speak(utterance);
         }
-        // --- END OF NEW SPEECH SYSTEM ---
 
-        /**
-         * Plays a sound.
-         * (Copied from Spelling/script.js)
-         */
         async function playSound(sound) {
-            sound.currentTime = 0; // Rewind to start
+            sound.currentTime = 0;
             try {
                 await sound.play();
             } catch (err) {
@@ -103,10 +89,6 @@
             }
         }
 
-        /**
-         * Shuffles an array in place.
-         * (Copied from Spelling/script.js)
-         */
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -120,7 +102,7 @@
         const leafPileContainer = document.getElementById('leaf-pile-container');
         const basketContainer = document.getElementById('basket-container');
         const leafColors = ['green', 'red', 'yellow', 'brown'];
-        let selectedLeaf = null; // Tracks the currently selected leaf
+        let selectedLeaf = null;
 
         function startLeafSortGame() {
             leafPileContainer.innerHTML = '';
@@ -156,7 +138,6 @@
                 basketContainer.appendChild(basket);
             });
 
-            // --- MODIFY THIS LINE ---
             speakText("Sort the leaves!");
         }
 
@@ -205,7 +186,6 @@
 
         // --- 4. GAME 2: SPIDER'S SHAPE WEB ---
         const shapeGameData = [
-            // --- MODIFY THIS DATA ---
             { shape: 'square', webImage: 'images/web-square-gap.png', filledImage: 'images/web-square-filled.png', instruction: "Find the square", choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
             { shape: 'circle', webImage: 'images/web-circle-gap.png', filledImage: 'images/web-circle-filled.png', instruction: "Find the circle", choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
             { shape: 'triangle', webImage: 'images/web-triangle-gap.png', filledImage: 'images/web-triangle-filled.png', instruction: "Find the triangle", choices: ['square', 'circle', 'triangle', 'star', 'hexagon'] },
@@ -235,7 +215,7 @@
         function loadNextShapeProblem() {
             currentShapeIndex++;
             if (currentShapeIndex >= shapeGameData.length) {
-                currentShapeIndex = 0; // Loop back
+                currentShapeIndex = 0;
             }
             loadShapeProblem();
         }
@@ -244,7 +224,6 @@
             currentShapeProblem = shapeGameData[currentShapeIndex];
             webDisplay.style.backgroundImage = `url('${currentShapeProblem.webImage}')`;
 
-            // --- MODIFY THIS LINE ---
             speakText(currentShapeProblem.instruction);
 
             shapeChoicesContainer.innerHTML = '';
@@ -285,11 +264,7 @@
         }
 
 
-        // --- 5. MODIFY THIS ENTIRE SECTION FOR GAME 3 ---
-
-        // ==========================================================
-        // --- GAME 3: SHAPE PUZZLES (Konva Drag-and-Drop) ---
-        // ==========================================================
+        // --- 5. GAME 3: SHAPE PUZZLES (Konva Drag-and-Drop) ---
 
         const puzzleCanvasContainer = document.getElementById('shape-puzzle-canvas');
         const puzzlePrompt = document.getElementById('puzzle-prompt');
@@ -298,11 +273,12 @@
         let puzzleStage, puzzleLayer;
         let puzzleGameInitialized = false;
         let currentPuzzle = {};
+        // === ADD THIS FLAG ===
+        let isPuzzleLoading = false;
         let puzzlePieces = [];
         let puzzleTargets = [];
         let puzzlePieceBin = { x: 10, y: 10, width: 180, height: 500 };
 
-        // === MODIFY THIS CONSTANT ===
         const PUZZLE_DATA = [
             {
                 id: 'house',
@@ -332,7 +308,6 @@
                     { id: 'wheel2', shape: 'circle', x: 0.7, y: 0.85, size: 0.1, rotation: 0 }
                 ]
             },
-            // --- NEW PUZZLES START HERE ---
             {
                 id: 'ice_cream',
                 instruction: "Let's make an ice cream cone!",
@@ -349,7 +324,6 @@
                 id: 'sailboat',
                 instruction: "Let's build a sailboat!",
                 pieces: [
-                    // Use 45 deg rotation on a square to make a diamond-like hull
                     { id: 'hull', shape: 'square', color: '#2196F3', rotation: 45 }, // Blue
                     { id: 'sail', shape: 'triangle', color: '#FFEB3B', rotation: 0 } // Yellow
                 ],
@@ -370,9 +344,7 @@
                     { id: 'tail', shape: 'triangle', x: 0.75, y: 0.5, size: 0.15, rotation: 90 }
                 ]
             }
-            // --- END OF NEW PUZZLES ---
         ];
-        // === END OF MODIFICATION ===
 
         let currentPuzzleIndex = 0;
 
@@ -398,7 +370,8 @@
                 puzzleStage.add(puzzleLayer);
 
                 new ResizeObserver(() => {
-                    if (puzzleStage && puzzleCanvasContainer) {
+                    // === MODIFY THIS CHECK ===
+                    if (!isPuzzleLoading && puzzleStage && puzzleCanvasContainer && currentPuzzle && currentPuzzle.id) {
                         puzzleStage.width(puzzleCanvasContainer.clientWidth);
                         puzzleStage.height(puzzleCanvasContainer.clientHeight);
                         loadPuzzle(currentPuzzle);
@@ -408,8 +381,6 @@
                 nextPuzzleButton.addEventListener('click', () => {
                     currentPuzzleIndex++;
                     if (currentPuzzleIndex >= PUZZLE_DATA.length) {
-                        // --- ADD SHUFFLE ---
-                        shuffleArray(PUZZLE_DATA);
                         currentPuzzleIndex = 0;
                     }
                     loadPuzzle(PUZZLE_DATA[currentPuzzleIndex]);
@@ -418,21 +389,41 @@
                 puzzleGameInitialized = true;
             }
 
-            // --- ADD SHUFFLE ---
             shuffleArray(PUZZLE_DATA);
             currentPuzzleIndex = 0;
             loadPuzzle(PUZZLE_DATA[currentPuzzleIndex]);
         }
 
+        // === MODIFY THIS FUNCTION ===
         function loadPuzzle(puzzleData) {
+
+            // --- FIX START ---
+            if (!puzzleStage || !puzzleData || !puzzleData.id) {
+                console.warn("loadPuzzle called too early or with no data");
+                return;
+            }
+
+            // === ADD THIS LINE ===
+            isPuzzleLoading = true;
+
+            const stageW = puzzleStage.width();
+            const stageH = puzzleStage.height();
+
+            // This is the CRITICAL fix for the "negative radius" error.
+            // If the canvas isn't ready (width is 0), wait and try again.
+            if (stageW === 0 || stageH === 0) {
+                requestAnimationFrame(() => loadPuzzle(puzzleData));
+                // We don't set isPuzzleLoading to false here, it will try again
+                return;
+            }
+            // --- FIX END ---
+
             currentPuzzle = puzzleData;
             puzzlePieces = [];
             puzzleTargets = [];
             puzzleLayer.destroyChildren();
             nextPuzzleButton.classList.add('hidden');
 
-            const stageW = puzzleStage.width();
-            const stageH = puzzleStage.height();
             const isPortrait = stageH > stageW;
 
             if (isPortrait) {
@@ -459,7 +450,6 @@
                     stageH * target.y,
                     size,
                     '#999',
-                    // --- PASS ROTATION ---
                     target.rotation
                 );
 
@@ -474,7 +464,9 @@
                 puzzleTargets.push(targetShape);
             });
 
-            const pieceSize = Math.min(puzzlePieceBin.width, puzzlePieceBin.height) * 0.5;
+            // Use Math.max to prevent negative pieceSize if bin is too small
+            const pieceSize = Math.max(10, Math.min(puzzlePieceBin.width, puzzlePieceBin.height) * 0.5);
+
             puzzleData.pieces.forEach((piece, index) => {
                 let pieceX, pieceY;
                 if (isPortrait) {
@@ -491,7 +483,6 @@
                     pieceY,
                     pieceSize,
                     piece.color,
-                    // --- PASS ROTATION ---
                     piece.rotation
                 );
 
@@ -513,10 +504,12 @@
             puzzleLayer.batchDraw();
             puzzlePrompt.textContent = puzzleData.instruction;
             speakText(puzzleData.instruction);
+
+            // === ADD THIS LINE AT THE VERY END ===
+            isPuzzleLoading = false;
         }
 
-        // === MODIFY THIS FUNCTION ===
-        function createKonvaShape(shape, x, y, size, color, rotation = 0) { // Added rotation
+        function createKonvaShape(shape, x, y, size, color, rotation = 0) {
             let konvaShape;
             const shapeProps = {
                 x: x,
@@ -524,7 +517,7 @@
                 fill: color,
                 stroke: '#333',
                 strokeWidth: 2,
-                rotation: rotation // Apply rotation
+                rotation: rotation
             };
 
             if (shape === 'square') {
@@ -538,18 +531,18 @@
             } else if (shape === 'circle') {
                 konvaShape = new Konva.Circle({
                     ...shapeProps,
-                    radius: size / 2
+                    // Use Math.max to ensure radius is never negative
+                    radius: Math.max(1, size / 2)
                 });
             } else if (shape === 'triangle') {
                 konvaShape = new Konva.Line({
                     ...shapeProps,
-                    points: [0, -size / 2, -size / 2, size / 2, size / 2, size / 2], // Equilateral
+                    points: [0, -size / 2, -size / 2, size / 2, size / 2, size / 2],
                     closed: true,
                 });
             }
             return konvaShape;
         }
-        // === END OF MODIFICATION ===
 
         function handlePieceDragEnd(e) {
             const piece = e.target;
@@ -558,10 +551,7 @@
             if (target && haveIntersection(piece.getClientRect(), target.getClientRect())) {
                 playSound(correctSound);
                 piece.position(target.position());
-
-                // --- ADD THIS LINE ---
-                piece.rotation(target.rotation()); // Snap rotation
-
+                piece.rotation(target.rotation());
                 piece.draggable(false);
                 piece.off('dragend');
 
@@ -588,9 +578,6 @@
                 nextPuzzleButton.classList.remove('hidden');
             }
         }
-        // ==========================================================
-        // --- END OF NEW GAME 3 SECTION ---
-        // ==========================================================
 
     });
 

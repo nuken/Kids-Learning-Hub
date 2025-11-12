@@ -400,7 +400,7 @@ h2 {
 @media (orientation: portrait) and (max-width: 500px) {
     #shape-puzzle-canvas {
         flex-grow: 1;
-        min-height: 400px; /* Give it space */
+
     }
 
     #next-puzzle-button {

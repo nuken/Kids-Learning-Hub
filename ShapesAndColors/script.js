@@ -527,118 +527,175 @@ function checkLeafSortWin() {
         }
 
         // === MODIFY THIS FUNCTION ===
-        function loadPuzzle(puzzleData) {
+        // --- REPLACE YOUR OLD loadPuzzle FUNCTION WITH THIS NEW ONE ---
 
-            // --- FIX START ---
-            if (!puzzleStage || !puzzleData || !puzzleData.id) {
-                console.warn("loadPuzzle called too early or with no data");
-                return;
-            }
+function loadPuzzle(puzzleData) {
+    isPuzzleSolved = false;
+    isPuzzleLoading = true;
 
-            isPuzzleSolved = false;
-            isPuzzleLoading = true;
+    if (!puzzleStage || !puzzleData || !puzzleData.id) {
+        console.warn("loadPuzzle called too early or with no data");
+        isPuzzleLoading = false;
+        return;
+    }
 
-            const stageW = puzzleStage.width();
-            const stageH = puzzleStage.height();
+    const stageW = puzzleStage.width();
+    const stageH = puzzleStage.height();
 
-            // This is the CRITICAL fix for the "negative radius" error.
-            // If the canvas isn't ready (width is 0), wait and try again.
-            if (stageW === 0 || stageH === 0) {
-                requestAnimationFrame(() => loadPuzzle(puzzleData));
-                // We don't set isPuzzleLoading to false here, it will try again
-                return;
-            }
-            // --- FIX END ---
+    if (stageW === 0 || stageH === 0) {
+        requestAnimationFrame(() => loadPuzzle(puzzleData));
+        return;
+    }
 
-            puzzlePieces = [];
-            puzzleTargets = [];
-            puzzleLayer.destroyChildren();
-            nextPuzzleButton.classList.add('hidden');
+    currentPuzzle = puzzleData;
+    puzzlePieces = [];
+    puzzleTargets = [];
+    puzzleLayer.destroyChildren();
+    nextPuzzleButton.classList.add('hidden');
 
-            const isPortrait = stageH > stageW;
+    // --- FIX: Define separate areas for pieces and targets ---
+    let targetArea;
+    const isPortrait = stageH > stageW;
+    const pieceBinPadding = 10;
 
-            if (isPortrait) {
-                puzzlePieceBin = { x: 10, y: stageH - 160, width: stageW - 20, height: 150 };
-            } else {
-                puzzlePieceBin = { x: 10, y: 10, width: 180, height: stageH - 20 };
-            }
+    if (isPortrait) {
+        // Bin at the bottom
+        const binHeight = Math.min(160, stageH * 0.25); // Bin is max 160px or 25% of screen
+        puzzlePieceBin = { x: pieceBinPadding, y: stageH - binHeight, width: stageW - (pieceBinPadding * 2), height: binHeight - pieceBinPadding };
+        // Target area is everything above the bin
+        targetArea = { x: 0, y: 0, width: stageW, height: stageH - binHeight - pieceBinPadding };
+    } else {
+        // Bin on the left
+        const binWidth = Math.min(180, stageW * 0.3); // Bin is max 180px or 30% of screen
+        puzzlePieceBin = { x: pieceBinPadding, y: pieceBinPadding, width: binWidth, height: stageH - (pieceBinPadding * 2) };
+        // Target area is everything to the right of the bin
+        targetArea = { x: binWidth + pieceBinPadding, y: 0, width: stageW - binWidth - (pieceBinPadding * 2), height: stageH };
+    }
+    // --- END FIX ---
 
-            const binRect = new Konva.Rect({
-                ...puzzlePieceBin,
-                fill: '#ffffff',
-                stroke: '#ccc',
-                strokeWidth: 4,
-                dash: [10, 5],
-                cornerRadius: 10
-            });
-            puzzleLayer.add(binRect);
+    const binRect = new Konva.Rect({
+        ...puzzlePieceBin,
+        fill: '#ffffff',
+        stroke: '#ccc',
+        strokeWidth: 4,
+        dash: [10, 5],
+        cornerRadius: 10
+    });
+    puzzleLayer.add(binRect);
 
-            puzzleData.targets.forEach(target => {
-                const size = Math.min(stageW, stageH) * target.size;
-                const targetShape = createKonvaShape(
-                    target.shape,
-                    stageW * target.x,
-                    stageH * target.y,
-                    size,
-                    '#999',
-                    target.rotation
-                );
+    // --- FIX: Position targets within the targetArea ---
+    puzzleData.targets.forEach(target => {
+        // Calculate size based on the *smaller* dimension of the target area
+        const size = Math.min(targetArea.width, targetArea.height) * target.size;
+        const targetShape = createKonvaShape(
+            target.shape,
+            // Position relative to targetArea
+            targetArea.x + (targetArea.width * target.x),
+            targetArea.y + (targetArea.height * target.y),
+            size,
+            '#999',
+            target.rotation
+        );
 
-                targetShape.stroke('#999');
-                targetShape.strokeWidth(4);
-                targetShape.dash([10, 5]);
-                targetShape.fill(null);
-                targetShape.id(target.id);
-                targetShape.listening(false);
+        targetShape.stroke('#999');
+        targetShape.strokeWidth(4);
+        targetShape.dash([10, 5]);
+        targetShape.fill(null);
+        targetShape.id(target.id);
+        targetShape.listening(false);
 
-                puzzleLayer.add(targetShape);
-                puzzleTargets.push(targetShape);
-            });
+        puzzleLayer.add(targetShape);
+        puzzleTargets.push(targetShape);
+    });
+    // --- END FIX ---
 
-            // Use Math.max to prevent negative pieceSize if bin is too small
-            const pieceSize = Math.max(10, Math.min(puzzlePieceBin.width, puzzlePieceBin.height) * 0.5);
 
-            puzzleData.pieces.forEach((piece, index) => {
-                let pieceX, pieceY;
-                if (isPortrait) {
-                    pieceX = puzzlePieceBin.x + (pieceSize * 1.5 * index) + pieceSize;
-                    pieceY = puzzlePieceBin.y + puzzlePieceBin.height / 2;
-                } else {
-                    pieceX = puzzlePieceBin.x + puzzlePieceBin.width / 2;
-                    pieceY = puzzlePieceBin.y + (pieceSize * 1.5 * index) + pieceSize;
-                }
+    // --- FIX: Grid layout for pieces in the bin ---
+    const pieceCount = puzzleData.pieces.length;
+    let pieceSize;
 
-                const pieceShape = createKonvaShape(
-                    piece.shape,
-                    pieceX,
-                    pieceY,
-                    pieceSize,
-                    piece.color,
-                    piece.rotation
-                );
-
-                pieceShape.id(piece.id);
-                pieceShape.draggable(true);
-                pieceShape.data = { originalX: pieceX, originalY: pieceY };
-
-                pieceShape.on('dragstart', (e) => {
-                    e.target.moveToTop();
-                    puzzleLayer.batchDraw();
-                });
-
-                pieceShape.on('dragend', handlePieceDragEnd);
-
-                puzzleLayer.add(pieceShape);
-                puzzlePieces.push(pieceShape);
-            });
-
-            puzzleLayer.batchDraw();
-            puzzlePrompt.textContent = puzzleData.instruction;
-            speakText(puzzleData.instruction);
-
-            // === ADD THIS LINE AT THE VERY END ===
-            isPuzzleLoading = false;
+    if (isPortrait) {
+        // Try to fit pieces in 1 row
+        let potentialSize = puzzlePieceBin.height * 0.75;
+        const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
+        if (numCols < pieceCount) {
+            // Not enough space, so fit all in one row and shrink them
+            potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
         }
+        pieceSize = Math.max(30, potentialSize);
+    } else {
+        // Try to fit pieces in 1 column
+        let potentialSize = puzzlePieceBin.width * 0.75;
+        const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
+        if (numRows < pieceCount) {
+            // Not enough space, so fit all in one col and shrink them
+            potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
+        }
+        pieceSize = Math.max(30, potentialSize);
+    }
+
+
+    puzzleData.pieces.forEach((piece, index) => {
+        let pieceX, pieceY;
+
+        if (isPortrait) {
+            // Grid horizontally
+            const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
+            const col = index % numCols;
+            const row = Math.floor(index / numCols);
+
+            // Center the grid of pieces horizontally
+            const gridWidth = numCols * pieceSize;
+            const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
+
+            pieceX = startX + (col * pieceSize) + (pieceSize / 2);
+            pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
+
+        } else {
+            // Grid vertically
+            const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
+            const row = index % numRows;
+            const col = Math.floor(index / numRows);
+
+            // Center the grid of pieces vertically
+            const gridHeight = numRows * pieceSize;
+            const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
+
+            pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
+            pieceY = startY + (row * pieceSize) + (pieceSize / 2);
+        }
+
+        const pieceShape = createKonvaShape(
+            piece.shape,
+            pieceX,
+            pieceY,
+            pieceSize * 0.8, // Make piece slightly smaller than its "cell"
+            piece.color,
+            piece.rotation
+        );
+
+        pieceShape.id(piece.id);
+        pieceShape.draggable(true);
+        pieceShape.data = { originalX: pieceX, originalY: pieceY };
+
+        pieceShape.on('dragstart', (e) => {
+            e.target.moveToTop();
+            puzzleLayer.batchDraw();
+        });
+
+        pieceShape.on('dragend', handlePieceDragEnd);
+
+        puzzleLayer.add(pieceShape);
+        puzzlePieces.push(pieceShape);
+    });
+    // --- END FIX ---
+
+    puzzleLayer.batchDraw();
+    puzzlePrompt.textContent = puzzleData.instruction;
+    speakText(puzzleData.instruction);
+
+    isPuzzleLoading = false;
+}
 
         function createKonvaShape(shape, x, y, size, color, rotation = 0) {
             let konvaShape;

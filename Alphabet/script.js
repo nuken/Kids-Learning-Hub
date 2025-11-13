@@ -44,32 +44,16 @@
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 
-    // --- START: NEW SPEECH SYSTEM (SAFARI-COMPATIBLE) ---
+    // --- START: MODIFICATION ---
+    //
+    // The local 'loadVoices' and 'speakText' functions have been
+    // DELETED from here. The script now uses the global versions
+    // provided by 'speech-module.js'.
+    //
+    // --- END: MODIFICATION ---
 
-// Make voiceList global to persist across calls.
-let voiceList = [];
 
-/**
- * Populates the global voiceList. This function is designed to be
- * called multiple times if needed, as Safari can be slow to load voices.
- */
-function loadVoices() {
-    // If we've already loaded voices, don't do it again.
-    if (voiceList.length > 0) {
-        return;
-    }
-    voiceList = window.speechSynthesis.getVoices();
-}
-
-// Try to load voices immediately when the script runs.
-loadVoices();
-
-// Also, set up the event listener which is the "correct" way to do it.
-// Safari may or may not fire this event reliably, which is why we also
-// call loadVoices() manually.
-window.speechSynthesis.onvoiceschanged = loadVoices;
-
-/**
+    /**
      * Creates a DOM-based starburst effect on a target element.
      * @param {HTMLElement} targetElement - The element to burst from.
      */
@@ -113,66 +97,6 @@ window.speechSynthesis.onvoiceschanged = loadVoices;
         }
     }
 
-/**
- * The robust, Safari-compatible text-to-speech function.
- * @param {string} text - The text to speak.
- * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
- */
-
-function speakText(text, onEndCallback) {
-    // Always cancel any previous speech to avoid overlaps.
-    window.speechSynthesis.cancel();
-
-    // If the voice list is still empty, make another attempt to load them.
-    // This is a crucial step for Safari.
-    if (voiceList.length === 0) {
-        loadVoices();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // A good rate for kids
-
-    // Set the language as a fallback. This is the most important property
-    // if a specific voice cannot be found or assigned.
-    utterance.lang = 'en-US';
-
-    if (onEndCallback) {
-        utterance.onend = onEndCallback;
-    }
-
-    // Only try to select a specific voice if the list has been populated.
-    if (voiceList.length > 0) {
-        let selectedVoice = null;
-
-        // --- Voice Selection Logic ---
-        // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
-        selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
-
-        // 2. If not found, look for any voice that is the browser's default for US English.
-        if (!selectedVoice) {
-            selectedVoice = voiceList.find(v => v.lang === 'en-US' && v.default);
-        }
-
-        // 3. If still no voice, just grab the very first US English voice available.
-        if (!selectedVoice) {
-            selectedVoice = voiceList.find(v => v.lang === 'en-US');
-        }
-
-        // If we successfully found a voice, assign it to the utterance.
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-            // **CRITICAL SAFARI FIX**: Re-set the lang property from the
-            // voice object itself. This strongly tells Safari which synthesizer to use.
-            utterance.lang = selectedVoice.lang;
-        }
-    }
-
-    // Finally, speak. For Safari, this first call to speak() might be what
-    // actually triggers the voice list to load for all subsequent calls.
-    window.speechSynthesis.speak(utterance);
-}
-
-// --- END: NEW SPEECH SYSTEM ---
 
     // --- NEW: Sound playback function (from Spelling game) ---
     async function playSound(sound) {
@@ -189,6 +113,7 @@ function speakText(text, onEndCallback) {
     // Wait for the page to be fully loaded
     document.addEventListener('DOMContentLoaded', () => {
         // --- ADD THIS LINE TO UNLOCK SPEECH ---
+        // This now calls the global function from speech-module.js
         if (window.unlockSpeechIfNeeded) {
             window.unlockSpeechIfNeeded();
         }
@@ -347,7 +272,8 @@ function speakText(text, onEndCallback) {
                 lettersToFind = lettersToFind.filter(l => l !== currentTargetLetter);
 
                 // 3. Speak feedback, then pick the next letter
-                speakText(`You found ${currentTargetLetter}!`, () => {
+                // This now calls the global window.speakText
+                window.speakText(`You found ${currentTargetLetter}!`, () => {
                     // Check if the game is over
                     if (lettersToFind.length === 0) {
                         finishLevel2();
@@ -376,15 +302,16 @@ function speakText(text, onEndCallback) {
             const exampleWord = EXAMPLE_WORDS[letter];        // e.g., "Boy"
 
             // 2. Check the speech mode
+            // These now call the global window.speakText
             if (speechMode === 'letterAndWord') {
                 // If 'letterAndWord', speak the name, and use the callback to speak
                 // the example word right after the first one finishes.
-                speakText(nameSound, () => {
-                    speakText(exampleWord);
+                window.speakText(nameSound, () => {
+                    window.speakText(exampleWord);
                 });
             } else {
                 // Otherwise (speechMode === 'letter'), just speak the name.
-                speakText(nameSound);
+                window.speakText(nameSound);
             }
         }
 
@@ -504,12 +431,14 @@ function speakText(text, onEndCallback) {
 
             // Update and speak the prompt
             alphabetPrompt.textContent = `Find the letter: ${currentTargetLetter}`;
-            speakText(`Find ${currentTargetLetter}`);
+            // This now calls the global window.speakText
+            window.speakText(`Find ${currentTargetLetter}`);
         }
 
         function finishLevel2() {
             alphabetPrompt.textContent = "You found them all!";
-            speakText("You found them all! Great job!", () => {
+            // This now calls the global window.speakText
+            window.speakText("You found them all! Great job!", () => {
                 // After 2 seconds, restart Level 2
                 setTimeout(startLevel2, 2000);
             });

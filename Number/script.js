@@ -5,10 +5,12 @@
     // Wait for the page to be fully loaded
     document.addEventListener('DOMContentLoaded', () => {
         // --- ADD THIS LINE TO UNLOCK SPEECH ---
+        // This now calls the global function from speech-module.js
         if (window.unlockSpeechIfNeeded) {
             window.unlockSpeechIfNeeded();
         }
         // --- END OF ADDITION ---
+
         // --- Global Elements ---
         const screens = document.querySelectorAll('.game-screen');
         const mainMenu = document.getElementById('main-menu');
@@ -53,91 +55,14 @@
             btn.addEventListener('click', () => showScreen('main-menu'));
         });
 
-    // --- START: NEW SPEECH SYSTEM (SAFARI-COMPATIBLE) ---
+    // --- START: MODIFICATION ---
+    //
+    // The local 'loadVoices' and 'speakText' functions have been
+    // DELETED from here. The script now uses the global versions
+    // provided by 'speech-module.js'.
+    //
+    // --- END: MODIFICATION ---
 
-// Make voiceList global to persist across calls.
-let voiceList = [];
-
-/**
- * Populates the global voiceList. This function is designed to be
- * called multiple times if needed, as Safari can be slow to load voices.
- */
-function loadVoices() {
-    // If we've already loaded voices, don't do it again.
-    if (voiceList.length > 0) {
-        return;
-    }
-    voiceList = window.speechSynthesis.getVoices();
-}
-
-// Try to load voices immediately when the script runs.
-loadVoices();
-
-// Also, set up the event listener which is the "correct" way to do it.
-// Safari may or may not fire this event reliably, which is why we also
-// call loadVoices() manually.
-window.speechSynthesis.onvoiceschanged = loadVoices;
-
-
-/**
- * The robust, Safari-compatible text-to-speech function.
- * @param {string} text - The text to speak.
- * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
- */
-function speakText(text, onEndCallback) {
-    // Always cancel any previous speech to avoid overlaps.
-    window.speechSynthesis.cancel();
-
-    // If the voice list is still empty, make another attempt to load them.
-    // This is a crucial step for Safari.
-    if (voiceList.length === 0) {
-        loadVoices();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // A good rate for kids
-
-    // Set the language as a fallback. This is the most important property
-    // if a specific voice cannot be found or assigned.
-    utterance.lang = 'en-US';
-
-    if (onEndCallback) {
-        utterance.onend = onEndCallback;
-    }
-
-    // Only try to select a specific voice if the list has been populated.
-    if (voiceList.length > 0) {
-        let selectedVoice = null;
-
-        // --- Voice Selection Logic ---
-        // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
-        selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
-
-        // 2. If not found, look for any voice that is the browser's default for US English.
-        if (!selectedVoice) {
-            selectedVoice = voiceList.find(v => v.lang === 'en-US' && v.default);
-        }
-
-        // 3. If still no voice, just grab the very first US English voice available.
-        if (!selectedVoice) {
-            selectedVoice = voiceList.find(v => v.lang === 'en-US');
-        }
-
-        // If we successfully found a voice, assign it to the utterance.
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-            // **CRITICAL SAFARI FIX**: Re-set the lang property from the
-            // voice object itself. This strongly tells Safari which synthesizer to use.
-            utterance.lang = selectedVoice.lang;
-        }
-    }
-
-    // Finally, speak. For Safari, this first call to speak() might be what
-    // actually triggers the voice list to load for all subsequent calls.
-    window.speechSynthesis.speak(utterance);
-}
-
-// --- END: NEW SPEECH SYSTEM ---
 
         // ==========================================================
         // --- GAME 1: COUNTING GAME ---
@@ -157,7 +82,8 @@ function speakText(text, onEndCallback) {
             const currentItem = items[Math.floor(Math.random() * items.length)];
 
             countingPrompt.textContent = `Tap ${targetNumber} ${currentItem}`;
-            speakText(`Tap ${targetNumber}`);
+            // This now calls the global window.speakText
+            window.speakText(`Tap ${targetNumber}`);
 
             // Add a few extra items
             const totalItems = targetNumber + Math.floor(Math.random() * 4);
@@ -180,17 +106,18 @@ function speakText(text, onEndCallback) {
             currentCount++;
             e.target.classList.add('counted');
 
+            // This now calls the global window.speakText
             if (currentCount === targetNumber) {
                 // This is the final number. Speak it, and THEN...
-                speakText(currentCount, () => {
+                window.speakText(currentCount, () => {
                     // ...as a callback, say "You did it!"
-                    speakText("You did it!");
+                    window.speakText("You did it!");
                     // And start the new game
                     setTimeout(startCountingGame, 1500);
                 });
             } else {
                 // This is not the final number, just speak it.
-                speakText(currentCount);
+                window.speakText(currentCount);
             }
         }
 
@@ -367,7 +294,8 @@ function speakText(text, onEndCallback) {
             drawingLayer.batchDraw();
 
             // --- This is now the ONLY place the number is spoken ---
-            speakText(String(number));
+            // This now calls the global window.speakText
+            window.speakText(String(number));
         }
 
         // Handle resizing (important for tablets)
@@ -508,9 +436,10 @@ function speakText(text, onEndCallback) {
             });
 
             // Speak the first part
-            speakText('What comes next?', () => {
+            // This now calls the global window.speakText
+            window.speakText('What comes next?', () => {
                 // After the first part ends, speak the sequence
-                speakText(speakableSequence.join(', '));
+                window.speakText(speakableSequence.join(', '));
             });
         }
 
@@ -520,13 +449,14 @@ function speakText(text, onEndCallback) {
             // Disable all buttons
             patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = true);
 
+            // This now calls the global window.speakText
             if (clickedValue === currentPattern.answer) {
                 e.target.classList.add('correct');
-                speakText(`That's right, ${currentPattern.answer}!`);
+                window.speakText(`That's right, ${currentPattern.answer}!`);
                 setTimeout(startPatternsGame, 1500); // New game
             } else {
                 e.target.classList.add('incorrect');
-                speakText("Oops, try again!");
+                window.speakText("Oops, try again!");
                 // Re-enable buttons after a moment
                 setTimeout(() => {
                     e.target.classList.remove('incorrect');
@@ -615,7 +545,8 @@ function generateEggProblem() {
     });
 
     // 5. Use speakText
-    speakText(`What is ${num1} plus ${num2}?`);
+    // This now calls the global window.speakText
+    window.speakText(`What is ${num1} plus ${num2}?`);
 }
 
 function handleEggChoiceClick(e) {
@@ -624,11 +555,12 @@ function handleEggChoiceClick(e) {
     // Disable all buttons
     eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
 
+    // This now calls the global window.speakText
     if (clickedValue === currentEggProblem.answer) {
         e.target.classList.add('correct');
 
         // Use speakText with the callback
-        speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`, () => {
+        window.speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`, () => {
             // This function will ONLY run after the speech finishes.
             // I added a small extra delay so it doesn't feel too sudden.
             setTimeout(generateEggProblem, 500); // New problem
@@ -636,7 +568,7 @@ function handleEggChoiceClick(e) {
 
     } else {
         e.target.classList.add('incorrect');
-        speakText("Oops, try again!");
+        window.speakText("Oops, try again!");
         // Re-enable buttons after a moment
         setTimeout(() => {
             e.target.classList.remove('incorrect');

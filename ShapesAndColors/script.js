@@ -16,8 +16,8 @@
 
         function showScreen(screenId) {
 			if (screenId !== 'main-menu') {
-        primeAudio();
-    }
+                primeAudio();
+            }
             screens.forEach(screen => screen.classList.remove('visible'));
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
@@ -42,47 +42,24 @@
         }
 
         backButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        window.speechSynthesis.cancel(); // <-- ADD THIS LINE
-        showScreen('main-menu');
-    });
-});
+            btn.addEventListener('click', () => {
+                window.speechSynthesis.cancel(); // <-- This is good, keep it.
+                showScreen('main-menu');
+            });
+        });
 
         // --- 2. AUDIO & HELPERS ---
         const correctSound = new Audio('sounds/correct.mp3');
         const wrongSound = new Audio('sounds/wrong.mp3');
 		let audioPrimed = false;
 
-        let voiceList = [];
-        function loadVoices() {
-            if (voiceList.length > 0) return;
-            voiceList = window.speechSynthesis.getVoices();
-        }
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-
-        function speakText(text, onEndCallback) {
-    window.speechSynthesis.cancel();
-    if (voiceList.length === 0) {
-        loadVoices();
-    }
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.lang = 'en-US';
-    if (onEndCallback) {
-        utterance.onend = onEndCallback;
-    }
-    if (voiceList.length > 0) {
-        let selectedVoice = voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US') ||
-                            voiceList.find(v => v.lang === 'en-US' && v.default) ||
-                            voiceList.find(v => v.lang === 'en-US');
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-            utterance.lang = selectedVoice.lang;
-        }
-    }
-    window.speechSynthesis.speak(utterance);
-}
+        // --- START: MODIFICATION ---
+        //
+        // The local 'loadVoices' and 'speakText' functions have been
+        // DELETED from here. The script now uses the global versions
+        // provided by 'speech-module.js'.
+        //
+        // --- END: MODIFICATION ---
 
         async function playSound(sound) {
             sound.currentTime = 0;
@@ -100,18 +77,17 @@
             }
             return array;
         }
+
         function primeAudio() {
             if (audioPrimed) return; // Only run this once
 
-            // 1. "Wake up" the speech engine (from unlock-speech.js)
+            // 1. "Wake up" the speech engine (from speech-module.js)
             // This MUST be called from within a user interaction event on iOS.
             if (window.unlockSpeechIfNeeded) {
                 window.unlockSpeechIfNeeded();
             }
-            
+
             // 2. "Wake up" the sound effects
-            // We play and immediately pause. This is the trick for iOS.
-            // We add a .catch() to suppress errors if it fails.
             try {
                 correctSound.play().catch(() => {});
                 correctSound.pause();
@@ -123,224 +99,228 @@
             } catch (err) {
                 console.error("Audio priming failed:", err);
             }
-            
-            // 3. "Wake up" the speech voice list
-            loadVoices(); 
-            
+
+            // 3. "Wake up" the speech voice list (from speech-module.js)
+            if (window.loadVoices) {
+                window.loadVoices();
+            }
+
             audioPrimed = true;
         }
 
         // --- 3. GAME 1: LEAF COLOR SORT (Konva Drag-and-Drop) ---
 
-const leafColors = ['green', 'red', 'yellow', 'brown'];
-const LEAF_IMAGES = {}; // To store preloaded leaf images
-let leafStage, leafLayer;
-let leafGameInitialized = false;
-let leafPieces = [];
-let basketTargets = [];
+        const leafColors = ['green', 'red', 'yellow', 'brown'];
+        const LEAF_IMAGES = {}; // To store preloaded leaf images
+        let leafStage, leafLayer;
+        let leafGameInitialized = false;
+        let leafPieces = [];
+        let basketTargets = [];
 
-// Helper function to load all our leaf images before starting
-function loadLeafImages(callback) {
-    let imagesToLoad = leafColors.length;
-    if (Object.keys(LEAF_IMAGES).length === leafColors.length) {
-        callback();
-        return;
-    }
-
-    leafColors.forEach(color => {
-        const img = new Image();
-        img.src = `images/leaf-${color}.png`;
-        img.onload = () => {
-            LEAF_IMAGES[color] = img;
-            imagesToLoad--;
-            if (imagesToLoad === 0) {
+        // Helper function to load all our leaf images before starting
+        function loadLeafImages(callback) {
+            let imagesToLoad = leafColors.length;
+            if (Object.keys(LEAF_IMAGES).length === leafColors.length) {
                 callback();
+                return;
             }
-        };
-    });
-}
 
-function startLeafSortGame() {
-    // 1. Wait for images to be loaded
-    loadLeafImages(() => {
-        // 2. Setup the stage (only once)
-        if (!leafGameInitialized) {
-            const canvasContainer = document.getElementById('leaf-sort-canvas');
-            leafStage = new Konva.Stage({
-                container: 'leaf-sort-canvas',
-                width: canvasContainer.clientWidth,
-                height: canvasContainer.clientHeight
-            });
-            leafLayer = new Konva.Layer();
-            leafStage.add(leafLayer);
-
-            // Resize observer, just like the puzzle game
-            new ResizeObserver(() => {
-                requestAnimationFrame(() => {
-                    // --- ADD THIS GUARD ---
-                    const parentScreen = document.getElementById('leaf-sort-game');
-                    if (leafStage && canvasContainer && parentScreen.classList.contains('visible')) {
-                    // --- END ADDITION ---
-                        const newWidth = canvasContainer.clientWidth;
-                        const newHeight = canvasContainer.clientHeight;
-                        if (leafStage.width() !== newWidth || leafStage.height() !== newHeight) {
-                            leafStage.width(newWidth);
-                            leafStage.height(newHeight);
-                            // Reload the current setup if screen resizes
-                            loadLeafSortProblem();
-                        }
+            leafColors.forEach(color => {
+                const img = new Image();
+                img.src = `images/leaf-${color}.png`;
+                img.onload = () => {
+                    LEAF_IMAGES[color] = img;
+                    imagesToLoad--;
+                    if (imagesToLoad === 0) {
+                        callback();
                     }
+                };
+            });
+        }
+
+        function startLeafSortGame() {
+            // 1. Wait for images to be loaded
+            loadLeafImages(() => {
+                // 2. Setup the stage (only once)
+                if (!leafGameInitialized) {
+                    const canvasContainer = document.getElementById('leaf-sort-canvas');
+                    leafStage = new Konva.Stage({
+                        container: 'leaf-sort-canvas',
+                        width: canvasContainer.clientWidth,
+                        height: canvasContainer.clientHeight
+                    });
+                    leafLayer = new Konva.Layer();
+                    leafStage.add(leafLayer);
+
+                    // Resize observer, just like the puzzle game
+                    new ResizeObserver(() => {
+                        requestAnimationFrame(() => {
+                            // --- ADD THIS GUARD ---
+                            const parentScreen = document.getElementById('leaf-sort-game');
+                            if (leafStage && canvasContainer && parentScreen.classList.contains('visible')) {
+                            // --- END ADDITION ---
+                                const newWidth = canvasContainer.clientWidth;
+                                const newHeight = canvasContainer.clientHeight;
+                                if (leafStage.width() !== newWidth || leafStage.height() !== newHeight) {
+                                    leafStage.width(newWidth);
+                                    leafStage.height(newHeight);
+                                    // Reload the current setup if screen resizes
+                                    loadLeafSortProblem();
+                                }
+                            }
+                        });
+                    }).observe(canvasContainer);
+
+                    leafGameInitialized = true;
+                }
+
+                // 3. Load the game pieces
+                loadLeafSortProblem();
+            });
+        }
+
+        function loadLeafSortProblem() {
+            if (!leafStage) return; // Exit if stage isn't ready
+
+            const stageW = leafStage.width();
+            const stageH = leafStage.height();
+
+            // Clear old pieces and targets
+            leafLayer.destroyChildren();
+            leafPieces = [];
+            basketTargets = [];
+
+            // --- Create Baskets (Targets) ---
+            const basketSize = Math.min(stageW / 4.5, stageH / 4.5, 120);
+            const basketY = stageH - basketSize - 10; // Baskets at the bottom
+            const basketSpacing = (stageW - (basketSize * 4)) / 5;
+
+            const basketColors = {
+                'green': '#4CAF50',
+                'red': '#F44336',
+                'yellow': '#FFEB3B',
+                'brown': '#795548'
+            };
+
+            leafColors.forEach((color, index) => {
+                const basket = new Konva.Rect({
+                    x: basketSpacing + (index * (basketSize + basketSpacing)),
+                    y: basketY,
+                    width: basketSize,
+                    height: basketSize,
+                    stroke: basketColors[color],
+                    strokeWidth: 8,
+                    dash: [10, 5],
+                    cornerRadius: 10
                 });
-            }).observe(canvasContainer);
-
-            leafGameInitialized = true;
-        }
-
-        // 3. Load the game pieces
-        loadLeafSortProblem();
-    });
-}
-
-function loadLeafSortProblem() {
-    if (!leafStage) return; // Exit if stage isn't ready
-
-    const stageW = leafStage.width();
-    const stageH = leafStage.height();
-
-    // Clear old pieces and targets
-    leafLayer.destroyChildren();
-    leafPieces = [];
-    basketTargets = [];
-
-    // --- Create Baskets (Targets) ---
-    const basketSize = Math.min(stageW / 4.5, stageH / 4.5, 120);
-    const basketY = stageH - basketSize - 10; // Baskets at the bottom
-    const basketSpacing = (stageW - (basketSize * 4)) / 5;
-
-    const basketColors = {
-        'green': '#4CAF50',
-        'red': '#F44336',
-        'yellow': '#FFEB3B',
-        'brown': '#795548'
-    };
-
-    leafColors.forEach((color, index) => {
-        const basket = new Konva.Rect({
-            x: basketSpacing + (index * (basketSize + basketSpacing)),
-            y: basketY,
-            width: basketSize,
-            height: basketSize,
-            stroke: basketColors[color],
-            strokeWidth: 8,
-            dash: [10, 5],
-            cornerRadius: 10
-        });
-        basket.id(color); // Store the color info
-        leafLayer.add(basket);
-        basketTargets.push(basket);
-    });
-
-    // --- Create Leaves (Pieces) ---
-    const numPerColor = 3;
-    const leafSize = Math.min(stageW / 10, 80);
-    const pileHeight = stageH - basketSize - 30; // Area above baskets
-
-    for (const color of leafColors) {
-        for (let i = 0; i < numPerColor; i++) {
-            const startX = Math.random() * (stageW - leafSize) + (leafSize / 2);
-            const startY = Math.random() * (pileHeight - leafSize) + (leafSize / 2);
-
-            const leaf = new Konva.Image({
-                image: LEAF_IMAGES[color],
-                x: startX,
-                y: startY,
-                width: leafSize,
-                height: leafSize,
-                draggable: true,
-                offsetX: leafSize / 2,
-                offsetY: leafSize / 2
+                basket.id(color); // Store the color info
+                leafLayer.add(basket);
+                basketTargets.push(basket);
             });
 
-            leaf.id(color); // Store the color info
-            leaf.data = { originalX: startX, originalY: startY }; // Store snap-back position
+            // --- Create Leaves (Pieces) ---
+            const numPerColor = 3;
+            const leafSize = Math.min(stageW / 10, 80);
+            const pileHeight = stageH - basketSize - 30; // Area above baskets
 
-            leaf.on('dragstart', (e) => {
-                e.target.moveToTop();
-                leafLayer.batchDraw();
-            });
+            for (const color of leafColors) {
+                for (let i = 0; i < numPerColor; i++) {
+                    const startX = Math.random() * (stageW - leafSize) + (leafSize / 2);
+                    const startY = Math.random() * (pileHeight - leafSize) + (leafSize / 2);
 
-            leaf.on('dragend', handleLeafDragEnd);
+                    const leaf = new Konva.Image({
+                        image: LEAF_IMAGES[color],
+                        x: startX,
+                        y: startY,
+                        width: leafSize,
+                        height: leafSize,
+                        draggable: true,
+                        offsetX: leafSize / 2,
+                        offsetY: leafSize / 2
+                    });
 
-            leafLayer.add(leaf);
-            leafPieces.push(leaf);
+                    leaf.id(color); // Store the color info
+                    leaf.data = { originalX: startX, originalY: startY }; // Store snap-back position
+
+                    leaf.on('dragstart', (e) => {
+                        e.target.moveToTop();
+                        leafLayer.batchDraw();
+                    });
+
+                    leaf.on('dragend', handleLeafDragEnd);
+
+                    leafLayer.add(leaf);
+                    leafPieces.push(leaf);
+                }
+            }
+
+            leafLayer.batchDraw();
+            // This now calls the global window.speakText
+            window.speakText("Sort the leaves!");
         }
-    }
 
-    leafLayer.batchDraw();
-    speakText("Sort the leaves!");
-}
+        function handleLeafDragEnd(e) {
+            const leaf = e.target;
+            const leafColor = leaf.id();
 
-function handleLeafDragEnd(e) {
-    const leaf = e.target;
-    const leafColor = leaf.id();
+            let correctDrop = false;
 
-    let correctDrop = false;
+            // We can reuse the haveIntersection function from the puzzle game!
+            for (const basket of basketTargets) {
+                if (haveIntersection(leaf.getClientRect(), basket.getClientRect())) {
 
-    // We can reuse the haveIntersection function from the puzzle game!
-    for (const basket of basketTargets) {
-        if (haveIntersection(leaf.getClientRect(), basket.getClientRect())) {
+                    if (basket.id() === leafColor) {
+                        // CORRECT BASKET
+                        playSound(correctSound);
+                        leaf.draggable(false);
+                        leaf.off('dragend');
+                        leaf.to({
+                            x: basket.x() + basket.width() / 2 + (Math.random() - 0.5) * (basket.width() / 2),
+                            y: basket.y() + basket.height() / 2 + (Math.random() - 0.5) * (basket.height() / 2),
+                            scaleX: 0.5,
+                            scaleY: 0.5,
+                            duration: 0.2
+                        });
+                        correctDrop = true;
+                        checkLeafSortWin();
+                        break;
+                    } else {
+                        // WRONG BASKET
+                        playSound(wrongSound);
+                        basket.to({
+                            scaleX: 1.1,
+                            scaleY: 1.1,
+                            duration: 0.1,
+                            yoyo: true, // Go back to normal
+                            onFinish: () => basket.scaleX(1).scaleY(1)
+                        });
+                    }
+                }
+            }
 
-            if (basket.id() === leafColor) {
-                // CORRECT BASKET
-                playSound(correctSound);
-                leaf.draggable(false);
-                leaf.off('dragend');
+            if (!correctDrop) {
+                // No basket, or wrong basket - snap back
                 leaf.to({
-                    x: basket.x() + basket.width() / 2 + (Math.random() - 0.5) * (basket.width() / 2),
-                    y: basket.y() + basket.height() / 2 + (Math.random() - 0.5) * (basket.height() / 2),
-                    scaleX: 0.5,
-                    scaleY: 0.5,
-                    duration: 0.2
-                });
-                correctDrop = true;
-                checkLeafSortWin();
-                break;
-            } else {
-                // WRONG BASKET
-                playSound(wrongSound);
-                basket.to({
-                    scaleX: 1.1,
-                    scaleY: 1.1,
-                    duration: 0.1,
-                    yoyo: true, // Go back to normal
-                    onFinish: () => basket.scaleX(1).scaleY(1)
+                    x: leaf.data.originalX,
+                    y: leaf.data.originalY,
+                    duration: 0.3,
+                    easing: Konva.Easings.ElasticEaseOut
                 });
             }
+
+            leafLayer.batchDraw();
         }
-    }
 
-    if (!correctDrop) {
-        // No basket, or wrong basket - snap back
-        leaf.to({
-            x: leaf.data.originalX,
-            y: leaf.data.originalY,
-            duration: 0.3,
-            easing: Konva.Easings.ElasticEaseOut
-        });
-    }
-
-    leafLayer.batchDraw();
-}
-
-function checkLeafSortWin() {
-    // Check if all pieces are no longer draggable
-    const allSorted = leafPieces.every(p => !p.draggable());
-    if (allSorted) {
-        speakText("Great job!");
-        // Reload the game
-        setTimeout(loadLeafSortProblem, 1500);
-    }
-}
+        function checkLeafSortWin() {
+            // Check if all pieces are no longer draggable
+            const allSorted = leafPieces.every(p => !p.draggable());
+            if (allSorted) {
+                // This now calls the global window.speakText
+                window.speakText("Great job!");
+                // Reload the game
+                setTimeout(loadLeafSortProblem, 1500);
+            }
+        }
 
 
         // --- 4. GAME 2: SPIDER'S SHAPE WEB ---
@@ -384,7 +364,8 @@ function checkLeafSortWin() {
             currentShapeProblem = shapeGameData[currentShapeIndex];
             webDisplay.style.backgroundImage = `url('${currentShapeProblem.webImage}')`;
 
-            speakText(currentShapeProblem.instruction);
+            // This now calls the global window.speakText
+            window.speakText(currentShapeProblem.instruction);
 
             shapeChoicesContainer.innerHTML = '';
             nextShapeButton.classList.add('hidden');
@@ -413,12 +394,12 @@ function checkLeafSortWin() {
                 webDisplay.style.backgroundImage = `url('${currentShapeProblem.filledImage}')`;
                 nextShapeButton.classList.remove('hidden');
                 if (friendlySpider) {
-            friendlySpider.classList.add('spider-bounces');
-            // Remove the class after the animation finishes (800ms)
-            setTimeout(() => {
-                friendlySpider.classList.remove('spider-bounces');
-            }, 800);
-        }
+                    friendlySpider.classList.add('spider-bounces');
+                    // Remove the class after the animation finishes (800ms)
+                    setTimeout(() => {
+                        friendlySpider.classList.remove('spider-bounces');
+                    }, 800);
+                }
 
             } else {
                 playSound(wrongSound);
@@ -537,21 +518,21 @@ function checkLeafSortWin() {
                 puzzleStage.add(puzzleLayer);
 
                 new ResizeObserver(() => {
-    // Use requestAnimationFrame to wait for the browser to finish its layout changes
-    requestAnimationFrame(() => {
-        if (!isPuzzleLoading && !isPuzzleSolved && puzzleStage && puzzleCanvasContainer) {
-            const newWidth = puzzleCanvasContainer.clientWidth;
-            const newHeight = puzzleCanvasContainer.clientHeight;
+                    // Use requestAnimationFrame to wait for the browser to finish its layout changes
+                    requestAnimationFrame(() => {
+                        if (!isPuzzleLoading && !isPuzzleSolved && puzzleStage && puzzleCanvasContainer) {
+                            const newWidth = puzzleCanvasContainer.clientWidth;
+                            const newHeight = puzzleCanvasContainer.clientHeight;
 
-            // Only redraw if the size actually changed to avoid unnecessary reloads
-            if (puzzleStage.width() !== newWidth || puzzleStage.height() !== newHeight) {
-                puzzleStage.width(newWidth);
-                puzzleStage.height(newHeight);
-                loadPuzzle(PUZZLE_DATA[currentPuzzleIndex]);
-            }
-        }
-    });
-}).observe(puzzleCanvasContainer);
+                            // Only redraw if the size actually changed to avoid unnecessary reloads
+                            if (puzzleStage.width() !== newWidth || puzzleStage.height() !== newHeight) {
+                                puzzleStage.width(newWidth);
+                                puzzleStage.height(newHeight);
+                                loadPuzzle(PUZZLE_DATA[currentPuzzleIndex]);
+                            }
+                        }
+                    });
+                }).observe(puzzleCanvasContainer);
 
                 nextPuzzleButton.addEventListener('click', () => {
                     currentPuzzleIndex++;
@@ -572,173 +553,174 @@ function checkLeafSortWin() {
         // === MODIFY THIS FUNCTION ===
         // --- REPLACE YOUR OLD loadPuzzle FUNCTION WITH THIS NEW ONE ---
 
-function loadPuzzle(puzzleData) {
-    isPuzzleSolved = false;
-    isPuzzleLoading = true;
+        function loadPuzzle(puzzleData) {
+            isPuzzleSolved = false;
+            isPuzzleLoading = true;
 
-    if (!puzzleStage || !puzzleData || !puzzleData.id) {
-        console.warn("loadPuzzle called too early or with no data");
-        isPuzzleLoading = false;
-        return;
-    }
+            if (!puzzleStage || !puzzleData || !puzzleData.id) {
+                console.warn("loadPuzzle called too early or with no data");
+                isPuzzleLoading = false;
+                return;
+            }
 
-    const stageW = puzzleStage.width();
-    const stageH = puzzleStage.height();
+            const stageW = puzzleStage.width();
+            const stageH = puzzleStage.height();
 
-    if (stageW === 0 || stageH === 0) {
-        requestAnimationFrame(() => loadPuzzle(puzzleData));
-        return;
-    }
+            if (stageW === 0 || stageH === 0) {
+                requestAnimationFrame(() => loadPuzzle(puzzleData));
+                return;
+            }
 
-    currentPuzzle = puzzleData;
-    puzzlePieces = [];
-    puzzleTargets = [];
-    puzzleLayer.destroyChildren();
-    nextPuzzleButton.classList.add('hidden');
+            currentPuzzle = puzzleData;
+            puzzlePieces = [];
+            puzzleTargets = [];
+            puzzleLayer.destroyChildren();
+            nextPuzzleButton.classList.add('hidden');
 
-    // --- FIX: Define separate areas for pieces and targets ---
-    let targetArea;
-    const isPortrait = stageH > stageW;
-    const pieceBinPadding = 10;
+            // --- FIX: Define separate areas for pieces and targets ---
+            let targetArea;
+            const isPortrait = stageH > stageW;
+            const pieceBinPadding = 10;
 
-    if (isPortrait) {
-        // Bin at the bottom
-        const binHeight = Math.min(160, stageH * 0.25); // Bin is max 160px or 25% of screen
-        puzzlePieceBin = { x: pieceBinPadding, y: stageH - binHeight, width: stageW - (pieceBinPadding * 2), height: binHeight - pieceBinPadding };
-        // Target area is everything above the bin
-        targetArea = { x: 0, y: 0, width: stageW, height: stageH - binHeight - pieceBinPadding };
-    } else {
-        // Bin on the left
-        const binWidth = Math.min(180, stageW * 0.3); // Bin is max 180px or 30% of screen
-        puzzlePieceBin = { x: pieceBinPadding, y: pieceBinPadding, width: binWidth, height: stageH - (pieceBinPadding * 2) };
-        // Target area is everything to the right of the bin
-        targetArea = { x: binWidth + pieceBinPadding, y: 0, width: stageW - binWidth - (pieceBinPadding * 2), height: stageH };
-    }
-    // --- END FIX ---
+            if (isPortrait) {
+                // Bin at the bottom
+                const binHeight = Math.min(160, stageH * 0.25); // Bin is max 160px or 25% of screen
+                puzzlePieceBin = { x: pieceBinPadding, y: stageH - binHeight, width: stageW - (pieceBinPadding * 2), height: binHeight - pieceBinPadding };
+                // Target area is everything above the bin
+                targetArea = { x: 0, y: 0, width: stageW, height: stageH - binHeight - pieceBinPadding };
+            } else {
+                // Bin on the left
+                const binWidth = Math.min(180, stageW * 0.3); // Bin is max 180px or 30% of screen
+                puzzlePieceBin = { x: pieceBinPadding, y: pieceBinPadding, width: binWidth, height: stageH - (pieceBinPadding * 2) };
+                // Target area is everything to the right of the bin
+                targetArea = { x: binWidth + pieceBinPadding, y: 0, width: stageW - binWidth - (pieceBinPadding * 2), height: stageH };
+            }
+            // --- END FIX ---
 
-    const binRect = new Konva.Rect({
-        ...puzzlePieceBin,
-        fill: '#ffffff',
-        stroke: '#ccc',
-        strokeWidth: 4,
-        dash: [10, 5],
-        cornerRadius: 10
-    });
-    puzzleLayer.add(binRect);
+            const binRect = new Konva.Rect({
+                ...puzzlePieceBin,
+                fill: '#ffffff',
+                stroke: '#ccc',
+                strokeWidth: 4,
+                dash: [10, 5],
+                cornerRadius: 10
+            });
+            puzzleLayer.add(binRect);
 
-    // --- FIX: Position targets within the targetArea ---
-    puzzleData.targets.forEach(target => {
-        // Calculate size based on the *smaller* dimension of the target area
-        const size = Math.min(targetArea.width, targetArea.height) * target.size;
-        const targetShape = createKonvaShape(
-            target.shape,
-            // Position relative to targetArea
-            targetArea.x + (targetArea.width * target.x),
-            targetArea.y + (targetArea.height * target.y),
-            size,
-            '#999',
-            target.rotation
-        );
+            // --- FIX: Position targets within the targetArea ---
+            puzzleData.targets.forEach(target => {
+                // Calculate size based on the *smaller* dimension of the target area
+                const size = Math.min(targetArea.width, targetArea.height) * target.size;
+                const targetShape = createKonvaShape(
+                    target.shape,
+                    // Position relative to targetArea
+                    targetArea.x + (targetArea.width * target.x),
+                    targetArea.y + (targetArea.height * target.y),
+                    size,
+                    '#999',
+                    target.rotation
+                );
 
-        targetShape.stroke('#999');
-        targetShape.strokeWidth(4);
-        targetShape.dash([10, 5]);
-        targetShape.fill(null);
-        targetShape.id(target.id);
-        targetShape.listening(false);
+                targetShape.stroke('#999');
+                targetShape.strokeWidth(4);
+                targetShape.dash([10, 5]);
+                targetShape.fill(null);
+                targetShape.id(target.id);
+                targetShape.listening(false);
 
-        puzzleLayer.add(targetShape);
-        puzzleTargets.push(targetShape);
-    });
-    // --- END FIX ---
-
-
-    // --- FIX: Grid layout for pieces in the bin ---
-    const pieceCount = puzzleData.pieces.length;
-    let pieceSize;
-
-    if (isPortrait) {
-        // Try to fit pieces in 1 row
-        let potentialSize = puzzlePieceBin.height * 0.75;
-        const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
-        if (numCols < pieceCount) {
-            // Not enough space, so fit all in one row and shrink them
-            potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
-        }
-        pieceSize = Math.max(30, potentialSize);
-    } else {
-        // Try to fit pieces in 1 column
-        let potentialSize = puzzlePieceBin.width * 0.75;
-        const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
-        if (numRows < pieceCount) {
-            // Not enough space, so fit all in one col and shrink them
-            potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
-        }
-        pieceSize = Math.max(30, potentialSize);
-    }
+                puzzleLayer.add(targetShape);
+                puzzleTargets.push(targetShape);
+            });
+            // --- END FIX ---
 
 
-    puzzleData.pieces.forEach((piece, index) => {
-        let pieceX, pieceY;
+            // --- FIX: Grid layout for pieces in the bin ---
+            const pieceCount = puzzleData.pieces.length;
+            let pieceSize;
 
-        if (isPortrait) {
-            // Grid horizontally
-            const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
-            const col = index % numCols;
-            const row = Math.floor(index / numCols);
+            if (isPortrait) {
+                // Try to fit pieces in 1 row
+                let potentialSize = puzzlePieceBin.height * 0.75;
+                const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
+                if (numCols < pieceCount) {
+                    // Not enough space, so fit all in one row and shrink them
+                    potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
+                }
+                pieceSize = Math.max(30, potentialSize);
+            } else {
+                // Try to fit pieces in 1 column
+                let potentialSize = puzzlePieceBin.width * 0.75;
+                const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
+                if (numRows < pieceCount) {
+                    // Not enough space, so fit all in one col and shrink them
+                    potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
+                }
+                pieceSize = Math.max(30, potentialSize);
+            }
 
-            // Center the grid of pieces horizontally
-            const gridWidth = numCols * pieceSize;
-            const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
 
-            pieceX = startX + (col * pieceSize) + (pieceSize / 2);
-            pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
+            puzzleData.pieces.forEach((piece, index) => {
+                let pieceX, pieceY;
 
-        } else {
-            // Grid vertically
-            const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
-            const row = index % numRows;
-            const col = Math.floor(index / numRows);
+                if (isPortrait) {
+                    // Grid horizontally
+                    const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
+                    const col = index % numCols;
+                    const row = Math.floor(index / numCols);
 
-            // Center the grid of pieces vertically
-            const gridHeight = numRows * pieceSize;
-            const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
+                    // Center the grid of pieces horizontally
+                    const gridWidth = numCols * pieceSize;
+                    const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
 
-            pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
-            pieceY = startY + (row * pieceSize) + (pieceSize / 2);
-        }
+                    pieceX = startX + (col * pieceSize) + (pieceSize / 2);
+                    pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
 
-        const pieceShape = createKonvaShape(
-            piece.shape,
-            pieceX,
-            pieceY,
-            pieceSize * 0.8, // Make piece slightly smaller than its "cell"
-            piece.color,
-            piece.rotation
-        );
+                } else {
+                    // Grid vertically
+                    const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
+                    const row = index % numRows;
+                    const col = Math.floor(index / numRows);
 
-        pieceShape.id(piece.id);
-        pieceShape.draggable(true);
-        pieceShape.data = { originalX: pieceX, originalY: pieceY };
+                    // Center the grid of pieces vertically
+                    const gridHeight = numRows * pieceSize;
+                    const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
 
-        pieceShape.on('dragstart', (e) => {
-            e.target.moveToTop();
+                    pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
+                    pieceY = startY + (row * pieceSize) + (pieceSize / 2);
+                }
+
+                const pieceShape = createKonvaShape(
+                    piece.shape,
+                    pieceX,
+                    pieceY,
+                    pieceSize * 0.8, // Make piece slightly smaller than its "cell"
+                    piece.color,
+                    piece.rotation
+                );
+
+                pieceShape.id(piece.id);
+                pieceShape.draggable(true);
+                pieceShape.data = { originalX: pieceX, originalY: pieceY };
+
+                pieceShape.on('dragstart', (e) => {
+                    e.target.moveToTop();
+                    puzzleLayer.batchDraw();
+                });
+
+                pieceShape.on('dragend', handlePieceDragEnd);
+
+                puzzleLayer.add(pieceShape);
+                puzzlePieces.push(pieceShape);
+            });
+            // --- END FIX ---
+
             puzzleLayer.batchDraw();
-        });
+            puzzlePrompt.textContent = puzzleData.instruction;
+            // This now calls the global window.speakText
+            window.speakText(puzzleData.instruction);
 
-        pieceShape.on('dragend', handlePieceDragEnd);
-
-        puzzleLayer.add(pieceShape);
-        puzzlePieces.push(pieceShape);
-    });
-    // --- END FIX ---
-
-    puzzleLayer.batchDraw();
-    puzzlePrompt.textContent = puzzleData.instruction;
-    speakText(puzzleData.instruction);
-
-    isPuzzleLoading = false;
-}
+            isPuzzleLoading = false;
+        }
 
         function createKonvaShape(shape, x, y, size, color, rotation = 0) {
             let konvaShape;
@@ -806,7 +788,8 @@ function loadPuzzle(puzzleData) {
             const allSolved = puzzlePieces.every(p => !p.draggable());
             if (allSolved) {
                 isPuzzleSolved = true;
-                speakText("Great job!");
+                // This now calls the global window.speakText
+                window.speakText("Great job!");
                 nextPuzzleButton.classList.remove('hidden');
             }
         }

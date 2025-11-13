@@ -1,107 +1,228 @@
 /*
- * Reusable Speech Synthesis Module
+ * =================================================================
+ * MASTER SPEECH MODULE (v2 - With iOS/Safari Fixes)
+ * =================================================================
  *
- * Handles:
- * 1. iOS audio context unlocking (must be called from a user-tap).
- * 2. Loading and selecting a preferred voice.
- * 3. Providing a simple 'speakText' function with rate control.
+ * This single file provides:
+ * 1. window.loadVoices():     Loads and selects the best voice.
+ * 2. window.speakText():       A robust speech function with iOS fixes.
+ * 3. window.unlockSpeechIfNeeded(): A gesture-based audio unlocker.
+ *
+ * This code is based on the superior logic found in Alphabet/script.js.
  */
 
-// Make these global or attach to window for easy access from other scripts
+// --- PART 1: ROBUST SPEECH SYNTHESIS LOGIC ---
+
+// Make voiceList global to persist across calls.
 window.voiceList = [];
-window.preferredVoice = null;
-const PREFERRED_VOICES = [
-    'Google US English', // High-quality, common on Chrome
-    'Daniel',              // Common on macOS/iOS
-    'Samantha',            // Common on macOS/iOS
-    'Microsoft David - English (United States)', // Windows
-    'Microsoft Zira - English (United States)'   // Windows
-];
 
 /**
- * Loads and selects the best available voice.
- * This is triggered by 'voiceschanged' event.
+ * Populates the global voiceList. This function is designed to be
+ * called multiple times if needed, as Safari can be slow to load voices.
  */
-function loadVoices() {
-    // Get the list of voices
-    window.voiceList = window.speechSynthesis.getVoices()
-        .filter(voice => voice.lang.startsWith('en')); // Filter for English voices
+window.loadVoices = function() {
+    // If we've already loaded voices, don't do it again.
+    if (window.voiceList.length > 0) {
+        return;
+    }
+    window.voiceList = window.speechSynthesis.getVoices();
 
-    // Find the best-matching preferred voice
-    for (const name of PREFERRED_VOICES) {
-        const voice = window.voiceList.find(v => v.name === name);
-        if (voice) {
-            window.preferredVoice = voice;
-            // console.log(`Speech: Preferred voice set to ${name}`);
-            return;
+    // Attempt to find a preferred voice immediately
+    if (!window.preferredVoice) {
+         let selectedVoice = null;
+         // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
+        selectedVoice = window.voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
+
+        // 2. If not found, look for any voice that is the browser's default for US English.
+        if (!selectedVoice) {
+            selectedVoice = window.voiceList.find(v => v.lang === 'en-US' && v.default);
+        }
+
+        // 3. If still no voice, just grab the very first US English voice available.
+        if (!selectedVoice) {
+            selectedVoice = window.voiceList.find(v => v.lang === 'en-US');
+        }
+
+        window.preferredVoice = selectedVoice;
+    }
+}
+
+// Try to load voices immediately when the script runs.
+window.loadVoices();
+
+// Also, set up the event listener which is the "correct" way to do it.
+window.speechSynthesis.onvoiceschanged = window.loadVoices;
+
+
+/**
+ * The robust, Safari-compatible text-to-speech function.
+ * @param {string} text - The text to speak.
+ * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
+ */
+window.speakText = function(text, onEndCallback) {
+    // Always cancel any previous speech to avoid overlaps.
+    window.speechSynthesis.cancel();
+
+    // ** SAFARI FIX 1: If the voice list is still empty, make another attempt to load them. **
+    if (window.voiceList.length === 0) {
+        window.loadVoices();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9; // A good rate for kids
+
+    // Set the language as a fallback.
+    utterance.lang = 'en-US';
+
+    if (onEndCallback) {
+        utterance.onend = onEndCallback;
+    }
+
+    // Only try to select a specific voice if the list has been populated.
+    if (window.voiceList.length > 0) {
+
+        // Use the globally pre-selected voice if available
+        let selectedVoice = window.preferredVoice;
+
+        // If preferredVoice is still null, try one last time to find one
+        if (!selectedVoice) {
+             selectedVoice = window.voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
+            if (!selectedVoice) {
+                selectedVoice = window.voiceList.find(v => v.lang === 'en-US' && v.default);
+            }
+            if (!selectedVoice) {
+                selectedVoice = window.voiceList.find(v => v.lang === 'en-US');
+            }
+        }
+
+        // If we successfully found a voice, assign it.
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+
+            // ** CRITICAL SAFARI FIX 2: Re-set the lang property from the
+            //    voice object itself. This fixes the "French voice" issue. **
+            utterance.lang = selectedVoice.lang;
         }
     }
 
-    // Fallback: If no preferred voice, use the first available US English voice
-    if (!window.preferredVoice) {
-        window.preferredVoice = window.voiceList.find(v => v.lang === 'en-US');
-    }
-
-    // Fallback: If still no voice, use the first English voice
-    if (!window.preferredVoice) {
-        window.preferredVoice = window.voiceList[0];
-    }
-    // console.log(`Speech: Fallback voice set to ${window.preferredVoice?.name}`);
+    window.speechSynthesis.speak(utterance);
 }
 
-/**
- * Speaks the given text aloud.
- * @param {string} text - The text to speak.
- * @param {number} [rate=0.9] - The speed of speech (0.1 to 10).
- */
-window.speakText = function(text, rate = 0.9) {
-    if (!window.speechSynthesis) {
-        console.warn("Speech synthesis not supported.");
+
+// --- PART 2: AUDIO UNLOCKER LOGIC ---
+// (From Alphabet/unlock-speech.js)
+
+;(function globalUnlockSpeech() {
+  // Detect mobile devices
+  function isMobile() {
+    if (navigator.userAgentData && navigator.userAgentData.mobile !== undefined) {
+      return navigator.userAgentData.mobile;
+    }
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  // Detect desktop
+  function isDesktop() {
+    return !isMobile();
+  }
+
+  // Try to resume an AudioContext
+  async function resumeAudio() {
+    try {
+      const context = (window.__unlockAudioContext && window.__unlockAudioContext.context) || new (window.AudioContext || window.webkitAudioContext)();
+      if (context.state === 'suspended') {
+        await context.resume();
+      }
+      try {
+        const buffer = context.createBuffer(1, 1, context.sampleRate);
+        const src = context.createBufferSource();
+        src.buffer = buffer;
+        src.connect(context.destination);
+        src.start(0);
+        window.__unlockAudioContext = { context, _unlockSrc: src };
+      } catch (e) {
+        // Non-fatal
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Small speechSynthesis utterance to unlock speech
+  function speakUnlockUtterance() {
+    return new Promise((resolve) => {
+      if (!('speechSynthesis' in window)) {
+        resolve(false);
         return;
-    }
+      }
+      try {
+        const voices = speechSynthesis.getVoices();
+        const utter = new SpeechSynthesisUtterance('');
+        utter.volume = 0;
+        utter.text = ' '; // Use a single space
+        utter.onend = () => resolve(true);
+        utter.onerror = () => resolve(false);
+        speechSynthesis.speak(utter);
+        setTimeout(() => resolve(true), 500); // Fallback timer
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
 
-    // Cancel any current speech to prevent overlap
-    window.speechSynthesis.cancel();
+  async function unlockRoutine() {
+    const audioResumed = await resumeAudio();
+    const speechRes = await speakUnlockUtterance();
+    return audioResumed || speechRes;
+  }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = rate;
+  // Public function to call on load
+  window.unlockSpeechIfNeeded = function unlockSpeechIfNeeded() {
 
-    // Set the preferred voice if it's loaded
-    if (window.preferredVoice) {
-        utterance.voice = window.preferredVoice;
-    }
+    // This was targeting desktops, but for iOS we need it on mobile too.
+    // Let's just run it on all devices for simplicity.
+    // if (!isDesktop()) {
+    //   return Promise.resolve(false);
+    // }
 
-    window.speechSynthesis.speak(utterance);
-}
+    const mayNeedUnlock = !!(window.AudioContext || window.webkitAudioContext) || 'speechSynthesis' in window;
+    if (!mayNeedUnlock) return Promise.resolve(false);
 
-/**
- * Unlocks the Web Speech API on iOS.
- * This MUST be called from within a synchronous user event (e.g., 'click').
- */
-window.unlockSpeechIfNeeded = function() {
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-        return; // Already unlocked
-    }
-    
-    // Create a "silent" utterance
-    const utterance = new SpeechSynthesisUtterance('.');
-    utterance.volume = 0; // Make it inaudible
-    utterance.rate = 10;  // Make it fast
-    
-    window.speechSynthesis.speak(utterance);
-    window.speechSynthesis.cancel(); // Immediately clear it
-    
-    // console.log("Speech unlocked.");
-}
+    return new Promise((resolve) => {
+      let handled = false;
+      const tryUnlockNow = async (event) => {
+        if (handled) return;
+        handled = true;
 
-// --- Event Listeners ---
+        try {
+          const ok = await unlockRoutine();
+          cleanup();
+          resolve(ok);
+        } catch (e) {
+          cleanup();
+          resolve(false);
+        }
+      };
 
-// Load voices when they become available
-// Some browsers fire this immediately, others after a delay
-if (window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-}
+      const cleanup = () => {
+        document.removeEventListener('click', tryUnlockNow, true);
+        document.removeEventListener('keydown', tryUnlockNow, true);
+        document.removeEventListener('touchstart', tryUnlockNow, true);
+      };
 
-// Initial load (for browsers like Chrome that might have voices ready)
-loadVoices();
+      document.addEventListener('click', tryUnlockNow, true);
+      document.addEventListener('keydown', tryUnlockNow, true);
+      document.addEventListener('touchstart', tryUnlockNow, true);
+
+      // Timeout
+      setTimeout(() => {
+        if (!handled) {
+          handled = true;
+          cleanup();
+          resolve(false);
+        }
+      }, 10000);
+    });
+  };
+})();

@@ -139,6 +139,7 @@
         }
 
         function startLeafSortGame() {
+			window.speakText("Sort the leaves!");
             // 1. Wait for images to be loaded
             loadLeafImages(() => {
                 // 2. Setup the stage (only once)
@@ -256,7 +257,7 @@
 
             leafLayer.batchDraw();
             // This now calls the global window.speakText
-            window.speakText("Sort the leaves!");
+           // window.speakText("Sort the leaves!");
         }
 
         function handleLeafDragEnd(e) {

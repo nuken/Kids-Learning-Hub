@@ -194,8 +194,8 @@ h2 {
     gap: 15px;
 }
 .leaf {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     background-size: contain; /* Use contain */
     background-repeat: no-repeat;
     background-position: center;

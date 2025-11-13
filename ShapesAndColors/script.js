@@ -317,6 +317,7 @@
             const allSorted = leafPieces.every(p => !p.draggable());
             if (allSorted) {
                 // This now calls the global window.speakText
+				window.playConfettiEffect();
                 window.speakText("Great job!");
                 // Reload the game
                 setTimeout(loadLeafSortProblem, 1500);
@@ -394,6 +395,7 @@
                 playSound(correctSound);
                 webDisplay.style.backgroundImage = `url('${currentShapeProblem.filledImage}')`;
                 nextShapeButton.classList.remove('hidden');
+				window.playConfettiEffect();
                 if (friendlySpider) {
                     friendlySpider.classList.add('spider-bounces');
                     // Remove the class after the animation finishes (800ms)
@@ -790,6 +792,7 @@
             if (allSolved) {
                 isPuzzleSolved = true;
                 // This now calls the global window.speakText
+				window.playConfettiEffect();
                 window.speakText("Great job!");
                 nextPuzzleButton.classList.remove('hidden');
             }

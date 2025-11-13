@@ -1,8 +1,8 @@
 # Kids Learning App Collection
 
-This project is a simple, ad-free, and fully responsive web portal that hosts five separate learning applications for children: **Alphabet Fun**, **Numbers Fun**, a **Coloring Book**, **Let's Spell**, and **Video Time**.
+This project is a simple, ad-free, and fully responsive web portal that hosts five separate learning applications for children: **Alphabet Fun**, **Numbers Fun**, a **Coloring Book**, **Let's Spell**, and **Shapes & Colors**. A sixth app, **Video Time**, is also included and accessible via a link on the main hub.
 
-The main `index.html` file acts as a central hub, allowing a child to easily launch any of the five apps. Each application has been modified with a non-intrusive "Home" button, allowing for easy navigation back to this main menu.
+The main `index.html` file acts as a central hub, allowing a child to easily launch any of the five main apps. Each application has been modified with a non-intrusive "Home" button, allowing for easy navigation back to this main menu.
 
 The applications are designed to work perfectly on desktops, tablets (iPad, Android), and phones in both portrait and landscape modes.
 
@@ -45,14 +45,23 @@ The applications are designed to work perfectly on desktops, tablets (iPad, Andr
 * **Description:** A multi-game app focused on basic spelling skills.
 * **Features:**
     * **Spell the Word:** Spell a word (like 'cat' or 'dog') by choosing letters in the correct order to match an image.
-    * **Missing Letter:** Find and select the single missing letter from a word (e.g., 'C_T').
+    * **Missing Letter:** Find and select the single missing letter from a word (e.g., 'C\_T').
     * **Spell the Color:** Spell the name of a color (e.g., 'red', 'blue') shown in a box.
     * Provides immediate audio feedback for correct or incorrect letter choices.
 
-### 5. Video Time
+### 5. Shapes & Colors
+
+* **Location:** `/ShapesAndColors/`
+* **Description:** A multi-game app focused on shapes and colors.
+* **Features:**
+    * **Leaf Color Sort:** A drag-and-drop game to sort colored leaves (red, green, brown, yellow) into the correct baskets.
+    * **Spider's Shape Web:** A matching game to help a spider by finding the correct shape (circle, square, star, etc.) to fill its web.
+    * **Shape Puzzles:** A drag-and-drop puzzle game to build pictures (like a house or a train) by fitting shapes into outlines.
+
+### 6. Video Time
 
 * **Location:** `/VideoTime/`
-* **Description:** A simple, timer-controlled portal for watching curated, parent-approved videos.
+* **Description:** A simple, timer-controlled portal for watching curated, parent-approved videos (Accessible via the play button link on the main hub).
 * **Features:**
     * Loads pre-configured YouTube playlists or single videos set in `config.js`.
     * Tracks watch time against a set limit (e.g., 30 minutes).

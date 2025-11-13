@@ -234,6 +234,7 @@ backButtons.forEach(btn => {
             lettersToSpell.shift();
 
             if (lettersToSpell.length === 0) {
+			  window.playConfettiEffect();
               nextWordButtonImage.classList.remove('hidden');
             }
           } else {
@@ -342,6 +343,7 @@ backButtons.forEach(btn => {
                 }
 
                 // Show "Next" button
+				window.playConfettiEffect();
                 nextWordButtonMissing.classList.remove('hidden');
 
             } else {
@@ -467,7 +469,8 @@ backButtons.forEach(btn => {
                 if (firstEmptyBlank) {
                     firstEmptyBlank.textContent = clickedLetter.toUpperCase();
                 }
-
+				
+                window.playConfettiEffect();
                 nextWordButtonColor.classList.remove('hidden');
 
             } else {

@@ -438,6 +438,7 @@
         function finishLevel2() {
             alphabetPrompt.textContent = "You found them all!";
             // This now calls the global window.speakText
+			window.playConfettiEffect();
             window.speakText("You found them all! Great job!", () => {
                 // After 2 seconds, restart Level 2
                 setTimeout(startLevel2, 2000);

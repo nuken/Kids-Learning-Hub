@@ -1,0 +1,33 @@
+/* Helper-Scripts/global-effects.css */
+/* --- START: Confetti Win Effect --- */
+
+.confetti-particle {
+    position: fixed; /* Use fixed to cover the whole screen */
+    top: -20px; /* Start just off-screen */
+    width: 10px;
+    height: 15px;
+    opacity: 1;
+    z-index: 1000; /* On top of everything */
+    pointer-events: none; /* User can't click them */
+    
+    /* Pull random values from the JS */
+    animation-name: confetti-fall;
+    animation-duration: var(--random-duration);
+    animation-delay: var(--random-delay);
+    animation-timing-function: linear;
+    animation-fill-mode: forwards; /* Stay at the end state (invisible) */
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        /* Fall down the whole screen and spin */
+        transform: translateY(110vh) rotate(var(--random-rotate));
+        opacity: 0;
+    }
+}
+
+/* --- END: Confetti Win Effect --- */

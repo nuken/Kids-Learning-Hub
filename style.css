@@ -24,7 +24,7 @@ h1 {
 }
 
 .title-logo {
-    height: 1.5em;
+    height: 2.5em;
     width: auto; /* Maintain aspect ratio */
 }
 
@@ -76,7 +76,7 @@ h1 {
         padding: 20px 30px;
     }
     .title-logo {
-        height: 1.2em; /* 10% smaller than the text's full height */
+        height: 2.2em; /* 10% smaller than the text's full height */
     }
 }
 /* --- START: ADD THIS FOR LANDSCAPE PHONES --- */
@@ -103,7 +103,7 @@ h1 {
         border-width: 3px;
     }
     .title-logo {
-        height: 1.2em; /* 10% smaller than the text's full height */
+        height: 2.2em; /* 10% smaller than the text's full height */
     }
 }
 /* --- END: ADD THIS FOR LANDSCAPE PHONES --- */

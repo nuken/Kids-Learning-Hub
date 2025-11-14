@@ -230,21 +230,31 @@ window.speakText = function(text, onEndCallback) {
 /**
  * Creates a full-screen confetti "win" animation.
  */
+/**
+ * Creates a full-screen confetti "win" animation.
+ */
 window.playConfettiEffect = function() {
     const numConfetti = 100; // How many pieces of confetti
-    const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800'];
+    const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#9C27B0'];
+    const shapes = ['★', '●', '▲']; // You can add more shapes here!
     const container = document.body;
 
     for (let i = 0; i < numConfetti; i++) {
         const confetti = document.createElement('div');
         confetti.classList.add('confetti-particle');
         
+        // --- NEW: Pick a random shape and set it as the content ---
+        confetti.innerHTML = shapes[Math.floor(Math.random() * shapes.length)];
+        
         // Set random properties
         confetti.style.left = `${Math.random() * 100}vw`; // Start anywhere at the top
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        // --- NEW: Set the COLOR of the shape, not the background ---
+        confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
         
         // Use CSS custom properties for unique animations
-        confetti.style.setProperty('--random-rotate', `${Math.random() * 360 - 180}deg`);
+        confetti.style.setProperty('--random-rotate', `${Math.random() * 720 - 360}deg`); // Spin
+        confetti.style.setProperty('--random-tumble', `${Math.random() * 720 - 360}deg`); // Tumble
         confetti.style.setProperty('--random-duration', `${Math.random() * 2 + 3}s`); // 3-5 seconds
         confetti.style.setProperty('--random-delay', `${Math.random() * 0.5}s`); // Stagger start
         

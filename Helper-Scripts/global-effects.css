@@ -4,8 +4,9 @@
 .confetti-particle {
     position: fixed; /* Use fixed to cover the whole screen */
     top: -20px; /* Start just off-screen */
-    width: 10px;
-    height: 15px;
+
+    /* --- NEW: Use font-size to control shape size --- */
+    font-size: 20px;
     opacity: 1;
     z-index: 1000; /* On top of everything */
     pointer-events: none; /* User can't click them */
@@ -20,12 +21,13 @@
 
 @keyframes confetti-fall {
     0% {
-        transform: translateY(0) rotate(0deg);
+        /* --- NEW: Add rotateY for 3D tumble --- */
+        transform: translateY(0) rotateZ(0deg) rotateY(0deg);
         opacity: 1;
     }
     100% {
-        /* Fall down the whole screen and spin */
-        transform: translateY(110vh) rotate(var(--random-rotate));
+        /* --- NEW: Fall down the whole screen and spin/tumble --- */
+        transform: translateY(110vh) rotateZ(var(--random-rotate)) rotateY(var(--random-tumble));
         opacity: 0;
     }
 }

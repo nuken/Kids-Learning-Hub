@@ -75,6 +75,9 @@ h1 {
         font-size: 2em;
         padding: 20px 30px;
     }
+    .title-logo {
+        height: 1.2em; /* 10% smaller than the text's full height */
+    }
 }
 /* --- START: ADD THIS FOR LANDSCAPE PHONES --- */
 
@@ -98,6 +101,9 @@ h1 {
         font-size: 1.6em;       /* Make button text much smaller */
         padding: 12px 20px;   /* Reduce button padding */
         border-width: 3px;
+    }
+    .title-logo {
+        height: 1.2em; /* 10% smaller than the text's full height */
     }
 }
 /* --- END: ADD THIS FOR LANDSCAPE PHONES --- */

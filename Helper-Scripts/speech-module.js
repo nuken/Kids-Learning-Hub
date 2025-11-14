@@ -236,7 +236,7 @@ window.speakText = function(text, onEndCallback) {
 window.playConfettiEffect = function() {
     const numConfetti = 100; // How many pieces of confetti
     const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#9C27B0'];
-    const shapes = ['★', '●', '▲']; // You can add more shapes here!
+    const shapes = ['★', '●', '▲', '■', '♦']; // You can add more shapes here!
     const container = document.body;
 
     for (let i = 0; i < numConfetti; i++) {

@@ -87,14 +87,11 @@ backButtons.forEach(btn => {
             if (audioPrimed) return; // Only run once
 
             // 1. "Wake up" the sound effects (for iOS)
-            try {
-                goodSound.play().catch(() => {});
-                goodSound.pause();
-                goodSound.currentTime = 0;
-
-                badSound.play().catch(() => {});
-                badSound.pause();
-                badSound.currentTime = 0;
+           try {
+                // Use .load() to buffer the audio without playing.
+                // This prevents the "crackle" race condition.
+                goodSound.load();
+                badSound.load();
             } catch (err) {
                 console.error("Audio priming failed:", err);
             }

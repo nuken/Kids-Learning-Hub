@@ -429,65 +429,76 @@
             {
                 id: 'house',
                 instruction: "Let's build a house!",
+                silhouetteImage: 'images/puzzle-house.png',
                 pieces: [
-                    { id: 'roof', shape: 'triangle', color: '#F44336', rotation: 0 }, // Red
-                    { id: 'base', shape: 'square', color: '#2196F3', rotation: 0 }  // Blue
+                    { id: 'roof', shape: 'triangle', color: '#F44336', rotation: 0 },
+                    { id: 'base', shape: 'square', color: '#2196F3', rotation: 0 }
                 ],
                 targets: [
-                    { id: 'roof', shape: 'triangle', x: 0.6, y: 0.35, size: 0.3, rotation: 0 },
-                    { id: 'base', shape: 'square', x: 0.6, y: 0.65, size: 0.25, rotation: 0 }
+                    // --- CHANGED: x: 0.6 changed to 0.5 ---
+                    { id: 'roof', shape: 'triangle', x: 0.5, y: 0.35, size: 0.3, rotation: 0 },
+                    { id: 'base', shape: 'square', x: 0.5, y: 0.65, size: 0.25, rotation: 0 }
                 ]
             },
             {
                 id: 'train',
                 instruction: "Let's build a train!",
+                silhouetteImage: 'images/puzzle-train.png',
                 pieces: [
-                    { id: 'engine', shape: 'square', color: '#4CAF50', rotation: 0 }, // Green
-                    { id: 'car', shape: 'square', color: '#FF9800', rotation: 0 },    // Orange
-                    { id: 'wheel1', shape: 'circle', color: '#607D8B', rotation: 0 }, // Grey
+                    { id: 'engine', shape: 'square', color: '#4CAF50', rotation: 0 },
+                    { id: 'car', shape: 'square', color: '#FF9800', rotation: 0 },
+                    { id: 'wheel1', shape: 'circle', color: '#607D8B', rotation: 0 },
                     { id: 'wheel2', shape: 'circle', color: '#607D8B', rotation: 0 }
                 ],
                 targets: [
-                    { id: 'engine', shape: 'square', x: 0.45, y: 0.6, size: 0.2, rotation: 0 },
-                    { id: 'car', shape: 'square', x: 0.7, y: 0.6, size: 0.2, rotation: 0 },
-                    { id: 'wheel1', shape: 'circle', x: 0.45, y: 0.85, size: 0.1, rotation: 0 },
-                    { id: 'wheel2', shape: 'circle', x: 0.7, y: 0.85, size: 0.1, rotation: 0 }
+                    // --- CHANGED: x coordinates shifted left to be centered ---
+                    { id: 'engine', shape: 'square', x: 0.375, y: 0.6, size: 0.2, rotation: 0 },
+                    { id: 'car', shape: 'square', x: 0.625, y: 0.6, size: 0.2, rotation: 0 },
+                    { id: 'wheel1', shape: 'circle', x: 0.375, y: 0.85, size: 0.1, rotation: 0 },
+                    { id: 'wheel2', shape: 'circle', x: 0.625, y: 0.85, size: 0.1, rotation: 0 }
                 ]
             },
             {
                 id: 'ice_cream',
                 instruction: "Let's make an ice cream cone!",
+                silhouetteImage: 'images/puzzle-ice-cream.png',
                 pieces: [
-                    { id: 'cone', shape: 'triangle', color: '#FF9800', rotation: 180 }, // Orange
-                    { id: 'scoop', shape: 'circle', color: '#F44336', rotation: 0 }   // Red
+                    { id: 'cone', shape: 'triangle', color: '#FF9800', rotation: 180 },
+                    { id: 'scoop', shape: 'circle', color: '#F44336', rotation: 0 }
                 ],
                 targets: [
-                    { id: 'cone', shape: 'triangle', x: 0.6, y: 0.6, size: 0.25, rotation: 180 },
-                    { id: 'scoop', shape: 'circle', x: 0.6, y: 0.35, size: 0.2, rotation: 0 }
+                    // --- CHANGED: x: 0.6 changed to 0.5 ---
+                    { id: 'cone', shape: 'triangle', x: 0.5, y: 0.6, size: 0.25, rotation: 180 },
+                    { id: 'scoop', shape: 'circle', x: 0.5, y: 0.35, size: 0.2, rotation: 0 }
                 ]
             },
             {
                 id: 'sailboat',
                 instruction: "Let's build a sailboat!",
+                silhouetteImage: 'images/puzzle-sailboat.png',
                 pieces: [
-                    { id: 'hull', shape: 'square', color: '#2196F3', rotation: 45 }, // Blue
-                    { id: 'sail', shape: 'triangle', color: '#FFEB3B', rotation: 0 } // Yellow
+                    { id: 'hull', shape: 'square', color: '#2196F3', rotation: 45 },
+                    { id: 'sail', shape: 'triangle', color: '#FFEB3B', rotation: 0 }
                 ],
                 targets: [
-                    { id: 'hull', shape: 'square', x: 0.6, y: 0.7, size: 0.2, rotation: 45 },
-                    { id: 'sail', shape: 'triangle', x: 0.6, y: 0.45, size: 0.25, rotation: 0 }
+                    // --- CHANGED: x: 0.6 changed to 0.5 ---
+                    { id: 'hull', shape: 'square', x: 0.5, y: 0.7, size: 0.2, rotation: 45 },
+                    { id: 'sail', shape: 'triangle', x: 0.5, y: 0.45, size: 0.25, rotation: 0 }
                 ]
             },
             {
                 id: 'fish',
                 instruction: "Let's make a fish!",
+                silhouetteImage: 'images/puzzle-fish.png',
                 pieces: [
-                    { id: 'body', shape: 'circle', color: '#FF9800', rotation: 0 }, // Orange
-                    { id: 'tail', shape: 'triangle', color: '#FFEB3B', rotation: 90 } // Yellow, rotated
+                    { id: 'body', shape: 'circle', color: '#FF9800', rotation: 0 },
+                    // --- CHANGED 'rotation: 90' to '-90' ---
+                    { id: 'tail', shape: 'triangle', color: '#FFEB3B', rotation: -90 } 
                 ],
                 targets: [
-                    { id: 'body', shape: 'circle', x: 0.55, y: 0.5, size: 0.25, rotation: 0 },
-                    { id: 'tail', shape: 'triangle', x: 0.75, y: 0.5, size: 0.15, rotation: 90 }
+                    { id: 'body', shape: 'circle', x: 0.5, y: 0.5, size: 0.25, rotation: 0 },
+                    // --- CHANGED 'rotation: 90' to '-90' ---
+                    { id: 'tail', shape: 'triangle', x: 0.7, y: 0.5, size: 0.15, rotation: -90 }
                 ]
             }
         ];
@@ -495,12 +506,23 @@
         let currentPuzzleIndex = 0;
 
         function haveIntersection(r1, r2) {
-            const tolerance = 0.2;
+            // r1 = piece, r2 = target
+            
+            // Increase the target area by 30 pixels in every direction.
+            // This makes the drop zone much more forgiving, especially for small pieces.
+            const tolerance = 30; 
+
+            // Standard collision check (AABB), but with the target (r2)
+            // "inflated" by the tolerance.
             return !(
-                r2.x > r1.x + r1.width - (r1.width * tolerance) ||
-                r2.x + r2.width < r1.x + (r1.width * tolerance) ||
-                r2.y > r1.y + r1.height - (r1.height * tolerance) ||
-                r2.y + r2.height < r1.y + (r1.height * tolerance)
+                // Piece is to the right of the inflated target
+                r1.x > r2.x + r2.width + tolerance ||
+                // Piece is to the left of the inflated target
+                r1.x + r1.width < r2.x - tolerance ||
+                // Piece is below the inflated target
+                r1.y > r2.y + r2.height + tolerance ||
+                // Piece is above the inflated target
+                r1.y + r1.height < r2.y - tolerance
             );
         }
 
@@ -575,25 +597,20 @@
             puzzleLayer.destroyChildren();
             nextPuzzleButton.classList.add('hidden');
 
-            // --- FIX: Define separate areas for pieces and targets ---
+            // --- Define areas for pieces and targets (Existing logic) ---
             let targetArea;
             const isPortrait = stageH > stageW;
             const pieceBinPadding = 10;
 
             if (isPortrait) {
-                // Bin at the bottom
-                const binHeight = Math.min(160, stageH * 0.25); // Bin is max 160px or 25% of screen
+                const binHeight = Math.min(160, stageH * 0.25);
                 puzzlePieceBin = { x: pieceBinPadding, y: stageH - binHeight, width: stageW - (pieceBinPadding * 2), height: binHeight - pieceBinPadding };
-                // Target area is everything above the bin
                 targetArea = { x: 0, y: 0, width: stageW, height: stageH - binHeight - pieceBinPadding };
             } else {
-                // Bin on the left
-                const binWidth = Math.min(180, stageW * 0.3); // Bin is max 180px or 30% of screen
+                const binWidth = Math.min(180, stageW * 0.3);
                 puzzlePieceBin = { x: pieceBinPadding, y: pieceBinPadding, width: binWidth, height: stageH - (pieceBinPadding * 2) };
-                // Target area is everything to the right of the bin
                 targetArea = { x: binWidth + pieceBinPadding, y: 0, width: stageW - binWidth - (pieceBinPadding * 2), height: stageH };
             }
-            // --- END FIX ---
 
             const binRect = new Konva.Rect({
                 ...puzzlePieceBin,
@@ -605,121 +622,161 @@
             });
             puzzleLayer.add(binRect);
 
-            // --- FIX: Position targets within the targetArea ---
-            puzzleData.targets.forEach(target => {
-                // Calculate size based on the *smaller* dimension of the target area
-                const size = Math.min(targetArea.width, targetArea.height) * target.size;
-                const targetShape = createKonvaShape(
-                    target.shape,
-                    // Position relative to targetArea
-                    targetArea.x + (targetArea.width * target.x),
-                    targetArea.y + (targetArea.height * target.y),
-                    size,
-                    '#999',
-                    target.rotation
-                );
-
-                targetShape.stroke('#999');
-                targetShape.strokeWidth(4);
-                targetShape.dash([10, 5]);
-                targetShape.fill(null);
-                targetShape.id(target.id);
-                targetShape.listening(false);
-
-                puzzleLayer.add(targetShape);
-                puzzleTargets.push(targetShape);
-            });
-            // --- END FIX ---
-
-
-            // --- FIX: Grid layout for pieces in the bin ---
-            const pieceCount = puzzleData.pieces.length;
-            let pieceSize;
-
-            if (isPortrait) {
-                // Try to fit pieces in 1 row
-                let potentialSize = puzzlePieceBin.height * 0.75;
-                const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
-                if (numCols < pieceCount) {
-                    // Not enough space, so fit all in one row and shrink them
-                    potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
+            // --- NEW: Inner function to build the puzzle ---
+            // This contains the old logic for drawing targets and pieces.
+            // We do this so it can be called *after* the silhouette image loads.
+            const buildPuzzleContents = (silhouetteNode) => {
+                
+                // If a silhouette image was loaded, add it to the layer
+                if (silhouetteNode) {
+                    puzzleLayer.add(silhouetteNode);
+                    silhouetteNode.moveToBottom(); // Move it behind targets
+                    binRect.moveToTop(); // Ensure bin is over it
                 }
-                pieceSize = Math.max(30, potentialSize);
-            } else {
-                // Try to fit pieces in 1 column
-                let potentialSize = puzzlePieceBin.width * 0.75;
-                const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
-                if (numRows < pieceCount) {
-                    // Not enough space, so fit all in one col and shrink them
-                    potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
-                }
-                pieceSize = Math.max(30, potentialSize);
-            }
+
+                // --- Draw Targets (Existing logic) ---
+                puzzleData.targets.forEach(target => {
+                    // This size calculation is correct, as it's proportional
+                    // to the silhouette's scaling.
+                    const size = Math.min(targetArea.width, targetArea.height) * target.size;
+
+                    // --- NEW LOGIC ---
+                    // Calculate the X and Y based on the silhouette's
+                    // final position and size, not the targetArea's.
+                    const targetX = silhouetteNode.x() + (silhouetteNode.width() * target.x);
+                    const targetY = silhouetteNode.y() + (silhouetteNode.height() * target.y);
+
+                    const targetShape = createKonvaShape(
+                        target.shape,
+                        targetX,  // <-- USE NEW VARIABLE
+                        targetY,  // <-- USE NEW VARIABLE
+                        size,
+                        '#999',
+                        target.rotation
+                    );
+                    targetShape.fill(null);
+                    targetShape.strokeEnabled(false); // <-- ADD THIS LINE
+                    targetShape.id(target.id);
+                    targetShape.listening(false);
+
+                    puzzleLayer.add(targetShape);
+                    puzzleTargets.push(targetShape);
+                });
+                // --- End Draw Targets ---
 
 
-            puzzleData.pieces.forEach((piece, index) => {
-                let pieceX, pieceY;
+                // --- Draw Pieces (Existing logic) ---
+                const pieceCount = puzzleData.pieces.length;
+                let pieceSize;
 
                 if (isPortrait) {
-                    // Grid horizontally
-                    const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
-                    const col = index % numCols;
-                    const row = Math.floor(index / numCols);
-
-                    // Center the grid of pieces horizontally
-                    const gridWidth = numCols * pieceSize;
-                    const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
-
-                    pieceX = startX + (col * pieceSize) + (pieceSize / 2);
-                    pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
-
+                    let potentialSize = puzzlePieceBin.height * 0.75;
+                    const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
+                    if (numCols < pieceCount) {
+                        potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
+                    }
+                    pieceSize = Math.max(30, potentialSize);
                 } else {
-                    // Grid vertically
-                    const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
-                    const row = index % numRows;
-                    const col = Math.floor(index / numRows);
-
-                    // Center the grid of pieces vertically
-                    const gridHeight = numRows * pieceSize;
-                    const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
-
-                    pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
-                    pieceY = startY + (row * pieceSize) + (pieceSize / 2);
+                    let potentialSize = puzzlePieceBin.width * 0.75;
+                    const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
+                    if (numRows < pieceCount) {
+                        potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
+                    }
+                    pieceSize = Math.max(30, potentialSize);
                 }
 
-                const pieceShape = createKonvaShape(
-                    piece.shape,
-                    pieceX,
-                    pieceY,
-                    pieceSize * 0.8, // Make piece slightly smaller than its "cell"
-                    piece.color,
-                    piece.rotation
-                );
+                puzzleData.pieces.forEach((piece, index) => {
+                    let pieceX, pieceY;
+                    if (isPortrait) {
+                        const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
+                        const col = index % numCols;
+                        const row = Math.floor(index / numCols);
+                        const gridWidth = numCols * pieceSize;
+                        const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
+                        pieceX = startX + (col * pieceSize) + (pieceSize / 2);
+                        pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
+                    } else {
+                        const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
+                        const row = index % numRows;
+                        const col = Math.floor(index / numRows);
+                        const gridHeight = numRows * pieceSize;
+                        const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
+                        pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
+                        pieceY = startY + (row * pieceSize) + (pieceSize / 2);
+                    }
 
-                pieceShape.id(piece.id);
-                pieceShape.draggable(true);
-                pieceShape.data = { originalX: pieceX, originalY: pieceY };
+                    const pieceShape = createKonvaShape(
+                        piece.shape,
+                        pieceX,
+                        pieceY,
+                        pieceSize * 0.8,
+                        piece.color,
+                        piece.rotation
+                    );
 
-                pieceShape.on('dragstart', (e) => {
-                    e.target.moveToTop();
-                    puzzleLayer.batchDraw();
+                    pieceShape.id(piece.id);
+                    pieceShape.draggable(true);
+                    pieceShape.data = { originalX: pieceX, originalY: pieceY };
+                    pieceShape.on('dragstart', (e) => {
+                        e.target.moveToTop();
+                        puzzleLayer.batchDraw();
+                    });
+                    pieceShape.on('dragend', handlePieceDragEnd);
+                    puzzleLayer.add(pieceShape);
+                    puzzlePieces.push(pieceShape);
                 });
+                // --- End Draw Pieces ---
 
-                pieceShape.on('dragend', handlePieceDragEnd);
+                // --- Finalize (Existing logic) ---
+                puzzleLayer.batchDraw();
+                puzzlePrompt.textContent = puzzleData.instruction;
+                window.speakText(puzzleData.instruction);
+                isPuzzleLoading = false;
+            };
+            // --- End of buildPuzzleContents function ---
 
-                puzzleLayer.add(pieceShape);
-                puzzlePieces.push(pieceShape);
-            });
-            // --- END FIX ---
 
-            puzzleLayer.batchDraw();
-            puzzlePrompt.textContent = puzzleData.instruction;
-            // This now calls the global window.speakText
-            window.speakText(puzzleData.instruction);
+            // --- NEW: Asynchronous Image Loader ---
+            if (puzzleData.silhouetteImage) {
+                Konva.Image.fromURL(puzzleData.silhouetteImage, (imageNode) => {
+                    // Image loaded successfully. Scale and position it within the targetArea.
+                    
+                    // Base size on the smaller dimension of the targetArea
+                    const baseSize = Math.min(targetArea.width, targetArea.height) * 0.9; // 90%
+                    const imageRatio = imageNode.width() / imageNode.height();
+                    
+                    let imgW, imgH;
+                    if (imageRatio > 1) { // Image is wider than tall
+                        imgW = baseSize;
+                        imgH = baseSize / imageRatio;
+                    } else { // Image is taller than wide
+                        imgH = baseSize;
+                        imgW = baseSize * imageRatio;
+                    }
+                    
+                    // Center the image within the targetArea
+                    imageNode.setAttrs({
+                        x: targetArea.x + (targetArea.width - imgW) / 2,
+                        y: targetArea.y + (targetArea.height - imgH) / 2,
+                        width: imgW,
+                        height: imgH,
+                        opacity: 0.35 // Make it faint
+                    });
+                    
+                    // Now that the image is ready, build the rest of the puzzle
+                    buildPuzzleContents(imageNode);
 
-            isPuzzleLoading = false;
+                }, (err) => {
+                    // Image failed to load, build the puzzle without it
+                    console.error("Silhouette image failed to load:", err);
+                    buildPuzzleContents(null);
+                });
+            } else {
+                // No silhouette image defined, build the puzzle immediately
+                buildPuzzleContents(null);
+            }
         }
-
+		
         function createKonvaShape(shape, x, y, size, color, rotation = 0) {
             let konvaShape;
             const shapeProps = {

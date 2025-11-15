@@ -89,13 +89,8 @@
 
             // 2. "Wake up" the sound effects
             try {
-                correctSound.play().catch(() => {});
-                correctSound.pause();
-                correctSound.currentTime = 0;
-
-                wrongSound.play().catch(() => {});
-                wrongSound.pause();
-                wrongSound.currentTime = 0;
+                correctSound.load();
+                wrongSound.load();
             } catch (err) {
                 console.error("Audio priming failed:", err);
             }

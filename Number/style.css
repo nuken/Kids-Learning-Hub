@@ -268,7 +268,7 @@ h2 {
 
 .choice-btn.correct {
     background-color: #4CAF50; /* Green */
-    transform: scale(1.1);
+    
 }
 .choice-btn.incorrect {
     background-color: #F44336; /* Red */

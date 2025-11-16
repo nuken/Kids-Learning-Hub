@@ -109,6 +109,7 @@
             // This now calls the global window.speakText
             if (currentCount === targetNumber) {
                 // This is the final number. Speak it, and THEN...
+				window.playBurstEffect(e.target);
                 window.speakText(currentCount, () => {
                     // ...as a callback, say "You did it!"
                     window.speakText("You did it!");
@@ -452,6 +453,7 @@
             // This now calls the global window.speakText
             if (clickedValue === currentPattern.answer) {
                 e.target.classList.add('correct');
+				window.playBurstEffect(e.target);
                 window.speakText(`That's right, ${currentPattern.answer}!`);
                 setTimeout(startPatternsGame, 1500); // New game
             } else {
@@ -558,7 +560,7 @@ function handleEggChoiceClick(e) {
     // This now calls the global window.speakText
     if (clickedValue === currentEggProblem.answer) {
         e.target.classList.add('correct');
-
+        window.playBurstEffect(e.target);
         // Use speakText with the callback
         window.speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`, () => {
             // This function will ONLY run after the speech finishes.

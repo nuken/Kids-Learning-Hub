@@ -574,208 +574,196 @@
         // --- REPLACE YOUR OLD loadPuzzle FUNCTION WITH THIS NEW ONE ---
 
         function loadPuzzle(puzzleData) {
-            isPuzzleSolved = false;
-            isPuzzleLoading = true;
+    isPuzzleSolved = false;
+    isPuzzleLoading = true;
 
-            if (!puzzleStage || !puzzleData || !puzzleData.id) {
-                console.warn("loadPuzzle called too early or with no data");
-                isPuzzleLoading = false;
-                return;
-            }
+    if (!puzzleStage || !puzzleData || !puzzleData.id) {
+        console.warn("loadPuzzle called too early or with no data");
+        isPuzzleLoading = false;
+        return;
+    }
 
-            const stageW = puzzleStage.width();
-            const stageH = puzzleStage.height();
+    const stageW = puzzleStage.width();
+    const stageH = puzzleStage.height();
 
-            if (stageW === 0 || stageH === 0) {
-                requestAnimationFrame(() => loadPuzzle(puzzleData));
-                return;
-            }
+    if (stageW === 0 || stageH === 0) {
+        requestAnimationFrame(() => loadPuzzle(puzzleData));
+        return;
+    }
 
-            currentPuzzle = puzzleData;
-            puzzlePieces = [];
-            puzzleTargets = [];
-            puzzleLayer.destroyChildren();
-            nextPuzzleButton.classList.add('hidden');
+    currentPuzzle = puzzleData;
+    puzzlePieces = [];
+    puzzleTargets = [];
+    puzzleLayer.destroyChildren();
+    nextPuzzleButton.classList.add('hidden');
 
-            // --- Define areas for pieces and targets (Existing logic) ---
-            let targetArea;
-            const isPortrait = stageH > stageW;
-            const pieceBinPadding = 10;
+    // --- Define areas for pieces and targets (Existing logic) ---
+    let targetArea;
+    const isPortrait = stageH > stageW;
+    const pieceBinPadding = 10;
 
-            if (isPortrait) {
-                const binHeight = Math.min(160, stageH * 0.25);
-                puzzlePieceBin = { x: pieceBinPadding, y: stageH - binHeight, width: stageW - (pieceBinPadding * 2), height: binHeight - pieceBinPadding };
-                targetArea = { x: 0, y: 0, width: stageW, height: stageH - binHeight - pieceBinPadding };
-            } else {
-                const binWidth = Math.min(180, stageW * 0.3);
-                puzzlePieceBin = { x: pieceBinPadding, y: pieceBinPadding, width: binWidth, height: stageH - (pieceBinPadding * 2) };
-                targetArea = { x: binWidth + pieceBinPadding, y: 0, width: stageW - binWidth - (pieceBinPadding * 2), height: stageH };
-            }
+    if (isPortrait) {
+        const binHeight = Math.min(160, stageH * 0.25);
+        puzzlePieceBin = { x: pieceBinPadding, y: stageH - binHeight, width: stageW - (pieceBinPadding * 2), height: binHeight - pieceBinPadding };
+        targetArea = { x: 0, y: 0, width: stageW, height: stageH - binHeight - pieceBinPadding };
+    } else {
+        const binWidth = Math.min(180, stageW * 0.3);
+        puzzlePieceBin = { x: pieceBinPadding, y: pieceBinPadding, width: binWidth, height: stageH - (pieceBinPadding * 2) };
+        targetArea = { x: binWidth + pieceBinPadding, y: 0, width: stageW - binWidth - (pieceBinPadding * 2), height: stageH };
+    }
 
-            const binRect = new Konva.Rect({
-                ...puzzlePieceBin,
-                fill: '#ffffff',
-                stroke: '#ccc',
-                strokeWidth: 4,
-                dash: [10, 5],
-                cornerRadius: 10
-            });
-            puzzleLayer.add(binRect);
+    const binRect = new Konva.Rect({
+        ...puzzlePieceBin,
+        fill: '#ffffff',
+        stroke: '#ccc',
+        strokeWidth: 4,
+        dash: [10, 5],
+        cornerRadius: 10
+    });
+    puzzleLayer.add(binRect);
 
-            // --- NEW: Inner function to build the puzzle ---
-            // This contains the old logic for drawing targets and pieces.
-            // We do this so it can be called *after* the silhouette image loads.
-            const buildPuzzleContents = (silhouetteNode) => {
-                
-                // If a silhouette image was loaded, add it to the layer
-                if (silhouetteNode) {
-                    puzzleLayer.add(silhouetteNode);
-                    silhouetteNode.moveToBottom(); // Move it behind targets
-                    binRect.moveToTop(); // Ensure bin is over it
-                }
-
-                // --- Draw Targets (Existing logic) ---
-                puzzleData.targets.forEach(target => {
-                    // This size calculation is correct, as it's proportional
-                    // to the silhouette's scaling.
-                    const size = Math.min(targetArea.width, targetArea.height) * target.size;
-
-                    // --- NEW LOGIC ---
-                    // Calculate the X and Y based on the silhouette's
-                    // final position and size, not the targetArea's.
-                    const targetX = silhouetteNode.x() + (silhouetteNode.width() * target.x);
-                    const targetY = silhouetteNode.y() + (silhouetteNode.height() * target.y);
-
-                    const targetShape = createKonvaShape(
-                        target.shape,
-                        targetX,  // <-- USE NEW VARIABLE
-                        targetY,  // <-- USE NEW VARIABLE
-                        size,
-                        '#999',
-                        target.rotation
-                    );
-                    targetShape.fill(null);
-                    targetShape.strokeEnabled(false); // <-- ADD THIS LINE
-                    targetShape.id(target.id);
-                    targetShape.listening(false);
-
-                    puzzleLayer.add(targetShape);
-                    puzzleTargets.push(targetShape);
-                });
-                // --- End Draw Targets ---
-
-
-                // --- Draw Pieces (Existing logic) ---
-                const pieceCount = puzzleData.pieces.length;
-                let pieceSize;
-
-                if (isPortrait) {
-                    let potentialSize = puzzlePieceBin.height * 0.75;
-                    const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
-                    if (numCols < pieceCount) {
-                        potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
-                    }
-                    pieceSize = Math.max(30, potentialSize);
-                } else {
-                    let potentialSize = puzzlePieceBin.width * 0.75;
-                    const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
-                    if (numRows < pieceCount) {
-                        potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
-                    }
-                    pieceSize = Math.max(30, potentialSize);
-                }
-
-                puzzleData.pieces.forEach((piece, index) => {
-                    let pieceX, pieceY;
-                    if (isPortrait) {
-                        const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
-                        const col = index % numCols;
-                        const row = Math.floor(index / numCols);
-                        const gridWidth = numCols * pieceSize;
-                        const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
-                        pieceX = startX + (col * pieceSize) + (pieceSize / 2);
-                        pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
-                    } else {
-                        const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
-                        const row = index % numRows;
-                        const col = Math.floor(index / numRows);
-                        const gridHeight = numRows * pieceSize;
-                        const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
-                        pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
-                        pieceY = startY + (row * pieceSize) + (pieceSize / 2);
-                    }
-
-                    const pieceShape = createKonvaShape(
-                        piece.shape,
-                        pieceX,
-                        pieceY,
-                        pieceSize * 0.8,
-                        piece.color,
-                        piece.rotation
-                    );
-
-                    pieceShape.id(piece.id);
-                    pieceShape.draggable(true);
-                    pieceShape.data = { originalX: pieceX, originalY: pieceY };
-                    pieceShape.on('dragstart', (e) => {
-                        e.target.moveToTop();
-                        puzzleLayer.batchDraw();
-                    });
-                    pieceShape.on('dragend', handlePieceDragEnd);
-                    puzzleLayer.add(pieceShape);
-                    puzzlePieces.push(pieceShape);
-                });
-                // --- End Draw Pieces ---
-
-                // --- Finalize (Existing logic) ---
-                puzzleLayer.batchDraw();
-                puzzlePrompt.textContent = puzzleData.instruction;
-                window.speakText(puzzleData.instruction);
-                isPuzzleLoading = false;
-            };
-            // --- End of buildPuzzleContents function ---
-
-
-            // --- NEW: Asynchronous Image Loader ---
-            if (puzzleData.silhouetteImage) {
-                Konva.Image.fromURL(puzzleData.silhouetteImage, (imageNode) => {
-                    // Image loaded successfully. Scale and position it within the targetArea.
-                    
-                    // Base size on the smaller dimension of the targetArea
-                    const baseSize = Math.min(targetArea.width, targetArea.height) * 0.9; // 90%
-                    const imageRatio = imageNode.width() / imageNode.height();
-                    
-                    let imgW, imgH;
-                    if (imageRatio > 1) { // Image is wider than tall
-                        imgW = baseSize;
-                        imgH = baseSize / imageRatio;
-                    } else { // Image is taller than wide
-                        imgH = baseSize;
-                        imgW = baseSize * imageRatio;
-                    }
-                    
-                    // Center the image within the targetArea
-                    imageNode.setAttrs({
-                        x: targetArea.x + (targetArea.width - imgW) / 2,
-                        y: targetArea.y + (targetArea.height - imgH) / 2,
-                        width: imgW,
-                        height: imgH,
-                        opacity: 0.35 // Make it faint
-                    });
-                    
-                    // Now that the image is ready, build the rest of the puzzle
-                    buildPuzzleContents(imageNode);
-
-                }, (err) => {
-                    // Image failed to load, build the puzzle without it
-                    console.error("Silhouette image failed to load:", err);
-                    buildPuzzleContents(null);
-                });
-            } else {
-                // No silhouette image defined, build the puzzle immediately
-                buildPuzzleContents(null);
-            }
+    // --- Inner function to build the puzzle ---
+    const buildPuzzleContents = (silhouetteNode) => {
+        
+        // If a silhouette image was loaded, add it to the layer
+        if (silhouetteNode) {
+            puzzleLayer.add(silhouetteNode);
+            silhouetteNode.moveToBottom(); // Move it behind targets
+            binRect.moveToTop(); // Ensure bin is over it
         }
+
+        // --- Draw Targets (Existing logic) ---
+        puzzleData.targets.forEach(target => {
+            const size = Math.min(targetArea.width, targetArea.height) * target.size;
+
+            const targetX = silhouetteNode.x() + (silhouetteNode.width() * target.x);
+            const targetY = silhouetteNode.y() + (silhouetteNode.height() * target.y);
+
+            const targetShape = createKonvaShape(
+                target.shape,
+                targetX,
+                targetY,
+                size,
+                '#999',
+                target.rotation
+            );
+            targetShape.fill(null);
+            targetShape.strokeEnabled(false);
+            targetShape.id(target.id);
+            targetShape.name(target.shape); // <--  ADD THIS LINE
+            targetShape.listening(false);
+
+            puzzleLayer.add(targetShape);
+            puzzleTargets.push(targetShape);
+        });
+        // --- End Draw Targets ---
+
+
+        // --- Draw Pieces (Existing logic) ---
+        const pieceCount = puzzleData.pieces.length;
+        let pieceSize;
+
+        if (isPortrait) {
+            let potentialSize = puzzlePieceBin.height * 0.75;
+            const numCols = Math.floor(puzzlePieceBin.width / potentialSize);
+            if (numCols < pieceCount) {
+                potentialSize = (puzzlePieceBin.width / pieceCount) * 0.9;
+            }
+            pieceSize = Math.max(30, potentialSize);
+        } else {
+            let potentialSize = puzzlePieceBin.width * 0.75;
+            const numRows = Math.floor(puzzlePieceBin.height / potentialSize);
+            if (numRows < pieceCount) {
+                potentialSize = (puzzlePieceBin.height / pieceCount) * 0.9;
+            }
+            pieceSize = Math.max(30, potentialSize);
+        }
+
+        puzzleData.pieces.forEach((piece, index) => {
+            let pieceX, pieceY;
+            if (isPortrait) {
+                const numCols = Math.floor(puzzlePieceBin.width / pieceSize);
+                const col = index % numCols;
+                const row = Math.floor(index / numCols);
+                const gridWidth = numCols * pieceSize;
+                const startX = puzzlePieceBin.x + (puzzlePieceBin.width - gridWidth) / 2;
+                pieceX = startX + (col * pieceSize) + (pieceSize / 2);
+                pieceY = puzzlePieceBin.y + (row * pieceSize) + (pieceSize / 2);
+            } else {
+                const numRows = Math.floor(puzzlePieceBin.height / pieceSize);
+                const row = index % numRows;
+                const col = Math.floor(index / numRows);
+                const gridHeight = numRows * pieceSize;
+                const startY = puzzlePieceBin.y + (puzzlePieceBin.height - gridHeight) / 2;
+                pieceX = puzzlePieceBin.x + (col * pieceSize) + (pieceSize / 2);
+                pieceY = startY + (row * pieceSize) + (pieceSize / 2);
+            }
+
+            const pieceShape = createKonvaShape(
+                piece.shape,
+                pieceX,
+                pieceY,
+                pieceSize * 0.8,
+                piece.color,
+                piece.rotation
+            );
+
+            pieceShape.id(piece.id);
+            pieceShape.name(piece.shape); // <-- ADD THIS LINE
+            pieceShape.draggable(true);
+            pieceShape.data = { originalX: pieceX, originalY: pieceY };
+            pieceShape.on('dragstart', (e) => {
+                e.target.moveToTop();
+                puzzleLayer.batchDraw();
+            });
+            pieceShape.on('dragend', handlePieceDragEnd);
+            puzzleLayer.add(pieceShape);
+            puzzlePieces.push(pieceShape);
+        });
+        // --- End Draw Pieces ---
+
+        // --- Finalize (Existing logic) ---
+        puzzleLayer.batchDraw();
+        puzzlePrompt.textContent = puzzleData.instruction;
+        window.speakText(puzzleData.instruction);
+        isPuzzleLoading = false;
+    };
+    // --- End of buildPuzzleContents function ---
+
+
+    // --- Asynchronous Image Loader ---
+    if (puzzleData.silhouetteImage) {
+        Konva.Image.fromURL(puzzleData.silhouetteImage, (imageNode) => {
+            const baseSize = Math.min(targetArea.width, targetArea.height) * 0.9;
+            const imageRatio = imageNode.width() / imageNode.height();
+            
+            let imgW, imgH;
+            if (imageRatio > 1) {
+                imgW = baseSize;
+                imgH = baseSize / imageRatio;
+            } else {
+                imgH = baseSize;
+                imgW = baseSize * imageRatio;
+            }
+            
+            imageNode.setAttrs({
+                x: targetArea.x + (targetArea.width - imgW) / 2,
+                y: targetArea.y + (targetArea.height - imgH) / 2,
+                width: imgW,
+                height: imgH,
+                opacity: 0.35
+            });
+            
+            buildPuzzleContents(imageNode);
+
+        }, (err) => {
+            console.error("Silhouette image failed to load:", err);
+            buildPuzzleContents(null);
+        });
+    } else {
+        buildPuzzleContents(null);
+    }
+}
 		
         function createKonvaShape(shape, x, y, size, color, rotation = 0) {
             let konvaShape;
@@ -814,47 +802,61 @@
 
         function handlePieceDragEnd(e) {
     const piece = e.target;
-    const target = puzzleTargets.find(t => t.id() === piece.id());
+    const pieceShapeType = piece.name(); // e.g., 'circle'
+    
+    let validTarget = null; // We'll store our matched target here
 
-    if (target && haveIntersection(piece.getClientRect(), target.getClientRect())) {
+    // --- NEW LOGIC: ---
+    // Loop through all *available* targets
+    for (const target of puzzleTargets) {
+        // Check for two things:
+        // 1. Is the piece intersecting with this target?
+        // 2. Is this target the same shape as the piece?
+        if (haveIntersection(piece.getClientRect(), target.getClientRect()) && target.name() === pieceShapeType) {
+            validTarget = target; // We found a match!
+            break; // Stop looping
+        }
+    }
+    // --- END NEW LOGIC ---
+
+    if (validTarget) {
         // --- CORRECT DROP ---
         playSound(correctSound);
         piece.draggable(false); // Stop it from being dragged again
         piece.off('dragend');   // Remove this listener
 
         // 1. Define the universal properties to animate
-        //    (position, rotation, and animation speed)
         const targetProps = {
-            x: target.x(),
-            y: target.y(),
-            rotation: target.rotation(),
-            duration: 0.2, // A fast, snappy animation
-            easing: Konva.Easings.EaseInOut // Smooth start and end
+            x: validTarget.x(), // Use validTarget
+            y: validTarget.y(), // Use validTarget
+            rotation: validTarget.rotation(), // Use validTarget
+            duration: 0.2,
+            easing: Konva.Easings.EaseInOut
         };
 
-        // 2. Add shape-specific size properties to the animation
+        // 2. Add shape-specific size properties
         const shapeType = piece.getClassName();
         
         if (shapeType === 'Rect') {
-            // For squares, animate width, height, and offset
-            targetProps.width = target.width();
-            targetProps.height = target.height();
-            targetProps.offsetX = target.offsetX();
-            targetProps.offsetY = target.offsetY();
+            targetProps.width = validTarget.width();
+            targetProps.height = validTarget.height();
+            targetProps.offsetX = validTarget.offsetX();
+            targetProps.offsetY = validTarget.offsetY();
         } else if (shapeType === 'Circle') {
-            // For circles, just animate the radius
-            targetProps.radius = target.radius();
-        } else if (shapeType === 'Line') { // This is our Triangle
-            // For triangles, animating the 'points' array
-            // will morph the piece to fit the target perfectly.
-            targetProps.points = target.points();
+            targetProps.radius = validTarget.radius();
+        } else if (shapeType === 'Line') { // Triangle
+            targetProps.points = validTarget.points();
         }
 
         // 3. Run the "Grow-and-Snap" animation
         piece.to(targetProps);
         
-        // Destroy the target outline (we don't need it anymore)
-        target.destroy();
+        // Remove the target from the layer
+        validTarget.destroy();
+        
+        // --- CRUCIAL: Remove the target from our array ---
+        // This prevents a 2nd piece from snapping to the same spot
+        puzzleTargets = puzzleTargets.filter(t => t !== validTarget);
 
         // Check if the whole puzzle is solved
         checkPuzzleWin();

@@ -813,31 +813,63 @@
         }
 
         function handlePieceDragEnd(e) {
-            const piece = e.target;
-            const target = puzzleTargets.find(t => t.id() === piece.id());
+    const piece = e.target;
+    const target = puzzleTargets.find(t => t.id() === piece.id());
 
-            if (target && haveIntersection(piece.getClientRect(), target.getClientRect())) {
-                playSound(correctSound);
-                piece.position(target.position());
-                piece.rotation(target.rotation());
-                piece.draggable(false);
-                piece.off('dragend');
+    if (target && haveIntersection(piece.getClientRect(), target.getClientRect())) {
+        // --- CORRECT DROP ---
+        playSound(correctSound);
+        piece.draggable(false); // Stop it from being dragged again
+        piece.off('dragend');   // Remove this listener
 
-                target.destroy();
-                puzzleLayer.batchDraw();
+        // 1. Define the universal properties to animate
+        //    (position, rotation, and animation speed)
+        const targetProps = {
+            x: target.x(),
+            y: target.y(),
+            rotation: target.rotation(),
+            duration: 0.2, // A fast, snappy animation
+            easing: Konva.Easings.EaseInOut // Smooth start and end
+        };
 
-                checkPuzzleWin();
-
-            } else {
-                playSound(wrongSound);
-                piece.to({
-                    x: piece.data.originalX,
-                    y: piece.data.originalY,
-                    duration: 0.3,
-                    easing: Konva.Easings.ElasticEaseOut
-                });
-            }
+        // 2. Add shape-specific size properties to the animation
+        const shapeType = piece.getClassName();
+        
+        if (shapeType === 'Rect') {
+            // For squares, animate width, height, and offset
+            targetProps.width = target.width();
+            targetProps.height = target.height();
+            targetProps.offsetX = target.offsetX();
+            targetProps.offsetY = target.offsetY();
+        } else if (shapeType === 'Circle') {
+            // For circles, just animate the radius
+            targetProps.radius = target.radius();
+        } else if (shapeType === 'Line') { // This is our Triangle
+            // For triangles, animating the 'points' array
+            // will morph the piece to fit the target perfectly.
+            targetProps.points = target.points();
         }
+
+        // 3. Run the "Grow-and-Snap" animation
+        piece.to(targetProps);
+        
+        // Destroy the target outline (we don't need it anymore)
+        target.destroy();
+
+        // Check if the whole puzzle is solved
+        checkPuzzleWin();
+
+    } else {
+        // --- WRONG DROP (Snap back) ---
+        playSound(wrongSound);
+        piece.to({
+            x: piece.data.originalX,
+            y: piece.data.originalY,
+            duration: 0.3,
+            easing: Konva.Easings.ElasticEaseOut
+        });
+    }
+}
 
         function checkPuzzleWin() {
             const allSolved = puzzlePieces.every(p => !p.draggable());

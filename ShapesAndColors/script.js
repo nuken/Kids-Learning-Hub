@@ -204,10 +204,11 @@
                     y: basketY,
                     width: basketSize,
                     height: basketSize,
+                    fill: '#FFFFFF', // Make them solid white
                     stroke: basketColors[color],
-                    strokeWidth: 8,
-                    dash: [10, 5],
-                    cornerRadius: 10
+                    strokeWidth: 10, // Thicker border
+                    cornerRadius: 10,
+                    opacity: 0.8 // Slightly transparent
                 });
                 basket.id(color); // Store the color info
                 leafLayer.add(basket);
@@ -215,8 +216,8 @@
             });
 
             // --- Create Leaves (Pieces) ---
-            const numPerColor = 3;
-            const leafSize = Math.min(stageW / 10, 80);
+            const numPerColor = 2; // <-- REDUCED FROM 3
+            const leafSize = Math.min(stageW / 8, 110); // <-- INCREASED SIZE
             const pileHeight = stageH - basketSize - 30; // Area above baskets
 
             for (const color of leafColors) {
@@ -251,8 +252,6 @@
             }
 
             leafLayer.batchDraw();
-            // This now calls the global window.speakText
-           // window.speakText("Sort the leaves!");
         }
 
         function handleLeafDragEnd(e) {
@@ -281,15 +280,25 @@
                         checkLeafSortWin();
                         break;
                     } else {
-                        // WRONG BASKET
+                        // --- BUG FIX IS HERE ---
+                        // WRONG BASKET - Play robust "up-then-down" wiggle
                         playSound(wrongSound);
                         basket.to({
                             scaleX: 1.1,
                             scaleY: 1.1,
                             duration: 0.1,
-                            yoyo: true, // Go back to normal
-                            onFinish: () => basket.scaleX(1).scaleY(1)
+                            easing: Konva.Easings.EaseOut,
+                            onFinish: () => {
+                                // Chain the animation to go back down
+                                basket.to({
+                                    scaleX: 1,
+                                    scaleY: 1,
+                                    duration: 0.2,
+                                    easing: Konva.Easings.EaseIn
+                                });
+                            }
                         });
+                        // --- END BUG FIX ---
                     }
                 }
             }

@@ -10,6 +10,7 @@
     opacity: 1;
     z-index: 1000; /* On top of everything */
     pointer-events: none; /* User can't click them */
+	transform: translateZ(0);
     
     /* Pull random values from the JS */
     animation-name: confetti-fall;
@@ -21,15 +22,50 @@
 
 @keyframes confetti-fall {
     0% {
-        /* --- NEW: Add rotateY for 3D tumble --- */
-        transform: translateY(0) rotateZ(0deg) rotateY(0deg);
+        transform: translateY(0) rotateZ(0deg); /* <-- REMOVED rotateY */
         opacity: 1;
     }
     100% {
-        /* --- NEW: Fall down the whole screen and spin/tumble --- */
-        transform: translateY(110vh) rotateZ(var(--random-rotate)) rotateY(var(--random-tumble));
+        transform: translateY(110vh) rotateZ(var(--random-rotate)); /* <-- REMOVED rotateY */
         opacity: 0;
     }
 }
 
 /* --- END: Confetti Win Effect --- */
+
+/* * A single particle for the "burst" effect.
+ * It's positioned, animated, and then removed by JS.
+ */
+.burst-particle {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  font-size: 20px; /* Use the same nice size as confetti */
+  
+  /* Start centered on the click point and small */
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 1;
+  
+  /* Animation properties */
+  animation-name: confetti-burst;
+  animation-duration: 0.8s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+/* * The animation keyframes for the burst.
+ * It uses JS variables to know where to fly.
+ */
+@keyframes confetti-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    /* * Fly to the random destination set by --dest-x/--dest-y,
+     * scale up, and fade out.
+     */
+    transform: translate(var(--dest-x), var(--dest-y)) scale(1.2);
+    opacity: 0;
+  }
+}

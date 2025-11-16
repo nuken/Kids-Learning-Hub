@@ -266,3 +266,51 @@ window.playConfettiEffect = function() {
         }, 5000); // 5 seconds (must be longer than --random-duration)
     }
 }
+
+/**
+ * Creates a localized "burst" of confetti from a target element.
+ * @param {HTMLElement} targetElement - The DOM element to burst from.
+ */
+window.playBurstEffect = function(targetElement) {
+    const numConfetti = 30; // A good number for a burst
+    const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#9C27B0'];
+    const shapes = ['★', '●', '▲']; // Simpler shapes for a clean burst
+    const container = document.body;
+
+    // Get the absolute center coordinates of the button
+    const rect = targetElement.getBoundingClientRect();
+    const startX = rect.left + rect.width / 2 + window.scrollX;
+    const startY = rect.top + rect.height / 2 + window.scrollY;
+
+    for (let i = 0; i < numConfetti; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('burst-particle'); // Use our new CSS class
+        
+        // Set the shape and a random color
+        particle.innerHTML = shapes[Math.floor(Math.random() * shapes.length)];
+        particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+        // Set the particle's starting position (fixed to the screen)
+        particle.style.left = `${startX}px`;
+        particle.style.top = `${startY}px`;
+
+        // Calculate a random destination for the particle to fly to
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = Math.random() * 100 + 50; // Fly 50-150px outwards
+        
+        // We use 'translate' in the CSS, so the destination is relative
+        const destX = Math.cos(angle) * distance;
+        const destY = Math.sin(angle) * distance;
+
+        // Set the CSS variables that the @keyframe animation will use
+        particle.style.setProperty('--dest-x', `${destX}px`);
+        particle.style.setProperty('--dest-y', `${destY}px`);
+        
+        container.appendChild(particle);
+
+        // Clean up the particle after the animation (800ms)
+        setTimeout(() => {
+            particle.remove();
+        }, 800);
+    }
+}

@@ -435,3 +435,33 @@ h2 {
     }
 }
 /* --- END: PHONE LANDSCAPE FIXES --- */
+/* --- NEW: Level Toggle Button (Consistent with Spelling App) --- */
+.level-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#level-toggle-btn {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 1.5em;
+    font-weight: 700;
+    padding: 10px 30px;
+    border-radius: 30px;
+    border: 3px solid #333;
+    cursor: pointer;
+    background-color: #007BFF; /* Blue for Level 1 */
+    color: white;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 #0056b3;
+}
+
+#level-toggle-btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+#level-toggle-btn.level-2 {
+    background-color: #dc3545; /* Red for Level 2 */
+    box-shadow: 0 4px 0 #a71d2a;
+}

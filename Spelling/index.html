@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Spelling Fun!</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -11,15 +12,20 @@
 
     <div id="main-menu" class="game-screen visible">
         <a href="../index.html" class="home-btn-subpage" title="Home">
-        <i class="fas fa-home"></i>
+            <i class="fas fa-home"></i>
         </a>
         <h1>Spelling Fun!</h1>
+
+        <div class="level-toggle-container">
+            <button id="level-toggle-btn">Level 1: Easy</button>
+        </div>
+
         <div class="menu-buttons">
             <button id="start-image-game-btn" class="menu-btn">Spell the Word</button>
-
             <button id="start-missing-game-btn" class="menu-btn">Missing Letter</button>
-
             <button id="start-color-game-btn" class="menu-btn">Spell the Color</button>
+
+            <button id="start-reading-game-btn" class="menu-btn">Read & Match</button>
         </div>
     </div>
 
@@ -45,7 +51,6 @@
         </div>
     </div>
 
-
     <div id="spell-color-game" class="game-screen">
         <button class="back-btn">Back</button>
         <h2>Spell the Color!</h2>
@@ -56,6 +61,18 @@
             <button id="next-word-button-color" class="hidden">Next Color!</button>
         </div>
     </div>
+
+    <div id="read-match-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Read & Match!</h2>
+        <div id="game-container-reading">
+            <img id="reading-image" src="images/cat.jpg" alt="What is this?" style="height: 250px; object-fit: contain; border: 5px solid #ccc; border-radius: 10px;">
+            <div id="sentence-list" class="sentence-container">
+                </div>
+            <button id="next-reading-button" class="hidden" style="font-size: 28px; padding: 20px 30px; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px;">Next Picture!</button>
+        </div>
+    </div>
+
   <script src="../Helper-Scripts/speech-module.js"></script>
   <script src="script.js"></script>
 </body>

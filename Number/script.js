@@ -1,20 +1,16 @@
-// --- MODIFICATION ---
-// Wrapped entire file in an IIFE to create a private scope
 (function() {
 
-    // Wait for the page to be fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-        // --- ADD THIS LINE TO UNLOCK SPEECH ---
-        // This now calls the global function from speech-module.js
         if (window.unlockSpeechIfNeeded) {
             window.unlockSpeechIfNeeded();
         }
-        // --- END OF ADDITION ---
 
-        // --- Global Elements ---
+        // --- GLOBAL STATE ---
+        let currentLevel = 1; // 1 or 2
+
         const screens = document.querySelectorAll('.game-screen');
-        const mainMenu = document.getElementById('main-menu');
         const backButtons = document.querySelectorAll('.back-btn');
+        const levelBtn = document.getElementById('level-toggle-btn');
 
         // --- Main Navigation ---
         const gameButtons = {
@@ -24,25 +20,55 @@
             'start-egg-dition-btn': 'egg-dition-game'
         };
 
-        // Function to switch screens
-        function showScreen(screenId) {
-            // Hide all screens
-            screens.forEach(screen => screen.classList.remove('visible'));
+        // --- Level Toggle Logic ---
+        levelBtn.addEventListener('click', () => {
+            if (currentLevel === 1) {
+                currentLevel = 2;
+                levelBtn.textContent = "Level 2: Challenge";
+                levelBtn.classList.add('level-2');
+                window.speakText("Level Two");
+            } else {
+                currentLevel = 1;
+                levelBtn.textContent = "Level 1: Easy";
+                levelBtn.classList.remove('level-2');
+                window.speakText("Level One");
+            }
 
-            // Show the target screen
+            // --- NEW: Reset Games on Toggle ---
+
+            // 1. Reset Tracing Number
+            currentNumberToTrace = (currentLevel === 1) ? 1 : 10;
+
+            // 2. If Tracing Game is open, reload it immediately
+            if (document.getElementById('tracing-game').classList.contains('visible')) {
+                loadNumberToTrace(currentNumberToTrace);
+            }
+            // 3. If Counting or Egg games are open, restart them
+            if (document.getElementById('counting-game').classList.contains('visible')) startCountingGame();
+            if (document.getElementById('egg-dition-game').classList.contains('visible')) startEggDitionGame();
+             // Patterns resets itself on next click, which is fine
+        });
+
+        function showScreen(screenId) {
+            screens.forEach(screen => screen.classList.remove('visible'));
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
                 targetScreen.classList.add('visible');
 
-                // If we are showing a game, initialize it
                 if (screenId === 'counting-game') startCountingGame();
-                if (screenId === 'tracing-game') initTracingGame();
+                // For tracing, we ensure the number matches the level when entering
+                if (screenId === 'tracing-game') {
+                    // If we are in Level 1 but number is 10+, reset to 1
+                    if (currentLevel === 1 && currentNumberToTrace > 9) currentNumberToTrace = 1;
+                    // If we are in Level 2 but number is < 10, reset to 10
+                    if (currentLevel === 2 && currentNumberToTrace < 10) currentNumberToTrace = 10;
+                    initTracingGame();
+                }
                 if (screenId === 'patterns-game') startPatternsGame();
                 if (screenId === 'egg-dition-game') startEggDitionGame();
             }
         }
 
-        // Add click listeners to main menu buttons
         for (const btnId in gameButtons) {
             const btn = document.getElementById(btnId);
             if (btn) {
@@ -50,18 +76,9 @@
             }
         }
 
-        // Add click listeners to all "Back" buttons
         backButtons.forEach(btn => {
             btn.addEventListener('click', () => showScreen('main-menu'));
         });
-
-    // --- START: MODIFICATION ---
-    //
-    // The local 'loadVoices' and 'speakText' functions have been
-    // DELETED from here. The script now uses the global versions
-    // provided by 'speech-module.js'.
-    //
-    // --- END: MODIFICATION ---
 
 
         // ==========================================================
@@ -71,22 +88,30 @@
         const countingGrid = document.getElementById('counting-grid');
         let targetNumber = 0;
         let currentCount = 0;
-        const items = ['🦆', '⭐️', '🍎', '🚗', '🎈', '🐶', '🍕'];
+        const items = ['🦆', '⭐️', '🍎', '🚗', '🎈', '🐶', '🍕', '🐞', '🍪'];
 
         function startCountingGame() {
-            countingGrid.innerHTML = ''; // Clear the grid
+            countingGrid.innerHTML = '';
             currentCount = 0;
-            targetNumber = Math.floor(Math.random() * 9) + 1; // 1 to 9
 
-            // Pick a random emoji for this round
+            // --- LEVEL LOGIC ---
+            if (currentLevel === 1) {
+                targetNumber = Math.floor(Math.random() * 9) + 1; // 1 to 9
+            } else {
+                // Level 2: 10 to 15
+                targetNumber = Math.floor(Math.random() * 6) + 10;
+            }
+
             const currentItem = items[Math.floor(Math.random() * items.length)];
 
             countingPrompt.textContent = `Tap ${targetNumber} ${currentItem}`;
-            // This now calls the global window.speakText
             window.speakText(`Tap ${targetNumber}`);
 
-            // Add a few extra items
-            const totalItems = targetNumber + Math.floor(Math.random() * 4);
+            // Add exact number of items for Level 2 to avoid clutter,
+            // or just a few extras for Level 1
+            const totalItems = (currentLevel === 1)
+                ? targetNumber + Math.floor(Math.random() * 3)
+                : targetNumber; // Exact count for higher numbers to fit screen
 
             for (let i = 0; i < totalItems; i++) {
                 const itemEl = document.createElement('div');
@@ -98,7 +123,6 @@
         }
 
         function handleCountClick(e) {
-            // Check if it's already counted or if we are done
             if (e.target.classList.contains('counted') || currentCount >= targetNumber) {
                 return;
             }
@@ -106,18 +130,13 @@
             currentCount++;
             e.target.classList.add('counted');
 
-            // This now calls the global window.speakText
             if (currentCount === targetNumber) {
-                // This is the final number. Speak it, and THEN...
-				window.playBurstEffect(e.target);
+                if(window.playBurstEffect) window.playBurstEffect(e.target);
                 window.speakText(currentCount, () => {
-                    // ...as a callback, say "You did it!"
                     window.speakText("You did it!");
-                    // And start the new game
                     setTimeout(startCountingGame, 1500);
                 });
             } else {
-                // This is not the final number, just speak it.
                 window.speakText(currentCount);
             }
         }
@@ -135,22 +154,15 @@
         let lastTraceLine;
         let currentNumberToTrace = 1;
         let konvaInitialized = false;
-
-        // --- NEW: Simplified trace logic ---
         let traceStartTime = 0;
-        const MIN_TRACE_DURATION = 1000; // 1 second
-        // --- END NEW ---
+        const MIN_TRACE_DURATION = 500;
 
-
-        // This logic is adapted from your coloring-book/app.js
         function initTracingGame() {
-            // Only initialize Konva once
             if (konvaInitialized) {
                 loadNumberToTrace(currentNumberToTrace);
                 return;
             }
 
-            // 1. Setup Stage and Layers
             traceStage = new Konva.Stage({
                 container: 'tracing-container',
                 width: traceContainer.clientWidth,
@@ -161,19 +173,15 @@
             drawingLayer = new Konva.Layer();
             traceStage.add(textLayer, drawingLayer);
 
-            // 2. Load the first number
             loadNumberToTrace(currentNumberToTrace);
 
-            // 3. Add Event Listeners (copied from coloring-book/app.js)
             traceStage.on('mousedown touchstart', (e) => {
                 isTracing = true;
-                // --- NEW: Record start time ---
                 traceStartTime = Date.now();
-                // --- END NEW ---
                 const pos = traceStage.getPointerPosition();
                 lastTraceLine = new Konva.Line({
-                    stroke: '#007bff', // Blue color
-                    strokeWidth: 15,   // Nice thick line
+                    stroke: '#007bff',
+                    strokeWidth: 15,
                     globalCompositeOperation: 'source-over',
                     lineCap: 'round',
                     lineJoin: 'round',
@@ -184,12 +192,10 @@
 
             traceStage.on('mouseup touchend', () => {
                 isTracing = false;
-                // --- NEW: Check trace duration ---
                 const traceDuration = Date.now() - traceStartTime;
                 if (traceDuration > MIN_TRACE_DURATION) {
                     playStarEffect();
                 }
-                // --- END NEW ---
             });
 
             traceStage.on('mousemove touchmove', (e) => {
@@ -199,34 +205,34 @@
                 const newPoints = lastTraceLine.points().concat([pos.x, pos.y]);
                 lastTraceLine.points(newPoints);
                 drawingLayer.batchDraw();
-
-                // --- REMOVED: All checkpoint logic removed from here ---
             });
 
-            // 4. Add button listeners
             traceClearBtn.addEventListener('click', () => {
-                drawingLayer.destroyChildren(); // Clear drawings
+                drawingLayer.destroyChildren();
                 drawingLayer.batchDraw();
             });
 
             traceNextBtn.addEventListener('click', () => {
                 currentNumberToTrace++;
-                if (currentNumberToTrace > 9) {
-                    currentNumberToTrace = 1; // Loop back to 1
+
+                // --- LEVEL LOGIC for Next Button ---
+                if (currentLevel === 1) {
+                    if (currentNumberToTrace > 9) currentNumberToTrace = 1;
+                } else {
+                    // Level 2: 10 to 19
+                    if (currentNumberToTrace > 19) currentNumberToTrace = 10;
                 }
+
                 loadNumberToTrace(currentNumberToTrace);
             });
 
             konvaInitialized = true;
         }
 
-        // --- REMOVED: checkTrace() function is no longer needed ---
-
-        // --- NEW: Function to play star effect (unchanged from before) ---
         function playStarEffect() {
             const stageWidth = traceStage.width();
             const stageHeight = traceStage.height();
-            const numStars = 30;
+            const numStars = 15;
 
             for (let i = 0; i < numStars; i++) {
                 const star = new Konva.Star({
@@ -243,7 +249,7 @@
                 drawingLayer.add(star);
 
                 const angle = Math.random() * 2 * Math.PI;
-                const distance = Math.random() * (stageWidth / 3) + (stageWidth / 4);
+                const distance = Math.random() * (stageWidth / 4) + 50;
                 const destX = (stageWidth / 2) + Math.cos(angle) * distance;
                 const destY = (stageHeight / 2) + Math.sin(angle) * distance;
 
@@ -253,180 +259,118 @@
                     scaleX: 1.2,
                     scaleY: 1.2,
                     opacity: 0,
-                    duration: 0.8 + Math.random() * 0.5, // 0.8 to 1.3 seconds
-                    easing: Konva.Easings.EaseOut,
-                    onFinish: () => {
-                        star.destroy();
-                    }
+                    duration: 0.8,
+                    onFinish: () => star.destroy()
                 });
             }
         }
-        // --- END NEW ---
 
         function loadNumberToTrace(number) {
-            // Clear both layers
             textLayer.destroyChildren();
             drawingLayer.destroyChildren();
-
-            // Get stage dimensions
             const stageWidth = traceStage.width();
             const stageHeight = traceStage.height();
 
-            // Create the large, faint number text
+            // --- SMART FONT SIZING ---
+            // If number is >= 10, we need a smaller font to fit two digits
+            const isTwoDigits = number >= 10;
+            const fontMultiplier = isTwoDigits ? 0.5 : 0.8;
+
             const numberText = new Konva.Text({
                 text: String(number),
-                fontSize: Math.min(stageWidth, stageHeight) * 0.8, // Make it huge
+                fontSize: Math.min(stageWidth, stageHeight) * fontMultiplier,
                 fontFamily: 'Comic Neue, sans-serif',
                 fontStyle: '700',
-                fill: '#e0e0e0', // Light grey
+                fill: '#e0e0e0',
                 width: stageWidth,
                 height: stageHeight,
                 align: 'center',
                 verticalAlign: 'middle',
-                // --- NEW: Disable hit detection on the number itself ---
                 listening: false,
-                // --- END NEW ---
             });
 
             textLayer.add(numberText);
-
-            // Redraw layers
             textLayer.batchDraw();
             drawingLayer.batchDraw();
-
-            // --- This is now the ONLY place the number is spoken ---
-            // This now calls the global window.speakText
             window.speakText(String(number));
         }
 
-        // Handle resizing (important for tablets)
+        // Resize observer for Tracing Game
         new ResizeObserver(() => {
-            if (!traceStage) return;
-            const container = document.getElementById('tracing-container');
-            if (container.clientWidth > 0 && container.clientHeight > 0) {
-                traceStage.width(container.clientWidth);
-                traceStage.height(container.clientHeight);
-
-                // --- FIX: Call loadNumberToTrace BUT DO NOT SPEAK ---
-                // We just want to reload the number, not speak it again.
-                // Easiest way: create a "silent" version of the load function
-
-                // Clear both layers
-                textLayer.destroyChildren();
-                drawingLayer.destroyChildren();
-
-                // Get stage dimensions
-                const stageWidth = traceStage.width();
-                const stageHeight = traceStage.height();
-
-                // Create the large, faint number text
-                const numberText = new Konva.Text({
-                    text: String(currentNumberToTrace), // Use the *current* number
-                    fontSize: Math.min(stageWidth, stageHeight) * 0.8,
-                    fontFamily: 'Comic Neue, sans-serif',
-                    fontStyle: '700',
-                    fill: '#e0e0e0',
-                    width: stageWidth,
-                    height: stageHeight,
-                    align: 'center',
-                    verticalAlign: 'middle',
-                    listening: false,
-                });
-
-                textLayer.add(numberText);
-                textLayer.batchDraw();
-                drawingLayer.batchDraw();
-                // --- Notice: no speakText() call here! ---
-            }
+             if (!traceStage) return;
+             const container = document.getElementById('tracing-container');
+             if (container.clientWidth > 0) {
+                 traceStage.width(container.clientWidth);
+                 traceStage.height(container.clientHeight);
+                 loadNumberToTrace(currentNumberToTrace); // Reloads visual but speaks again
+             }
         }).observe(traceContainer);
 
 
         // ==========================================================
-        // --- GAME 3: PATTERNS GAME (--- MODIFIED ---) ---
+        // --- GAME 3: PATTERNS GAME ---
         // ==========================================================
         const patternSequence = document.getElementById('pattern-sequence');
         const patternChoices = document.getElementById('pattern-choices');
         let currentPattern = {};
 
-        // --- REMOVED ---
-        // The old hard-coded 'patterns' array has been removed.
-
-        // --- NEW ---
-        // Function to generate plausible, but wrong, choices
         function generateChoices(answer) {
             let choices = [answer];
-
-            // Add a choice that is one off
             let choice1 = Math.random() > 0.5 ? answer + 1 : answer - 1;
-            if (choice1 < 1) choice1 = answer + 1; // Ensure it's not 0 or negative
+            if (choice1 < 1) choice1 = answer + 1;
             choices.push(choice1);
-
-            // Add a second choice
             let choice2 = Math.random() > 0.5 ? answer + 2 : answer - 2;
             if (choice2 < 1 || choice2 === choice1) {
                  choice2 = answer + 2;
-                 // Ensure choice2 is not the same as choice1
                  if (choice2 === choice1) choice2 = answer + 3;
             }
             choices.push(choice2);
-
             return choices;
         }
 
-        // --- NEW ---
-        // Function to dynamically generate a new pattern
         function generatePattern() {
-            const patternType = Math.floor(Math.random() * 3); // 3 types of patterns
+            const patternType = Math.floor(Math.random() * 3);
             let sequence, answer, choices;
-            let start = Math.floor(Math.random() * 5) + 1; // Start from 1-5
+
+            // Level 1: Start 1-5. Level 2: Start 5-15.
+            const maxStart = (currentLevel === 1) ? 5 : 15;
+            let start = Math.floor(Math.random() * maxStart) + 1;
 
             switch (patternType) {
-                case 0: // Add 1 (e.g., 1, 2, __)
+                case 0: // Add 1
                     sequence = [start, start + 1, ''];
                     answer = start + 2;
                     break;
-                case 1: // Add 2 (e.g., 2, 4, __)
-                    start = Math.floor(Math.random() * 4) + 1; // Start 1-4 to avoid big numbers
+                case 1: // Add 2
                     sequence = [start, start + 2, ''];
                     answer = start + 4;
                     break;
-                case 2: // Repeat (e.g., 3, 3, 4, 4, __)
+                case 2: // Repeat (A A B B)
                     sequence = [start, start, start + 1, start + 1, ''];
                     answer = start + 2;
                     break;
             }
-
             choices = generateChoices(answer);
             return { sequence, answer, choices };
         }
 
-
         function startPatternsGame() {
-            // Clear previous game
             patternSequence.innerHTML = '';
             patternChoices.innerHTML = '';
+            currentPattern = generatePattern();
 
-            // --- MODIFIED ---
-            // Pick a random pattern from our hard-coded list
-            currentPattern = generatePattern(); // We now call our new function
-
-            // Display the sequence
-            let speakableSequence = [];
             currentPattern.sequence.forEach(item => {
                 const el = document.createElement('div');
                 if (item === '') {
                     el.classList.add('blank');
-                    speakableSequence.push('blank');
                 } else {
                     el.classList.add('pattern-item');
                     el.textContent = item;
-                    speakableSequence.push(item);
                 }
                 patternSequence.appendChild(el);
             });
 
-            // Create choice buttons
-            currentPattern.choices.sort(() => Math.random() - 0.5); // Shuffle choices
+            currentPattern.choices.sort(() => Math.random() - 0.5);
             currentPattern.choices.forEach(choice => {
                 const btn = document.createElement('button');
                 btn.classList.add('choice-btn');
@@ -436,149 +380,147 @@
                 patternChoices.appendChild(btn);
             });
 
-            // Speak the first part
-            // This now calls the global window.speakText
-            window.speakText('What comes next?', () => {
-                // After the first part ends, speak the sequence
-                window.speakText(speakableSequence.join(', '));
-            });
+            window.speakText('What comes next?');
         }
 
         function handlePatternClick(e) {
             const clickedValue = parseInt(e.target.dataset.value);
-
-            // Disable all buttons
             patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = true);
 
-            // This now calls the global window.speakText
             if (clickedValue === currentPattern.answer) {
                 e.target.classList.add('correct');
-				window.playBurstEffect(e.target);
+                if(window.playBurstEffect) window.playBurstEffect(e.target);
                 window.speakText(`That's right, ${currentPattern.answer}!`);
-                setTimeout(startPatternsGame, 1500); // New game
+                setTimeout(startPatternsGame, 1500);
             } else {
                 e.target.classList.add('incorrect');
                 window.speakText("Oops, try again!");
-                // Re-enable buttons after a moment
                 setTimeout(() => {
                     e.target.classList.remove('incorrect');
                     patternChoices.querySelectorAll('button').forEach(btn => btn.disabled = false);
                 }, 1000);
             }
         }
+
+
         // ==========================================================
-// --- GAME 4: EGG-DITION GAME ---
-// ==========================================================
-const eggGroup1 = document.getElementById('egg-group-1');
-const eggGroup2 = document.getElementById('egg-group-2');
-const eggSolutionContainer = document.getElementById('egg-solution-container');
-const eggChoicesContainer = document.getElementById('egg-choices');
+        // --- GAME 4: EGG-DITION (AND SUBTRACTION!) ---
+        // ==========================================================
+        const eggGroup1 = document.getElementById('egg-group-1');
+        const eggGroup2 = document.getElementById('egg-group-2');
+        const eggSolutionContainer = document.getElementById('egg-solution-container');
+        const eggChoicesContainer = document.getElementById('egg-choices');
+        const mathOperator = document.getElementById('math-operator');
 
-let currentEggProblem = {};
-const eggColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7D842', '#84DCC6', '#FFA07A'];
+        let currentEggProblem = {};
+        const eggColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7D842', '#84DCC6', '#FFA07A'];
 
-function startEggDitionGame() {
-    generateEggProblem();
-}
+        function startEggDitionGame() {
+            generateEggProblem();
+        }
 
-function createEgg(color) {
-    const egg = document.createElement('div');
-    egg.className = 'egg';
-    egg.style.backgroundColor = color;
-    return egg;
-}
+        function createEgg(color) {
+            const egg = document.createElement('div');
+            egg.className = 'egg';
+            egg.style.backgroundColor = color;
+            return egg;
+        }
 
-function generateEggProblem() {
-    // Simple problems, sum less than 10
-    const num1 = Math.floor(Math.random() * 4) + 1; // 1 to 4
-    let num2 = Math.floor(Math.random() * 4) + 1; // 1 to 4
-    const answer = num1 + num2;
+        function generateEggProblem() {
+            // Clear previous
+            eggGroup1.innerHTML = '';
+            eggGroup2.innerHTML = '';
+            eggSolutionContainer.innerHTML = '';
+            eggChoicesContainer.innerHTML = '';
 
-    // Ensure sum is not too high, e.g., max 8
-    if (answer > 8) {
-        num2 = 1; // Adjust if too high
-    }
+            // Common colors for this round
+            const color1 = eggColors[Math.floor(Math.random() * eggColors.length)];
+            let color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
+            while (color1 === color2) color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
 
-    currentEggProblem = { num1, num2, answer };
+            let num1, num2, answer;
 
-    // Pick two different colors
-    const color1 = eggColors[Math.floor(Math.random() * eggColors.length)];
-    let color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
-    while (color1 === color2) {
-        color2 = eggColors[Math.floor(Math.random() * eggColors.length)];
-    }
+            if (currentLevel === 1) {
+                // --- LEVEL 1: ADDITION ---
+                mathOperator.textContent = '+';
 
-    // Clear previous problem
-    eggGroup1.innerHTML = '';
-    eggGroup2.innerHTML = '';
-    eggSolutionContainer.innerHTML = '';
-    eggChoicesContainer.innerHTML = '';
+                num1 = Math.floor(Math.random() * 4) + 1; // 1-4
+                num2 = Math.floor(Math.random() * 4) + 1; // 1-4
+                answer = num1 + num2;
+                if (answer > 8) num2 = 1; // Cap sum at 8
 
-    // 1. Show the first group of eggs
-    for (let i = 0; i < num1; i++) {
-        eggGroup1.appendChild(createEgg(color1));
-    }
+                currentEggProblem = { num1, num2, answer, type: 'add' };
 
-    // 2. Show the second group of eggs
-    for (let i = 0; i < num2; i++) {
-        eggGroup2.appendChild(createEgg(color2));
-    }
+                // Visuals: Group 1 + Group 2
+                for (let i = 0; i < num1; i++) eggGroup1.appendChild(createEgg(color1));
+                for (let i = 0; i < num2; i++) eggGroup2.appendChild(createEgg(color2));
 
-    // 3. Show the combined eggs
-    for (let i = 0; i < num1; i++) {
-        eggSolutionContainer.appendChild(createEgg(color1));
-    }
-    for (let i = 0; i < num2; i++) {
-        eggSolutionContainer.appendChild(createEgg(color2));
-    }
+                // Solution box shows Total
+                for (let i = 0; i < num1; i++) eggSolutionContainer.appendChild(createEgg(color1));
+                for (let i = 0; i < num2; i++) eggSolutionContainer.appendChild(createEgg(color2));
 
-    // 4. Create choices (re-using logic from Patterns game)
-    // We can reuse the generateChoices function from the patterns game
-    const choices = generateChoices(answer);
-    choices.sort(() => Math.random() - 0.5); // Shuffle
+                window.speakText(`What is ${num1} plus ${num2}?`);
 
-    choices.forEach(choice => {
-        const btn = document.createElement('button');
-        btn.classList.add('choice-btn'); // Reuse pattern choice style
-        btn.textContent = choice;
-        btn.dataset.value = choice;
-        btn.addEventListener('click', handleEggChoiceClick);
-        eggChoicesContainer.appendChild(btn);
+            } else {
+                // --- LEVEL 2: SUBTRACTION ---
+                mathOperator.textContent = '-';
+
+                // Subtraction: Start with a bigger number (3-7)
+                num1 = Math.floor(Math.random() * 5) + 3;
+                // Subtract something smaller (1 to num1-1)
+                num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+                answer = num1 - num2;
+
+                currentEggProblem = { num1, num2, answer, type: 'sub' };
+
+                // Visuals: Group 1 (Total) - Group 2 (Taken away)
+                for (let i = 0; i < num1; i++) eggGroup1.appendChild(createEgg(color1));
+                for (let i = 0; i < num2; i++) eggGroup2.appendChild(createEgg(color2));
+
+                // Solution box shows Remaining (The Answer)
+                for (let i = 0; i < answer; i++) eggSolutionContainer.appendChild(createEgg(color1));
+
+                window.speakText(`What is ${num1} minus ${num2}?`);
+            }
+
+            // Choices
+            const choices = generateChoices(answer); // Reuse helper
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.classList.add('choice-btn');
+                btn.textContent = choice;
+                btn.dataset.value = choice;
+                btn.addEventListener('click', handleEggChoiceClick);
+                eggChoicesContainer.appendChild(btn);
+            });
+        }
+
+        function handleEggChoiceClick(e) {
+            const clickedValue = parseInt(e.target.dataset.value);
+            eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (clickedValue === currentEggProblem.answer) {
+                e.target.classList.add('correct');
+                if(window.playBurstEffect) window.playBurstEffect(e.target);
+
+                const p = currentEggProblem;
+                const operatorWord = (p.type === 'add') ? 'plus' : 'minus';
+
+                window.speakText(`That's right! ${p.num1} ${operatorWord} ${p.num2} equals ${p.answer}.`, () => {
+                    setTimeout(generateEggProblem, 500);
+                });
+
+            } else {
+                e.target.classList.add('incorrect');
+                window.speakText("Oops, try again!");
+                setTimeout(() => {
+                    e.target.classList.remove('incorrect');
+                    eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = false);
+                }, 1000);
+            }
+        }
+
     });
-
-    // 5. Use speakText
-    // This now calls the global window.speakText
-    window.speakText(`What is ${num1} plus ${num2}?`);
-}
-
-function handleEggChoiceClick(e) {
-    const clickedValue = parseInt(e.target.dataset.value);
-
-    // Disable all buttons
-    eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
-
-    // This now calls the global window.speakText
-    if (clickedValue === currentEggProblem.answer) {
-        e.target.classList.add('correct');
-        window.playBurstEffect(e.target);
-        // Use speakText with the callback
-        window.speakText(`That's right! ${currentEggProblem.num1} plus ${currentEggProblem.num2} equals ${currentEggProblem.answer}.`, () => {
-            // This function will ONLY run after the speech finishes.
-            // I added a small extra delay so it doesn't feel too sudden.
-            setTimeout(generateEggProblem, 500); // New problem
-        });
-
-    } else {
-        e.target.classList.add('incorrect');
-        window.speakText("Oops, try again!");
-        // Re-enable buttons after a moment
-        setTimeout(() => {
-            e.target.classList.remove('incorrect');
-            eggChoicesContainer.querySelectorAll('button').forEach(btn => btn.disabled = false);
-        }, 1000);
-    }
-}
-
-    });
-
-})(); // --- MODIFICATION --- End of IIFE
+})();

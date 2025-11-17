@@ -373,3 +373,120 @@ h2 {
     margin-bottom: 10px;
   }
 }
+/* --- NEW: Level Toggle Button --- */
+.level-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#level-toggle-btn {
+    font-family: 'Comic Neue', sans-serif;
+    font-size: 1.5em;
+    font-weight: 700;
+    padding: 10px 30px;
+    border-radius: 30px;
+    border: 3px solid #333;
+    cursor: pointer;
+    background-color: #007BFF; /* Blue for Level 1 */
+    color: white;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 #0056b3;
+}
+
+#level-toggle-btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+#level-toggle-btn.level-2 {
+    background-color: #dc3545; /* Red for Level 2 */
+    box-shadow: 0 4px 0 #a71d2a;
+}
+
+/* --- NEW: Reading Game Styles --- */
+#start-reading-game-btn { background-color: #9C27B0; /* Purple */ }
+
+.sentence-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 90%;
+    max-width: 600px;
+    margin-top: 20px;
+}
+
+.sentence-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    border: 3px solid #ccc;
+    border-radius: 15px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.2s;
+}
+
+.sentence-strip:active {
+    transform: scale(0.98);
+}
+
+.sentence-text {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #333;
+    text-align: left;
+    flex-grow: 1;
+    margin-right: 15px;
+    user-select: none;
+}
+
+.sentence-audio-btn {
+    font-size: 1.5em;
+    color: #007BFF;
+    background: #e3f2fd;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #007BFF;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevent squishing */
+    transition: background-color 0.2s;
+}
+
+.sentence-audio-btn:hover {
+    background: #bbdefb;
+}
+
+.sentence-audio-btn:active {
+    transform: scale(0.9);
+}
+
+/* Feedback Styles */
+.sentence-strip.correct {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.sentence-strip.wrong {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    animation: shake 0.5s;
+}
+
+/* --- Responsive Tweaks for Sentences --- */
+@media (max-width: 600px) {
+    .sentence-text {
+        font-size: 1.4em;
+    }
+    .sentence-audio-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2em;
+    }
+}

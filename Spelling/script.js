@@ -1,30 +1,45 @@
-// --- MODIFICATION ---
-// Wrapped entire file in an IIFE to create a private scope
 (function() {
     let audioPrimed = false;
+
+    // --- GLOBAL STATE ---
+    let currentLevel = 1; // 1 or 2
+
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- 1. NAVIGATION ---
+        // --- 1. NAVIGATION & MENU ---
         const screens = document.querySelectorAll('.game-screen');
         const menuButtons = {
             'start-image-game-btn': 'spell-image-game',
-            'start-missing-game-btn': 'spell-missing-game', // NEW
-            'start-color-game-btn': 'spell-color-game'
+            'start-missing-game-btn': 'spell-missing-game',
+            'start-color-game-btn': 'spell-color-game',
+            'start-reading-game-btn': 'read-match-game' // NEW
         };
         const backButtons = document.querySelectorAll('.back-btn');
+        const levelBtn = document.getElementById('level-toggle-btn');
+
+        // Level Toggle Logic
+        levelBtn.addEventListener('click', () => {
+            if (currentLevel === 1) {
+                currentLevel = 2;
+                levelBtn.textContent = "Level 2: Challenge";
+                levelBtn.classList.add('level-2');
+                window.speakText("Level Two");
+            } else {
+                currentLevel = 1;
+                levelBtn.textContent = "Level 1: Easy";
+                levelBtn.classList.remove('level-2');
+                window.speakText("Level One");
+            }
+        });
 
         function showScreen(screenId) {
-            // --- NEW: Prime audio on first user interaction ---
             primeAudioAndSpeech();
-
             screens.forEach(screen => screen.classList.remove('visible'));
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
                 targetScreen.classList.add('visible');
             }
 
-            // This ensures games are reset properly when viewed
-            // --- NEW: Added speech for game titles ---
             if (screenId === 'spell-image-game') {
                 if (window.speakText) window.speakText("Spell the word!");
                 startGameImage();
@@ -34,8 +49,10 @@
             } else if (screenId === 'spell-color-game') {
                 if (window.speakText) window.speakText("Spell the color!");
                 startGameColor();
+            } else if (screenId === 'read-match-game') {
+                if (window.speakText) window.speakText("Read and match!");
+                startGameReading();
             }
-            // --- END NEW ---
         }
 
         for (const btnId in menuButtons) {
@@ -44,18 +61,14 @@
                 btn.addEventListener('click', () => showScreen(menuButtons[btnId]));
             }
         }
-backButtons.forEach(btn => {
+
+        backButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // --- NEW: Stop any speech ---
-                if (window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                }
-                // --- END NEW ---
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
                 showScreen('main-menu');
             });
         });
 
-        // (Optional) Load the sounds
         const goodSound = new Audio('sounds/correct.mp3');
         const badSound = new Audio('sounds/wrong.mp3');
 
@@ -68,77 +81,33 @@ backButtons.forEach(btn => {
             return array;
         }
 
-        // --- MODIFICATION ---
-        // Made function async and added error handling for .play()
         async function playSound(sound) {
-            sound.currentTime = 0; // Rewind to start
-            try {
-                await sound.play();
-            } catch (err) {
-                // Log the error but don't crash the app
-                console.error("Audio play failed:", err);
-            }
+            sound.currentTime = 0;
+            try { await sound.play(); } catch (err) { console.error(err); }
         }
-        // --- END MODIFICATION ---
 
-
-        // --- NEW: Audio and Speech Priming Function ---
         function primeAudioAndSpeech() {
-            if (audioPrimed) return; // Only run once
-
-            // 1. "Wake up" the sound effects (for iOS)
-           try {
-                // Use .load() to buffer the audio without playing.
-                // This prevents the "crackle" race condition.
-                goodSound.load();
-                badSound.load();
-            } catch (err) {
-                console.error("Audio priming failed:", err);
-            }
-
-            // 2. "Wake up" the speech engine (for iOS)
-            if (window.unlockSpeechIfNeeded) {
-                window.unlockSpeechIfNeeded();
-            }
-            
-            // 3. "Wake up" the speech voice list
-            if (window.loadVoices) {
-                window.loadVoices(); 
-            }
-            
+            if (audioPrimed) return;
+            try { goodSound.load(); badSound.load(); } catch (err) {}
+            if (window.unlockSpeechIfNeeded) window.unlockSpeechIfNeeded();
+            if (window.loadVoices) window.loadVoices();
             audioPrimed = true;
         }
-        // --- END NEW ---
 
-
-        // --- 3. GAME 1: IMAGE SPELLING (Original Game Logic) ---
-
-        // RENAMED from generateColorChoices to be reusable
-        // --- MODIFICATION ---
-        // Replaced with a Set-based implementation to prevent infinite loops
-        function generateLetterChoices(correctLetter) {
+        // Generates 'count' unique random letters that are NOT in 'excludeString'
+        function getDistractors(count, excludeString) {
             const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-            // Use a Set to automatically handle uniqueness
-            let choices = new Set();
-
-            // Add the correct letter first
-            choices.add(correctLetter);
-
-            // Keep adding random letters until we have 3
-            while (choices.size < 3) {
-                const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-                // Set.add() will automatically do nothing if the letter is already present
-                choices.add(randomLetter);
+            const distractors = [];
+            while (distractors.length < count) {
+                const letter = alphabet[Math.floor(Math.random() * alphabet.length)];
+                if (!excludeString.includes(letter) && !distractors.includes(letter)) {
+                    distractors.push(letter);
+                }
             }
-
-            // Convert the Set back to an array and shuffle it
-            return shuffleArray(Array.from(choices));
+            return distractors;
         }
-        // --- END MODIFICATION ---
 
-
-        // --- 3. GAME 1: IMAGE SPELLING (Original Game Logic) ---
-
+        // --- 3. DATA ---
         const imageGameData = [
           { word: 'cat', image: 'images/cat.jpg' },
           { word: 'dog', image: 'images/dog.jpg' },
@@ -150,174 +119,155 @@ backButtons.forEach(btn => {
           { word: 'mouse', image: 'images/mouse.jpg' }
         ];
 
+        // --- 4. GAME 1: IMAGE SPELLING ---
         const wordImage = document.getElementById('word-image');
         const wordBlanksContainerImage = document.getElementById('word-blanks-image');
         const letterChoicesContainerImage = document.getElementById('letter-choices-image');
         const nextWordButtonImage = document.getElementById('next-word-button-image');
-
         let currentImageWordIndex = 0;
         let lettersToSpell = [];
         let imageGameInitialized = false;
 
-        // --- MODIFICATION ---
-        // Renamed from 'initImageGame' and refactored
-        // to separate state reset from one-time init
         function startGameImage() {
-            // This part runs every time to reset the game
             currentImageWordIndex = 0;
             loadWord(currentImageWordIndex);
-
-            // This part runs only once
             if (imageGameInitialized) return;
-            nextWordButtonImage.addEventListener('click', loadNextImageWord);
+            nextWordButtonImage.addEventListener('click', () => {
+                currentImageWordIndex = (currentImageWordIndex + 1) % imageGameData.length;
+                loadWord(currentImageWordIndex);
+            });
             imageGameInitialized = true;
-        }
-        // --- END MODIFICATION ---
-
-        function loadNextImageWord() {
-             currentImageWordIndex++;
-            if (currentImageWordIndex >= imageGameData.length) {
-                currentImageWordIndex = 0;
-            }
-            loadWord(currentImageWordIndex);
         }
 
         function loadWord(wordIndex) {
-          const currentWordData = imageGameData[wordIndex];
-          wordImage.src = currentWordData.image;
-          
-          // --- NEW: Speak the word ---
-          if (window.speakText) {
-            window.speakText(currentWordData.word);
-          }
-          // --- END NEW ---
+            const currentWordData = imageGameData[wordIndex];
+            wordImage.src = currentWordData.image;
+            if (window.speakText) window.speakText(currentWordData.word);
 
-          lettersToSpell = currentWordData.word.split('');
+            lettersToSpell = currentWordData.word.split('');
+            wordBlanksContainerImage.innerHTML = '';
+            letterChoicesContainerImage.innerHTML = '';
+            nextWordButtonImage.classList.add('hidden');
 
-          wordBlanksContainerImage.innerHTML = '';
-          letterChoicesContainerImage.innerHTML = '';
-          nextWordButtonImage.classList.add('hidden');
+            // Create Blanks
+            lettersToSpell.forEach(() => {
+                const blank = document.createElement('div');
+                blank.classList.add('blank');
+                wordBlanksContainerImage.appendChild(blank);
+            });
 
-          lettersToSpell.forEach(() => {
-            const blank = document.createElement('div');
-            blank.classList.add('blank');
-            wordBlanksContainerImage.appendChild(blank);
-          });
+            // Create Choices
+            let choices = [...lettersToSpell];
 
-          const shuffledLetters = shuffleArray([...lettersToSpell]);
+            // --- LEVEL 2 LOGIC: Add Distractors ---
+            if (currentLevel === 2) {
+                // Add 3 random wrong letters
+                const distractors = getDistractors(3, currentWordData.word);
+                choices = choices.concat(distractors);
+            }
 
-          shuffledLetters.forEach(letter => {
-            const button = document.createElement('button');
-            button.classList.add('letter-button');
-            button.textContent = letter.toUpperCase();
-            button.dataset.letter = letter;
-            button.addEventListener('click', handleImageLetterClick);
-            letterChoicesContainerImage.appendChild(button);
-          });
+            const shuffledChoices = shuffleArray(choices);
+
+            shuffledChoices.forEach(letter => {
+                const button = document.createElement('button');
+                button.classList.add('letter-button');
+                button.textContent = letter.toUpperCase();
+                button.dataset.letter = letter;
+                button.addEventListener('click', handleImageLetterClick);
+                letterChoicesContainerImage.appendChild(button);
+            });
         }
 
         function handleImageLetterClick(event) {
-          const clickedButton = event.target;
-          const clickedLetter = clickedButton.dataset.letter;
-          const expectedLetter = lettersToSpell[0];
+            const clickedButton = event.target;
+            const clickedLetter = clickedButton.dataset.letter;
+            const expectedLetter = lettersToSpell[0];
 
-          if (clickedLetter === expectedLetter) {
-            playSound(goodSound);
-            const firstEmptyBlank = wordBlanksContainerImage.querySelector('.blank:empty');
-            if (firstEmptyBlank) {
-              firstEmptyBlank.textContent = clickedLetter.toUpperCase();
-            }
-            clickedButton.style.visibility = 'hidden';
-            lettersToSpell.shift();
+            if (clickedLetter === expectedLetter) {
+                playSound(goodSound);
+                const firstEmptyBlank = wordBlanksContainerImage.querySelector('.blank:empty');
+                if (firstEmptyBlank) {
+                    firstEmptyBlank.textContent = clickedLetter.toUpperCase();
+                }
 
-            if (lettersToSpell.length === 0) {
-			  window.playConfettiEffect();
-              nextWordButtonImage.classList.remove('hidden');
+                // In Level 1, we hide the used button.
+                // In Level 2 (with distractors), we also hide it to avoid confusion.
+                clickedButton.style.visibility = 'hidden';
+
+                lettersToSpell.shift();
+
+                if (lettersToSpell.length === 0) {
+                    if(window.playConfettiEffect) window.playConfettiEffect();
+                    nextWordButtonImage.classList.remove('hidden');
+                }
+            } else {
+                playSound(badSound);
+                wordImage.classList.add('shake');
+                setTimeout(() => wordImage.classList.remove('shake'), 500);
             }
-          } else {
-            playSound(badSound);
-            wordImage.classList.add('shake');
-            setTimeout(() => wordImage.classList.remove('shake'), 500);
-          }
         }
 
-        // --- 4. GAME 2: MISSING LETTER (NEW GAME) ---
-
-        // Get elements for missing letter game
+        // --- 5. GAME 2: MISSING LETTER ---
         const wordImageMissing = document.getElementById('word-image-missing');
         const wordBlanksContainerMissing = document.getElementById('word-blanks-missing');
         const letterChoicesContainerMissing = document.getElementById('letter-choices-missing');
         const nextWordButtonMissing = document.getElementById('next-word-button-missing');
-
         let currentMissingWordIndex = 0;
         let missingGameInitialized = false;
-        let expectedMissingLetter = ''; // Store the correct letter for this round
+        let expectedMissingLetter = '';
 
-        // --- MODIFICATION ---
-        // Renamed from 'initMissingGame' and refactored
-        // to separate state reset from one-time init
         function startGameMissing() {
-            // This part runs every time to reset the game
             currentMissingWordIndex = Math.floor(Math.random() * imageGameData.length);
             loadMissingWord(currentMissingWordIndex);
-
-            // This part runs only once
             if (missingGameInitialized) return;
-            nextWordButtonMissing.addEventListener('click', loadNextMissingWord);
+            nextWordButtonMissing.addEventListener('click', () => {
+                currentMissingWordIndex = (currentMissingWordIndex + 1) % imageGameData.length;
+                loadMissingWord(currentMissingWordIndex);
+            });
             missingGameInitialized = true;
-        }
-        // --- END MODIFICATION ---
-
-        function loadNextMissingWord() {
-            currentMissingWordIndex++;
-            if (currentMissingWordIndex >= imageGameData.length) {
-                currentMissingWordIndex = 0; // Loop back
-            }
-            loadMissingWord(currentMissingWordIndex);
         }
 
         function loadMissingWord(wordIndex) {
             const currentWordData = imageGameData[wordIndex];
             const word = currentWordData.word;
-            
-            // --- NEW: Speak the word ---
-            if (window.speakText) {
-                window.speakText(word);
-            }
-            // --- END NEW ---
+            if (window.speakText) window.speakText(word);
 
-            // 1. Pick a random letter to be the missing one
             const missingIndex = Math.floor(Math.random() * word.length);
-            expectedMissingLetter = word[missingIndex]; // Store the correct answer
+            expectedMissingLetter = word[missingIndex];
 
-            // 2. Set the image
             wordImageMissing.src = currentWordData.image;
-
-            // 3. Clear old blanks and buttons
             wordBlanksContainerMissing.innerHTML = '';
             letterChoicesContainerMissing.innerHTML = '';
             nextWordButtonMissing.classList.add('hidden');
 
-            // 4. Create new blanks (some empty, some filled)
             for (let i = 0; i < word.length; i++) {
                 const blank = document.createElement('div');
                 if (i === missingIndex) {
-                    blank.classList.add('blank'); // This one is empty
+                    blank.classList.add('blank');
                 } else {
-                    blank.classList.add('blank', 'filled'); // Pre-fill this one
+                    blank.classList.add('blank', 'filled');
                     blank.textContent = word[i].toUpperCase();
                 }
                 wordBlanksContainerMissing.appendChild(blank);
             }
 
-            // 5. Create 3 letter choices
-            const choices = generateLetterChoices(expectedMissingLetter); // Use our helper
+            // --- LEVEL 2 LOGIC: More Choices ---
+            // Level 1: 3 choices. Level 2: 5 choices.
+            const numChoices = (currentLevel === 1) ? 3 : 5;
+
+            let choiceSet = new Set();
+            choiceSet.add(expectedMissingLetter);
+
+            const distractors = getDistractors(numChoices - 1, expectedMissingLetter);
+            distractors.forEach(d => choiceSet.add(d));
+
+            const choices = shuffleArray(Array.from(choiceSet));
+
             choices.forEach(letter => {
                 const button = document.createElement('button');
                 button.classList.add('letter-button');
                 button.textContent = letter.toUpperCase();
                 button.dataset.letter = letter;
-                button.disabled = false; // Ensure enabled
                 button.addEventListener('click', handleMissingLetterClick);
                 letterChoicesContainerMissing.appendChild(button);
             });
@@ -326,39 +276,25 @@ backButtons.forEach(btn => {
         function handleMissingLetterClick(event) {
             const clickedButton = event.target;
             const clickedLetter = clickedButton.dataset.letter;
-
-            // Disable all choice buttons
             letterChoicesContainerMissing.querySelectorAll('.letter-button').forEach(btn => btn.disabled = true);
 
             if (clickedLetter === expectedMissingLetter) {
                 playSound(goodSound);
-
-                // Fill the blank
                 const firstEmptyBlank = wordBlanksContainerMissing.querySelector('.blank:empty');
-                if (firstEmptyBlank) {
-                    firstEmptyBlank.textContent = clickedLetter.toUpperCase();
-                }
-
-                // Show "Next" button
-				window.playConfettiEffect();
+                if (firstEmptyBlank) firstEmptyBlank.textContent = clickedLetter.toUpperCase();
+                if(window.playConfettiEffect) window.playConfettiEffect();
                 nextWordButtonMissing.classList.remove('hidden');
-
             } else {
-                // WRONG!
                 playSound(badSound);
-
-                // Shake the image
                 wordImageMissing.classList.add('shake');
                 setTimeout(() => {
                     wordImageMissing.classList.remove('shake');
-                    // Re-enable buttons so the user can try again
                     letterChoicesContainerMissing.querySelectorAll('.letter-button').forEach(btn => btn.disabled = false);
                 }, 500);
             }
         }
 
-        // --- 5. GAME 3: COLOR SPELLING (Original Logic, minor updates) ---
-
+        // --- 6. GAME 3: SPELL COLOR (Simplified for consistency) ---
         const colorGameData = [
             { word: 'red', color: '#FF0000' },
             { word: 'blue', color: '#0000FF' },
@@ -371,65 +307,39 @@ backButtons.forEach(btn => {
             { word: 'white', color: '#FFFFFF' },
             { word: 'brown', color: '#A52A2A' }
         ];
-
         const colorBoxDisplay = document.getElementById('color-box-display');
         const wordBlanksContainerColor = document.getElementById('word-blanks-color');
         const letterChoicesContainerColor = document.getElementById('letter-choices-color');
         const nextWordButtonColor = document.getElementById('next-word-button-color');
-
         let currentColorWordIndex = 0;
         let colorGameInitialized = false;
 
-        // --- MODIFICATION ---
-        // Renamed from 'initColorGame' and refactored
-        // to separate state reset from one-time init
         function startGameColor() {
-            // This part runs every time to reset the game
             currentColorWordIndex = 0;
             loadColorWord(currentColorWordIndex);
-
-            // This part runs only once
             if (colorGameInitialized) return;
-            nextWordButtonColor.addEventListener('click', loadNextColorWord);
+            nextWordButtonColor.addEventListener('click', () => {
+                currentColorWordIndex = (currentColorWordIndex + 1) % colorGameData.length;
+                loadColorWord(currentColorWordIndex);
+            });
             colorGameInitialized = true;
         }
-        // --- END MODIFICATION ---
-
-        function loadNextColorWord() {
-            currentColorWordIndex++;
-            if (currentColorWordIndex >= colorGameData.length) {
-                currentColorWordIndex = 0;
-            }
-            loadColorWord(currentColorWordIndex);
-        }
-
-        // No longer needed - we use the shared generateLetterChoices
-        // function generateColorChoices(correctLetter) { ... }
 
         function loadColorWord(wordIndex) {
             const currentWordData = colorGameData[wordIndex];
             const word = currentWordData.word;
             const correctLetter = word[0];
-
-            // --- NEW: Speak the color name ---
-            if (window.speakText) {
-                window.speakText(word);
-            }
-            // --- END NEW ---
+            if (window.speakText) window.speakText(word);
 
             colorBoxDisplay.style.backgroundColor = currentWordData.color;
-            if (word === 'white') {
-                colorBoxDisplay.style.borderColor = '#999';
-            } else {
-                colorBoxDisplay.style.borderColor = '#ccc';
-            }
+            colorBoxDisplay.style.borderColor = (word === 'white') ? '#999' : '#ccc';
 
             wordBlanksContainerColor.innerHTML = '';
             letterChoicesContainerColor.innerHTML = '';
             nextWordButtonColor.classList.add('hidden');
 
             const blank = document.createElement('div');
-            blank.classList.add('blank');
+            blank.classList.add('blank'); // First letter missing
             wordBlanksContainerColor.appendChild(blank);
 
             for (let i = 1; i < word.length; i++) {
@@ -439,47 +349,129 @@ backButtons.forEach(btn => {
                 wordBlanksContainerColor.appendChild(filledBlank);
             }
 
-            // Use the refactored helper function
-            const choices = generateLetterChoices(correctLetter);
+            // --- LEVEL 2 LOGIC: More Choices ---
+            const numChoices = (currentLevel === 1) ? 3 : 5;
+            let choiceSet = new Set();
+            choiceSet.add(correctLetter);
+            const distractors = getDistractors(numChoices - 1, correctLetter);
+            distractors.forEach(d => choiceSet.add(d));
+
+            const choices = shuffleArray(Array.from(choiceSet));
+
             choices.forEach(letter => {
                 const button = document.createElement('button');
                 button.classList.add('letter-button');
                 button.textContent = letter.toUpperCase();
                 button.dataset.letter = letter;
-                button.disabled = false;
-                button.addEventListener('click', handleColorLetterClick);
+                button.addEventListener('click', (e) => {
+                    // Inline handler for color game (logic is same as Missing)
+                    const btn = e.target;
+                    letterChoicesContainerColor.querySelectorAll('.letter-button').forEach(b => b.disabled = true);
+                    if (letter === correctLetter) {
+                        playSound(goodSound);
+                        const blnk = wordBlanksContainerColor.querySelector('.blank:empty');
+                        if (blnk) blnk.textContent = letter.toUpperCase();
+                        if(window.playConfettiEffect) window.playConfettiEffect();
+                        nextWordButtonColor.classList.remove('hidden');
+                    } else {
+                        playSound(badSound);
+                        colorBoxDisplay.classList.add('shake');
+                        setTimeout(() => {
+                            colorBoxDisplay.classList.remove('shake');
+                            letterChoicesContainerColor.querySelectorAll('.letter-button').forEach(b => b.disabled = false);
+                        }, 500);
+                    }
+                });
                 letterChoicesContainerColor.appendChild(button);
             });
         }
 
-        function handleColorLetterClick(event) {
-            const clickedButton = event.target;
-            const clickedLetter = clickedButton.dataset.letter;
-            const expectedLetter = colorGameData[currentColorWordIndex].word[0];
+        // --- 7. NEW GAME: READ & MATCH ---
 
-            letterChoicesContainerColor.querySelectorAll('.letter-button').forEach(btn => btn.disabled = true);
+        const readingData = [
+            { image: 'images/cat.jpg', correct: 'The cat sits.', foils: ['The dog runs.', 'The sun is hot.'] },
+            { image: 'images/dog.jpg', correct: 'The dog is happy.', foils: ['The cat is orange.', 'The cow says moo.'] },
+            { image: 'images/sun.jpg', correct: 'The sun is hot.', foils: ['The bed is soft.', 'The boy is happy.'] },
+            { image: 'images/bed.jpg', correct: 'It is time for bed.', foils: ['It is time to run.', 'The mouse eats.'] },
+            { image: 'images/boy.jpg', correct: 'The boy waves.', foils: ['The girl smiles.', 'The cat runs.'] },
+            { image: 'images/girl.jpg', correct: 'The girl smiles.', foils: ['The boy jumps.', 'The sun is blue.'] },
+            { image: 'images/cow.jpg', correct: 'The cow has spots.', foils: ['The mouse is small.', 'The dog is red.'] },
+            { image: 'images/mouse.jpg', correct: 'The mouse is small.', foils: ['The cow is big.', 'The cat is green.'] }
+        ];
 
-            if (clickedLetter === expectedLetter) {
-                playSound(goodSound);
+        const readingImage = document.getElementById('reading-image');
+        const sentenceList = document.getElementById('sentence-list');
+        const nextReadingButton = document.getElementById('next-reading-button');
+        let readingIndex = 0;
+        let readingGameInitialized = false;
 
-                const firstEmptyBlank = wordBlanksContainerColor.querySelector('.blank:empty');
-                if (firstEmptyBlank) {
-                    firstEmptyBlank.textContent = clickedLetter.toUpperCase();
-                }
-				
-                window.playConfettiEffect();
-                nextWordButtonColor.classList.remove('hidden');
-
-            } else {
-                playSound(badSound);
-
-                colorBoxDisplay.classList.add('shake');
-                setTimeout(() => {
-                    colorBoxDisplay.classList.remove('shake');
-                    letterChoicesContainerColor.querySelectorAll('.letter-button').forEach(btn => btn.disabled = false);
-                }, 500);
-            }
+        function startGameReading() {
+            readingIndex = 0;
+            loadReadingLevel(readingIndex);
+            if (readingGameInitialized) return;
+            nextReadingButton.addEventListener('click', () => {
+                readingIndex = (readingIndex + 1) % readingData.length;
+                loadReadingLevel(readingIndex);
+            });
+            readingGameInitialized = true;
         }
-    });
 
-})(); // --- MODIFICATION --- End of IIFE
+        function loadReadingLevel(index) {
+            const data = readingData[index];
+            readingImage.src = data.image;
+            sentenceList.innerHTML = '';
+            nextReadingButton.classList.add('hidden');
+
+            // Combine and shuffle
+            const allSentences = shuffleArray([data.correct, ...data.foils]);
+
+            allSentences.forEach(sentence => {
+                const strip = document.createElement('div');
+                strip.className = 'sentence-strip';
+
+                // Text area
+                const textSpan = document.createElement('span');
+                textSpan.className = 'sentence-text';
+                textSpan.textContent = sentence;
+
+                // Audio button
+                const audioBtn = document.createElement('div');
+                audioBtn.className = 'sentence-audio-btn';
+                audioBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+
+                // AUDIO CLICK
+                audioBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Don't trigger the answer check
+                    if (window.speakText) window.speakText(sentence);
+                });
+
+                // ANSWER CLICK
+                strip.addEventListener('click', () => {
+                    // Disable interaction if already solved
+                    if (!nextReadingButton.classList.contains('hidden')) return;
+
+                    if (sentence === data.correct) {
+                        // Correct
+                        strip.classList.add('correct');
+                        playSound(goodSound);
+                        if (window.speakText) window.speakText("That's right!");
+                        if(window.playConfettiEffect) window.playConfettiEffect();
+                        nextReadingButton.classList.remove('hidden');
+                        // Disable others
+                        document.querySelectorAll('.sentence-strip').forEach(s => s.style.pointerEvents = 'none');
+                    } else {
+                        // Wrong
+                        strip.classList.add('wrong');
+                        playSound(badSound);
+                        setTimeout(() => strip.classList.remove('wrong'), 500);
+                    }
+                });
+
+                strip.appendChild(textSpan);
+                strip.appendChild(audioBtn);
+                sentenceList.appendChild(strip);
+            });
+        }
+
+    }); // End DOMContentLoaded
+})();

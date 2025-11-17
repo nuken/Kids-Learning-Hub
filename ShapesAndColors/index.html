@@ -26,16 +26,17 @@
         <div class="menu-buttons">
             <button id="start-leaf-sort-btn" class="menu-btn">Leaf Color Sort</button>
             <button id="start-shape-web-btn" class="menu-btn">Spider's Shape Web</button>
-
             <button id="start-shape-puzzle-btn" class="menu-btn">Shape Puzzles</button>
+
+            <button id="start-mixing-btn" class="menu-btn">Color Mixing</button>
         </div>
     </div>
 
     <div id="leaf-sort-game" class="game-screen">
-    <button class="back-btn">Back</button>
-    <h2>Sort the Leaves!</h2>
-    <div id="leaf-sort-canvas" class="touch-area"></div>
-</div>
+        <button class="back-btn">Back</button>
+        <h2>Sort the Leaves!</h2>
+        <div id="leaf-sort-canvas" class="touch-area"></div>
+    </div>
 
     <div id="shape-web-game" class="game-screen">
         <button class="back-btn">Back</button>
@@ -43,8 +44,7 @@
 		<div id="spider-web-display" class="touch-area">
 			<img src="images/friendly-spider.png" alt="Friendly Spider" id="friendly-spider">
         </div>
-        <div id="shape-choices-container">
-            </div>
+        <div id="shape-choices-container"></div>
         <button id="next-shape-button" class="hidden">Next Shape!</button>
     </div>
 
@@ -54,6 +54,16 @@
         <div id="shape-puzzle-canvas" class="touch-area"></div>
         <button id="next-puzzle-button" class="hidden">Next Puzzle!</button>
     </div>
+
+    <div id="mixing-game" class="game-screen">
+        <button class="back-btn">Back</button>
+        <h2>Color Mixing!</h2>
+        <div id="mixing-problem-container">
+            </div>
+        <div id="mixing-choices">
+            </div>
+    </div>
+
     <script src="../Helper-Scripts/speech-module.js"></script>
     <script src="script.js"></script>
 </body>

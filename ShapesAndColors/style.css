@@ -416,3 +416,78 @@ h2 {
 .spider-bounces {
     animation: spider-bounce 0.8s ease-in-out;
 }
+#start-mixing-btn { background-color: #E91E63; /* Pink */ }
+
+#mixing-problem-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+    width: 100%;
+}
+
+.paint-blob {
+    width: 80px;
+    height: 80px;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; /* Organic blob shape */
+    border: 4px solid rgba(0,0,0,0.1);
+    box-shadow: inset 10px 10px 20px rgba(255,255,255,0.4), 5px 5px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Animation for the blobs */
+.paint-blob:hover {
+    transform: scale(1.05) rotate(5deg);
+}
+
+.math-symbol {
+    font-size: 3em;
+    font-weight: 700;
+    color: #555;
+}
+
+.question-mark-box {
+    width: 80px;
+    height: 80px;
+    border: 4px dashed #999;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+    color: #999;
+    background-color: rgba(255,255,255,0.5);
+}
+
+#mixing-choices {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.choice-blob-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.choice-blob-btn:active {
+    transform: scale(0.9);
+}
+
+/* Responsive Tweaks for Mixing Game */
+@media (max-width: 500px) {
+    .paint-blob, .question-mark-box {
+        width: 60px;
+        height: 60px;
+    }
+    .math-symbol {
+        font-size: 2em;
+    }
+}

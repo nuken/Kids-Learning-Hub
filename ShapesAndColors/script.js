@@ -891,7 +891,35 @@
                 result: '#800080',
                 resultName: 'Purple',
                 choices: ['#800080', '#FF7F00', '#008000']
-            } // Red + Blue = Purple
+            }, // Red + Blue = Purple
+            // --- NEW COLORS ---
+            {
+                color1: '#FF0000',
+                name1: 'Red',
+                color2: '#FFFFFF',
+                name2: 'White',
+                result: '#FFC0CB',
+                resultName: 'Pink',
+                choices: ['#FFC0CB', '#808080', '#795548']
+            }, // Red + White = Pink
+            {
+                color1: '#000000',
+                name1: 'Black',
+                color2: '#FFFFFF',
+                name2: 'White',
+                result: '#808080',
+                resultName: 'Gray',
+                choices: ['#808080', '#FFC0CB', '#000000']
+            }, // Black + White = Gray
+            {
+                color1: '#008000',
+                name1: 'Green',
+                color2: '#FF0000',
+                name2: 'Red',
+                result: '#795548',
+                resultName: 'Brown',
+                choices: ['#795548', '#FF7F00', '#808080']
+            } // Green + Red = Brown
         ];
 
         const mixingProblemContainer = document.getElementById('mixing-problem-container');

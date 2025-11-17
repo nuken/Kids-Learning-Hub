@@ -2,22 +2,23 @@
 /* --- START: Confetti Win Effect --- */
 
 .confetti-particle {
-    position: fixed; /* Use fixed to cover the whole screen */
-    top: -20px; /* Start just off-screen */
+    position: fixed; 
+    top: -50px; /* Start a bit higher up to ensure it's off-screen */
 
-    /* --- NEW: Use font-size to control shape size --- */
     font-size: 20px;
     opacity: 1;
-    z-index: 1000; /* On top of everything */
-    pointer-events: none; /* User can't click them */
-	transform: translateZ(0);
+    z-index: 1000; 
+    pointer-events: none; 
     
-    /* Pull random values from the JS */
+    /* Hardware acceleration hints for iOS */
+    transform: translate3d(0, 0, 0);
+    will-change: transform; 
+    
     animation-name: confetti-fall;
     animation-duration: var(--random-duration);
-    animation-delay: var(--random-delay);
+    /* REMOVED: animation-delay */
     animation-timing-function: linear;
-    animation-fill-mode: forwards; /* Stay at the end state (invisible) */
+    animation-fill-mode: forwards; 
 }
 
 @keyframes confetti-fall {

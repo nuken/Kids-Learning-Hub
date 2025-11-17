@@ -234,39 +234,110 @@ window.speakText = function(text, onEndCallback) {
  * Creates a full-screen confetti "win" animation.
  */
 window.playConfettiEffect = function() {
-    const numConfetti = 100; // How many pieces of confetti
+    // 1. Setup Canvas
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '9999';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    // 2. Config
     const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#9C27B0'];
-    const shapes = ['★', '●', '▲', '■', '♦']; // You can add more shapes here!
-    const container = document.body;
+    // Shapes: 0=Circle, 1=Square, 2=Triangle
+    const particles = [];
+    const numParticles = 100; 
 
-    for (let i = 0; i < numConfetti; i++) {
-        const confetti = document.createElement('div');
-        confetti.classList.add('confetti-particle');
-        
-        // --- NEW: Pick a random shape and set it as the content ---
-        confetti.innerHTML = shapes[Math.floor(Math.random() * shapes.length)];
-        
-        // Set random properties
-        confetti.style.left = `${Math.random() * 100}vw`; // Start anywhere at the top
-        
-        // --- NEW: Set the COLOR of the shape, not the background ---
-        confetti.style.color = colors[Math.floor(Math.random() * colors.length)];
-        
-        // Use CSS custom properties for unique animations
-        confetti.style.setProperty('--random-rotate', `${Math.random() * 720 - 360}deg`); // Spin
-        confetti.style.setProperty('--random-tumble', `${Math.random() * 720 - 360}deg`); // Tumble
-        confetti.style.setProperty('--random-duration', `${Math.random() * 2 + 3}s`); // 3-5 seconds
-        confetti.style.setProperty('--random-delay', `${Math.random() * 0.5}s`); // Stagger start
-        
-        container.appendChild(confetti);
-
-        // Remove the element after its animation finishes
-        setTimeout(() => {
-            confetti.remove();
-        }, 5000); // 5 seconds (must be longer than --random-duration)
+    // 3. Create Particles
+    for (let i = 0; i < numParticles; i++) {
+        particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height - height, // Start above screen
+            vx: Math.random() * 2 - 1,          // Horizontal drift
+            vy: Math.random() * 3 + 2,          // Falling speed
+            color: colors[Math.floor(Math.random() * colors.length)],
+            shape: Math.floor(Math.random() * 3), 
+            size: Math.random() * 10 + 5,
+            rotation: Math.random() * 360,
+            rotationSpeed: Math.random() * 10 - 5
+        });
     }
-}
 
+    // 4. Animation Loop
+    let startTime = Date.now();
+    const duration = 5000; // 5 seconds
+
+    function animate() {
+        const now = Date.now();
+        const elapsed = now - startTime;
+
+        if (elapsed > duration) {
+            canvas.remove(); // Cleanup
+            return;
+        }
+
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+            // Update
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rotation += p.rotationSpeed;
+
+            // Draw
+            ctx.fillStyle = p.color;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+
+            if (p.shape === 0) { // Circle
+                ctx.beginPath();
+                ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.shape === 1) { // Square
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            } else if (p.shape === 2) { // Triangle
+                ctx.beginPath();
+                ctx.moveTo(0, -p.size / 2);
+                ctx.lineTo(p.size / 2, p.size / 2);
+                ctx.lineTo(-p.size / 2, p.size / 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // Reset if off screen (optional loop)
+            if (p.y > height + 20) {
+                 // Only reset if we are in the first 3 seconds, else let them fall out
+                 if (elapsed < duration - 2000) {
+                     p.y = -20;
+                     p.x = Math.random() * width;
+                 }
+            }
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }, { once: true }); // Just do it once or managing listener removal becomes complex
+
+    animate();
+}
 /**
  * Creates a localized "burst" of confetti from a target element.
  * @param {HTMLElement} targetElement - The DOM element to burst from.

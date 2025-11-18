@@ -170,3 +170,27 @@ h1 {
       position: absolute; 
   }
 }
+#sticker-book-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); z-index: 2000;
+    display: flex; justify-content: center; align-items: center;
+}
+.sticker-book-content {
+    background: white; padding: 20px; border-radius: 20px;
+    width: 80%; max-width: 600px; text-align: center;
+}
+#sticker-grid {
+    display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
+}
+.sticker-slot {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 4px dashed #ccc; display: flex;
+    justify-content: center; align-items: center; font-size: 3em;
+    background: #f9f9f9; opacity: 0.5; grayscale: 100%;
+}
+.sticker-slot.earned {
+    border-style: solid; border-color: #FFD700;
+    background: #fff; opacity: 1; grayscale: 0%;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }

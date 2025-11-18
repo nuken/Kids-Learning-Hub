@@ -89,7 +89,7 @@
         let targetNumber = 0;
         let currentCount = 0;
         const items = ['🦆', '⭐️', '🍎', '🚗', '🎈', '🐶', '🍕', '🐞', '🍪'];
-
+        let correctCountsSession = 0;
         function startCountingGame() {
             countingGrid.innerHTML = '';
             currentCount = 0;
@@ -132,6 +132,10 @@
 
             if (currentCount === targetNumber) {
                 if(window.playBurstEffect) window.playBurstEffect(e.target);
+                correctCountsSession++;
+    if (correctCountsSession >= 3) {
+        window.StickerManager.awardSticker('number_ninja');
+    }
                 window.speakText(currentCount, () => {
                     window.speakText("You did it!");
                     setTimeout(startCountingGame, 1500);

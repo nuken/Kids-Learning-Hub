@@ -263,6 +263,7 @@
         function checkLeafSortWin() {
             const allSorted = leafPieces.every(p => !p.draggable());
             if (allSorted) {
+                window.StickerManager.awardSticker('color_captain');
                 if (window.playConfettiEffect) window.playConfettiEffect();
                 if (window.speakText) window.speakText("Great job!");
                 setTimeout(loadLeafSortProblem, 1500);
@@ -856,6 +857,9 @@
             if (allSolved) {
                 isPuzzleSolved = true;
                 if (window.playConfettiEffect) window.playConfettiEffect();
+                if (currentShapeProblem.shape === 'hexagon') {
+     window.StickerManager.awardSticker('shape_shifter');
+}
                 if (window.speakText) window.speakText("Great job!");
                 nextPuzzleButton.classList.remove('hidden');
             }

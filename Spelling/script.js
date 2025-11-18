@@ -198,6 +198,7 @@
 
                 if (lettersToSpell.length === 0) {
                     if(window.playConfettiEffect) window.playConfettiEffect();
+                    window.StickerManager.awardSticker('spelling_bee');
                     nextWordButtonImage.classList.remove('hidden');
                 }
             } else {
@@ -459,6 +460,7 @@
                         nextReadingButton.classList.remove('hidden');
                         // Disable others
                         document.querySelectorAll('.sentence-strip').forEach(s => s.style.pointerEvents = 'none');
+                        window.StickerManager.awardSticker('book_worm');
                     } else {
                         // Wrong
                         strip.classList.add('wrong');

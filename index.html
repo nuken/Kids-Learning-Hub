@@ -16,8 +16,24 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <h1><img src="images/logo.png" alt="Kids Learning Hub Logo" class="title-logo"> Kids Learning Hub</h1>
     <div class="menu-container">
+    <button id="open-sticker-book" class="menu-btn" style="background-color: #ffffff; color: #333; border: 4px solid #FFD700; margin-bottom: 5px;">
+    ⭐ My Sticker Book
+</button>
+
+    <div id="sticker-overlay" class="hidden" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:#fff; width:90%; max-width:600px; height:80%; border-radius:20px; padding:20px; overflow-y:auto; display:flex; flex-direction:column; align-items:center;">
+        <div style="width:100%; display:flex; justify-content:flex-end;">
+             <button id="close-sticker-book" style="background:#f44336; color:white; border:none; font-size:1.5em; width:40px; height:40px; border-radius:50%; cursor:pointer;">&times;</button>
+        </div>
+        <h1 style="margin-top:0;">My Stickers</h1>
+        <div id="sticker-grid" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding:20px;">
+            </div>
+    </div>
+</div>
+
 	<a href="./VideoTime/index.html" class="video-link-btn" title="Video Time!">
             <i class="fas fa-play-circle"></i>
         </a>
@@ -89,6 +105,53 @@
         });
     });
   }
+</script>
+<script src="Helper-Scripts/sticker-module.js"></script>
+<script>
+    const stickerOverlay = document.getElementById('sticker-overlay');
+    const stickerGrid = document.getElementById('sticker-grid');
+
+    document.getElementById('open-sticker-book').addEventListener('click', () => {
+        // Explicitly set display to flex when opening
+        stickerOverlay.style.display = 'flex';
+        renderStickers();
+    });
+
+    document.getElementById('close-sticker-book').addEventListener('click', () => {
+        // Explicitly set display to none when closing
+        stickerOverlay.style.display = 'none';
+    });
+
+    function renderStickers() {
+        stickerGrid.innerHTML = '';
+        // Check if the manager exists before trying to use it
+        if (!window.StickerManager) return;
+
+        const allStickers = window.StickerManager.getStickerData();
+        const myStickers = window.StickerManager.getInventory();
+
+        for (const [key, data] of Object.entries(allStickers)) {
+            const isOwned = myStickers.includes(key);
+            const slot = document.createElement('div');
+            slot.style.cssText = `
+                width: 100px; height: 120px; display:flex; flex-direction:column;
+                align-items:center; justify-content:center; border-radius:15px;
+                background: ${isOwned ? '#e8f5e9' : '#eee'};
+                border: 3px solid ${isOwned ? data.color : '#ccc'};
+                opacity: ${isOwned ? '1' : '0.6'};
+            `;
+
+            slot.innerHTML = `
+                <div style="font-size: 50px; filter: ${isOwned ? 'none' : 'grayscale(100%) brightness(1.5)'};">
+                    ${isOwned ? data.icon : '❔'}
+                </div>
+                <span style="font-family:'Comic Neue'; font-weight:bold; margin-top:5px; font-size:0.9em; color:#333;">
+                    ${isOwned ? data.name : 'Locked'}
+                </span>
+            `;
+            stickerGrid.appendChild(slot);
+        }
+    }
 </script>
 </body>
 </html>

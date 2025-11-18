@@ -29,7 +29,7 @@
         </button>
 
         <div id="sticker-overlay" class="hidden" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
-            <div style="background:#fff; width:90%; max-width:600px; height:85%; border-radius:20px; padding:20px; overflow-y:auto; display:flex; flex-direction:column; align-items:center; position: relative;">
+            <div style="background:#fff; width:95%; max-width:900px; height:90%; border-radius:20px; padding:20px; overflow-y:auto; display:flex; flex-direction:column; align-items:center; position: relative;">
                 
                 <div style="width:100%; display:flex; justify-content:space-between; align-items: center;">
                     <button id="toggle-play-mode" style="background:#2196F3; color:white; border:none; padding: 8px 15px; border-radius:20px; cursor:pointer; font-family: 'Comic Neue'; font-weight: bold;">
@@ -48,8 +48,8 @@
 
                 <div id="sticker-canvas-container">
                     <div id="play-canvas"></div>
-                    <p style="position:absolute; bottom:5px; width:100%; text-align:center; color:#999; font-size:0.8em; pointer-events:none;">
-                        Drag stickers here! (Tap 'Play Mode' again to go back)
+                    <p style="position:absolute; bottom:5px; width:100%; text-align:center; color:#555; font-size:0.9em; pointer-events:none; font-weight:bold; background:rgba(255,255,255,0.5);">
+                        Tap stickers in the grid to add them!
                     </p>
                 </div>
 
@@ -89,22 +89,21 @@
                 btn.addEventListener('mousedown', warmUpSpeechAPI);
             });
 
-            // EASTER EGG 1: THE CLICKER (Click logo 10 times)
+            // EASTER EGG 1: THE CLICKER (TEST MODE: Click logo 3 times)
             let logoClicks = 0;
             document.getElementById('logo-header').addEventListener('click', () => {
                 logoClicks++;
-                if(logoClicks === 10) {
+                // --- CHANGED: Now awards after 3 clicks (instead of 10) ---
+                if(logoClicks === 3) {
                     window.StickerManager.awardSticker('clicker_owl');
                 }
             });
 
-            // EASTER EGG 2: NIGHT OWL (Visit after 7PM)
-            const hour = new Date().getHours();
-            if (hour >= 19 || hour <= 5) { // 7 PM to 5 AM
-                setTimeout(() => {
-                    window.StickerManager.awardSticker('night_owl');
-                }, 1000);
-            }
+            // EASTER EGG 2: NIGHT OWL (TEST MODE: Always awards)
+            // --- CHANGED: Removed time check for immediate testing ---
+            setTimeout(() => {
+                window.StickerManager.awardSticker('night_owl');
+            }, 1000);
         });
 
         // Service Worker
@@ -134,7 +133,8 @@
         document.getElementById('reset-stickers-btn').addEventListener('click', () => {
             if(confirm("Are you sure you want to delete all stickers and start over?")) {
                 localStorage.removeItem('klh_sticker_inventory');
-                if(playModeLayer) playModeLayer.destroyChildren(); // Clear canvas
+                if(playModeLayer) playModeLayer.destroyChildren(); 
+                if(playModeStage) playModeStage.draw();
                 renderStickers();
             }
         });
@@ -169,8 +169,6 @@
             for (const [key, data] of Object.entries(allStickers)) {
                 const isOwned = myStickers.includes(key);
                 const slot = document.createElement('div');
-                
-                // Use specific class for locked items to get the silhouette effect
                 const iconClass = isOwned ? '' : 'sticker-locked';
 
                 slot.className = 'sticker-slot';
@@ -189,20 +187,20 @@
                     <span style="
                         font-family:'Comic Neue'; 
                         font-weight:bold; 
-                        margin-top:5px; 
-                        font-size:0.75em; 
+                        margin-top:2px; 
+                        font-size:0.6em; 
                         color:#333; 
                         text-align:center; 
                         line-height:1.1; 
                         width: 100%;
-                        padding: 0 5px;
+                        padding: 0 2px;
                         box-sizing: border-box;
                     ">
                         ${isOwned ? data.name : '???'}
                     </span>
                 `;
 
-                // Click to Speak
+                // Click to Speak & Add to Canvas
                 if (isOwned) {
                     slot.addEventListener('click', () => {
                         // Bounce Animation
@@ -233,51 +231,96 @@
                     width: container.clientWidth,
                     height: container.clientHeight
                 });
-                playModeLayer = new Konva.Layer();
-                playModeStage.add(playModeLayer);
-
-                // Add a background rect to receive clicks
-                const bg = new Konva.Rect({
+                
+                // 1. Background Layer (Scenery)
+                const bgLayer = new Konva.Layer();
+                playModeStage.add(bgLayer);
+                
+                // Sky
+                const sky = new Konva.Rect({
                     width: playModeStage.width(),
                     height: playModeStage.height(),
-                    fill: '#fcfcfc'
+                    fill: '#E3F2FD' // Light Blue
                 });
-                playModeLayer.add(bg);
+                bgLayer.add(sky);
                 
-                // Add some initial text instructions on canvas
-                const text = new Konva.Text({
-                    x: 20, y: 20,
-                    text: 'Tap stickers in the grid to add them,\nthen drag them here!',
-                    fontSize: 18,
-                    fontFamily: 'Comic Neue',
-                    fill: '#aaa'
+                // Ground
+                const groundHeight = 150; // Taller ground
+                const ground = new Konva.Rect({
+                    x: 0,
+                    y: playModeStage.height() - groundHeight,
+                    width: playModeStage.width(),
+                    height: groundHeight,
+                    fill: '#C8E6C9' // Light Green
                 });
-                playModeLayer.add(text);
+                bgLayer.add(ground);
+
+                // Sun
+                const sun = new Konva.Circle({
+                    x: playModeStage.width() - 80,
+                    y: 80,
+                    radius: 50,
+                    fill: '#FFF59D',
+                    shadowBlur: 20,
+                    shadowColor: '#FFD54F',
+                    opacity: 0.9
+                });
+                bgLayer.add(sun);
+
+                // --- SILHOUETTES (SCENERY) ---
                 
-                // Resize listener
+                // 1. House
+                Konva.Image.fromURL('ShapesAndColors/images/puzzle-house.png', function(houseNode) {
+                    const h = 180; 
+                    const w = h * (houseNode.width() / houseNode.height()); 
+                    houseNode.setAttrs({
+                        x: 40,
+                        y: playModeStage.height() - groundHeight - h + 20, // Sits on ground
+                        width: w,
+                        height: h,
+                        opacity: 0.7, // Semi-transparent silhouette
+                    });
+                    bgLayer.add(houseNode);
+                });
+
+                // 2. Train (Added as per plan)
+                Konva.Image.fromURL('ShapesAndColors/images/puzzle-train.png', function(trainNode) {
+                    const h = 120; 
+                    const w = h * (trainNode.width() / trainNode.height()); 
+                    trainNode.setAttrs({
+                        x: playModeStage.width() - w - 40,
+                        y: playModeStage.height() - groundHeight - h + 20,
+                        width: w,
+                        height: h,
+                        opacity: 0.7,
+                    });
+                    bgLayer.add(trainNode);
+                });
+
+
+                // 2. Sticker Layer (Draggable Items)
+                playModeLayer = new Konva.Layer();
+                playModeStage.add(playModeLayer);
+                
+                // Resize listener to keep background covering full area
                 new ResizeObserver(() => {
-                     playModeStage.width(container.clientWidth);
-                     playModeStage.height(container.clientHeight);
-                     bg.width(container.clientWidth);
-                     bg.height(container.clientHeight);
+                     if(!playModeStage) return;
+                     const w = container.clientWidth;
+                     const h = container.clientHeight;
+                     playModeStage.width(w);
+                     playModeStage.height(h);
+                     sky.width(w); sky.height(h);
+                     ground.y(h - groundHeight); ground.width(w);
+                     sun.x(w - 80);
                 }).observe(container);
-            }
-            
-            // Populate canvas with already owned stickers (just a random few for fun)
-            if (playModeLayer.getChildren().length <= 2) {
-                const myStickers = window.StickerManager.getInventory();
-                const allData = window.StickerManager.getStickerData();
-                myStickers.slice(0, 3).forEach((key, i) => {
-                     addKonvaSticker(allData[key].icon, 50 + (i*60), 100);
-                });
             }
         }
 
         function addToCanvas(iconChar) {
             if (!playModeStage) return;
-            // Add random position near center
-            const x = playModeStage.width() / 2 + (Math.random() * 40 - 20);
-            const y = playModeStage.height() / 2 + (Math.random() * 40 - 20);
+            // Add random position in the "sky" area mostly
+            const x = playModeStage.width() / 2 + (Math.random() * 100 - 50);
+            const y = playModeStage.height() / 3 + (Math.random() * 60 - 30);
             addKonvaSticker(iconChar, x, y);
         }
 
@@ -286,15 +329,23 @@
                 x: x,
                 y: y,
                 text: iconChar,
-                fontSize: 60,
-                draggable: true
+                fontSize: 70, // Bigger stickers
+                draggable: true,
+                shadowColor: 'black',
+                shadowBlur: 2,
+                shadowOpacity: 0.2,
+                shadowOffset: {x : 2, y : 2}
             });
 
             textNode.on('mouseover', function () {
                 document.body.style.cursor = 'pointer';
+                this.scale({x: 1.1, y: 1.1});
+                playModeLayer.batchDraw();
             });
             textNode.on('mouseout', function () {
                 document.body.style.cursor = 'default';
+                this.scale({x: 1, y: 1});
+                playModeLayer.batchDraw();
             });
             textNode.on('click tap', function() {
                  this.moveToTop();
@@ -303,6 +354,7 @@
             // Double tap to remove
             textNode.on('dblclick dbltap', function() {
                 this.destroy();
+                playModeLayer.batchDraw();
             });
 
             playModeLayer.add(textNode);

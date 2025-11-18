@@ -254,7 +254,9 @@ h1 {
 /* Play Mode Canvas */
 #sticker-canvas-container {
     width: 100%;
-    height: 350px;
+    /* Make it occupy 55% of the screen height, or at least 400px */
+    height: 55vh; 
+    min-height: 400px;
     background-color: #fff;
     border: 4px dashed #FFD700;
     border-radius: 15px;

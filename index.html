@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kids Learning Hub</title>
     <meta name="theme-color" content="#f0f8ff">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">   
     <link rel="icon" type="image/png" sizes="192x192" href="images/android-chrome-192x192.png">
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <link rel="shortcut icon" href="images/favicon.ico">
@@ -19,7 +19,7 @@
 <body>
 
     <h1 id="logo-header" style="cursor: pointer;">
-        <img src="images/logo.png" alt="Kids Learning Hub Logo" class="title-logo">
+        <img src="images/logo.png" alt="Kids Learning Hub Logo" class="title-logo"> 
         Kids Learning Hub
     </h1>
 
@@ -30,7 +30,7 @@
 
         <div id="sticker-overlay" class="hidden" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
             <div style="background:#fff; width:90%; max-width:600px; height:85%; border-radius:20px; padding:20px; overflow-y:auto; display:flex; flex-direction:column; align-items:center; position: relative;">
-
+                
                 <div style="width:100%; display:flex; justify-content:space-between; align-items: center;">
                     <button id="toggle-play-mode" style="background:#2196F3; color:white; border:none; padding: 8px 15px; border-radius:20px; cursor:pointer; font-family: 'Comic Neue'; font-weight: bold;">
                         🎨 Play Mode
@@ -39,7 +39,7 @@
                 </div>
 
                 <h1 style="margin-top:10px; font-size: 2.5em;">My Stickers</h1>
-
+                
                 <div id="sticker-progress-container">
                     <div id="sticker-progress-bar">0%</div>
                 </div>
@@ -144,7 +144,7 @@
             contentContainer.classList.toggle('play-mode-active');
             const isPlayMode = contentContainer.classList.contains('play-mode-active');
             document.getElementById('toggle-play-mode').textContent = isPlayMode ? "Back to Grid" : "🎨 Play Mode";
-
+            
             if (isPlayMode) {
                 initPlayMode();
             }
@@ -156,7 +156,7 @@
 
             const allStickers = window.StickerManager.getStickerData();
             const myStickers = window.StickerManager.getInventory();
-
+            
             // Update Progress Bar
             const total = Object.keys(allStickers).length;
             const earned = myStickers.length;
@@ -169,7 +169,7 @@
             for (const [key, data] of Object.entries(allStickers)) {
                 const isOwned = myStickers.includes(key);
                 const slot = document.createElement('div');
-
+                
                 // Use specific class for locked items to get the silhouette effect
                 const iconClass = isOwned ? '' : 'sticker-locked';
 
@@ -187,13 +187,13 @@
                         ${data.icon}
                     </div>
                     <span style="
-                        font-family:'Comic Neue';
-                        font-weight:bold;
-                        margin-top:5px;
-                        font-size:0.75em;
-                        color:#333;
-                        text-align:center;
-                        line-height:1.1;
+                        font-family:'Comic Neue'; 
+                        font-weight:bold; 
+                        margin-top:5px; 
+                        font-size:0.75em; 
+                        color:#333; 
+                        text-align:center; 
+                        line-height:1.1; 
                         width: 100%;
                         padding: 0 5px;
                         box-sizing: border-box;
@@ -208,7 +208,7 @@
                         // Bounce Animation
                         slot.classList.add('bounce');
                         setTimeout(() => slot.classList.remove('bounce'), 500);
-
+                        
                         // Speech
                         if (window.speakText) window.speakText(data.speech || data.name);
 
@@ -222,17 +222,11 @@
                 stickerGrid.appendChild(slot);
             }
         }
-            // If entering play mode, refresh the sticker list there (simplified for now)
-            if (contentContainer.classList.contains('play-mode-active')) {
-                // In play mode, we show the canvas, but we could show a small sidebar of stickers.
-                // For simplicity, let's keep the logic simple: Toggle between "View" and "Play".
-            }
-        }
 
         // --- 3. KONVA PLAY MODE ---
         function initPlayMode() {
             const container = document.getElementById('sticker-canvas-container');
-
+            
             if (!playModeStage) {
                 playModeStage = new Konva.Stage({
                     container: 'play-canvas',
@@ -249,7 +243,7 @@
                     fill: '#fcfcfc'
                 });
                 playModeLayer.add(bg);
-
+                
                 // Add some initial text instructions on canvas
                 const text = new Konva.Text({
                     x: 20, y: 20,
@@ -259,7 +253,7 @@
                     fill: '#aaa'
                 });
                 playModeLayer.add(text);
-
+                
                 // Resize listener
                 new ResizeObserver(() => {
                      playModeStage.width(container.clientWidth);
@@ -268,7 +262,7 @@
                      bg.height(container.clientHeight);
                 }).observe(container);
             }
-
+            
             // Populate canvas with already owned stickers (just a random few for fun)
             if (playModeLayer.getChildren().length <= 2) {
                 const myStickers = window.StickerManager.getInventory();
@@ -303,11 +297,9 @@
                 document.body.style.cursor = 'default';
             });
             textNode.on('click tap', function() {
-                 // Bring to front
                  this.moveToTop();
-                 // Play sound again?
             });
-
+            
             // Double tap to remove
             textNode.on('dblclick dbltap', function() {
                 this.destroy();

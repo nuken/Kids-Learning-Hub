@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kids Learning Hub</title>
     <meta name="theme-color" content="#f0f8ff">
-    <link rel="manifest" href="manifest.json">   
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="images/android-chrome-192x192.png">
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <link rel="shortcut icon" href="images/favicon.ico">
@@ -13,145 +13,310 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-	<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/konva@10/konva.min.js"></script>
 </head>
 <body>
 
-    <h1><img src="images/logo.png" alt="Kids Learning Hub Logo" class="title-logo"> Kids Learning Hub</h1>
+    <h1 id="logo-header" style="cursor: pointer;">
+        <img src="images/logo.png" alt="Kids Learning Hub Logo" class="title-logo">
+        Kids Learning Hub
+    </h1>
+
     <div class="menu-container">
-    <button id="open-sticker-book" class="menu-btn" style="background-color: #ffffff; color: #333; border: 4px solid #FFD700; margin-bottom: 5px;">
-    ⭐ My Sticker Book
-</button>
+        <button id="open-sticker-book" class="menu-btn" style="background-color: #ffffff; color: #333; border: 4px solid #FFD700; margin-bottom: 5px;">
+            ⭐ My Sticker Book
+        </button>
 
-    <div id="sticker-overlay" class="hidden" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
-    <div style="background:#fff; width:90%; max-width:600px; height:80%; border-radius:20px; padding:20px; overflow-y:auto; display:flex; flex-direction:column; align-items:center;">
-        <div style="width:100%; display:flex; justify-content:flex-end;">
-             <button id="close-sticker-book" style="background:#f44336; color:white; border:none; font-size:1.5em; width:40px; height:40px; border-radius:50%; cursor:pointer;">&times;</button>
-        </div>
-        <h1 style="margin-top:0;">My Stickers</h1>
-        <div id="sticker-grid" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding:20px;">
+        <div id="sticker-overlay" class="hidden" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+            <div style="background:#fff; width:90%; max-width:600px; height:85%; border-radius:20px; padding:20px; overflow-y:auto; display:flex; flex-direction:column; align-items:center; position: relative;">
+
+                <div style="width:100%; display:flex; justify-content:space-between; align-items: center;">
+                    <button id="toggle-play-mode" style="background:#2196F3; color:white; border:none; padding: 8px 15px; border-radius:20px; cursor:pointer; font-family: 'Comic Neue'; font-weight: bold;">
+                        🎨 Play Mode
+                    </button>
+                    <button id="close-sticker-book" style="background:#f44336; color:white; border:none; font-size:1.5em; width:40px; height:40px; border-radius:50%; cursor:pointer;">&times;</button>
+                </div>
+
+                <h1 style="margin-top:10px; font-size: 2.5em;">My Stickers</h1>
+
+                <div id="sticker-progress-container">
+                    <div id="sticker-progress-bar">0%</div>
+                </div>
+
+                <div id="sticker-grid" style="display:flex; flex-wrap:wrap; gap:15px; justify-content:center; padding:10px; width: 100%;"></div>
+
+                <div id="sticker-canvas-container">
+                    <div id="play-canvas"></div>
+                    <p style="position:absolute; bottom:5px; width:100%; text-align:center; color:#999; font-size:0.8em; pointer-events:none;">
+                        Drag stickers here! (Tap 'Play Mode' again to go back)
+                    </p>
+                </div>
+
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <button id="reset-stickers-btn" style="background:none; border:none; color:#999; text-decoration:underline; cursor:pointer; font-size: 0.9em;">Reset Progress</button>
+                </div>
             </div>
-    </div>
-</div>
+        </div>
 
-	<a href="./VideoTime/index.html" class="video-link-btn" title="Video Time!">
+        <a href="./VideoTime/index.html" class="video-link-btn" title="Video Time!">
             <i class="fas fa-play-circle"></i>
         </a>
-        <a href="Alphabet/index.html" class="menu-btn" id="alphabet-btn">
-            Alphabet Fun
-        </a>
-        
-        <a href="Number/index.html" class="menu-btn" id="number-btn">
-            Numbers Fun
-        </a>
-        
-        <a href="Coloring/index.html" class="menu-btn" id="coloring-btn">
-            Coloring Book
-        </a>
-		
-		<a href="Spelling/index.html" class="menu-btn" id="spelling-btn">
-            Let's Spell
-        </a>
+        <a href="Alphabet/index.html" class="menu-btn" id="alphabet-btn">Alphabet Fun</a>
+        <a href="Number/index.html" class="menu-btn" id="number-btn">Numbers Fun</a>
+        <a href="Coloring/index.html" class="menu-btn" id="coloring-btn">Coloring Book</a>
+        <a href="Spelling/index.html" class="menu-btn" id="spelling-btn">Let's Spell</a>
+        <a href="ShapesAndColors/index.html" class="menu-btn" id="shapes-colors-btn">Shapes & Colors</a>
+    </div>
 
-         <a href="ShapesAndColors/index.html" class="menu-btn" id="shapes-colors-btn">
-            Shapes & Colors
-        </a>
-        </div>
-<script>
+    <script src="Helper-Scripts/speech-module.js"></script>
+    <script src="Helper-Scripts/sticker-module.js"></script>
+
+    <script>
+        // --- 1. INITIALIZATION & EASTER EGGS ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Speech Warmup
             let speechApiWarmedUp = false;
-
-            /**
-             * This function speaks a silent, empty utterance in response to a user
-             * gesture. This is required to "unlock" the Web Speech API in
-             * many desktop browsers (like Chrome on Windows).
-             */
             function warmUpSpeechAPI() {
-                if (speechApiWarmedUp || !window.speechSynthesis) {
-                    return;
-                }
-                
-                // Create a silent, empty utterance
+                if (speechApiWarmedUp || !window.speechSynthesis) return;
                 const utterance = new SpeechSynthesisUtterance("");
                 utterance.volume = 0;
-                
-                // Speak it to unlock the API
                 window.speechSynthesis.speak(utterance);
-                
-                // Also, proactively start fetching the voice list
                 window.speechSynthesis.getVoices();
-                
                 speechApiWarmedUp = true;
             }
-
-            // Add the listener to all menu buttons
-            const buttons = document.querySelectorAll('.menu-btn');
-            buttons.forEach(btn => {
-                // We use 'mousedown' as it fires just before navigation,
-                // giving the command the best chance to execute.
+            document.querySelectorAll('.menu-btn').forEach(btn => {
                 btn.addEventListener('mousedown', warmUpSpeechAPI);
             });
+
+            // EASTER EGG 1: THE CLICKER (Click logo 10 times)
+            let logoClicks = 0;
+            document.getElementById('logo-header').addEventListener('click', () => {
+                logoClicks++;
+                if(logoClicks === 10) {
+                    window.StickerManager.awardSticker('clicker_owl');
+                }
+            });
+
+            // EASTER EGG 2: NIGHT OWL (Visit after 7PM)
+            const hour = new Date().getHours();
+            if (hour >= 19 || hour <= 5) { // 7 PM to 5 AM
+                setTimeout(() => {
+                    window.StickerManager.awardSticker('night_owl');
+                }, 1000);
+            }
         });
-    </script>
-    <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => {
-          console.log('Service Worker registered!');
-        })
-        .catch(err => {
-          console.log('Service Worker registration failed: ', err);
-        });
-    });
-  }
-</script>
-<script src="Helper-Scripts/sticker-module.js"></script>
-<script>
-    const stickerOverlay = document.getElementById('sticker-overlay');
-    const stickerGrid = document.getElementById('sticker-grid');
 
-    document.getElementById('open-sticker-book').addEventListener('click', () => {
-        // Explicitly set display to flex when opening
-        stickerOverlay.style.display = 'flex';
-        renderStickers();
-    });
-
-    document.getElementById('close-sticker-book').addEventListener('click', () => {
-        // Explicitly set display to none when closing
-        stickerOverlay.style.display = 'none';
-    });
-
-    function renderStickers() {
-        stickerGrid.innerHTML = '';
-        // Check if the manager exists before trying to use it
-        if (!window.StickerManager) return;
-
-        const allStickers = window.StickerManager.getStickerData();
-        const myStickers = window.StickerManager.getInventory();
-
-        for (const [key, data] of Object.entries(allStickers)) {
-            const isOwned = myStickers.includes(key);
-            const slot = document.createElement('div');
-            slot.style.cssText = `
-                width: 100px; height: 120px; display:flex; flex-direction:column;
-                align-items:center; justify-content:center; border-radius:15px;
-                background: ${isOwned ? '#e8f5e9' : '#eee'};
-                border: 3px solid ${isOwned ? data.color : '#ccc'};
-                opacity: ${isOwned ? '1' : '0.6'};
-            `;
-
-            slot.innerHTML = `
-                <div style="font-size: 50px; filter: ${isOwned ? 'none' : 'grayscale(100%) brightness(1.5)'};">
-                    ${isOwned ? data.icon : '❔'}
-                </div>
-                <span style="font-family:'Comic Neue'; font-weight:bold; margin-top:5px; font-size:0.9em; color:#333;">
-                    ${isOwned ? data.name : 'Locked'}
-                </span>
-            `;
-            stickerGrid.appendChild(slot);
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW fail', err));
+            });
         }
-    }
-</script>
+
+        // --- 2. STICKER BOOK LOGIC ---
+        const stickerOverlay = document.getElementById('sticker-overlay');
+        const stickerGrid = document.getElementById('sticker-grid');
+        const contentContainer = stickerOverlay.children[0];
+        let playModeStage = null;
+        let playModeLayer = null;
+
+        document.getElementById('open-sticker-book').addEventListener('click', () => {
+            stickerOverlay.style.display = 'flex';
+            renderStickers();
+        });
+
+        document.getElementById('close-sticker-book').addEventListener('click', () => {
+            stickerOverlay.style.display = 'none';
+        });
+
+        // Reset Logic
+        document.getElementById('reset-stickers-btn').addEventListener('click', () => {
+            if(confirm("Are you sure you want to delete all stickers and start over?")) {
+                localStorage.removeItem('klh_sticker_inventory');
+                if(playModeLayer) playModeLayer.destroyChildren(); // Clear canvas
+                renderStickers();
+            }
+        });
+
+        // Toggle Play Mode
+        document.getElementById('toggle-play-mode').addEventListener('click', () => {
+            contentContainer.classList.toggle('play-mode-active');
+            const isPlayMode = contentContainer.classList.contains('play-mode-active');
+            document.getElementById('toggle-play-mode').textContent = isPlayMode ? "Back to Grid" : "🎨 Play Mode";
+
+            if (isPlayMode) {
+                initPlayMode();
+            }
+        });
+
+        function renderStickers() {
+            stickerGrid.innerHTML = '';
+            if (!window.StickerManager) return;
+
+            const allStickers = window.StickerManager.getStickerData();
+            const myStickers = window.StickerManager.getInventory();
+
+            // Update Progress Bar
+            const total = Object.keys(allStickers).length;
+            const earned = myStickers.length;
+            const pct = Math.round((earned / total) * 100);
+            const bar = document.getElementById('sticker-progress-bar');
+            bar.style.width = `${pct}%`;
+            bar.textContent = `${earned} / ${total} Found`;
+
+            // Render Grid
+            for (const [key, data] of Object.entries(allStickers)) {
+                const isOwned = myStickers.includes(key);
+                const slot = document.createElement('div');
+
+                // Use specific class for locked items to get the silhouette effect
+                const iconClass = isOwned ? '' : 'sticker-locked';
+
+                slot.className = 'sticker-slot';
+                slot.style.cssText = `
+                    width: 100px; height: 120px; display:flex; flex-direction:column;
+                    align-items:center; justify-content:center; border-radius:15px;
+                    background: ${isOwned ? '#fff' : '#f0f0f0'};
+                    border: 3px solid ${isOwned ? data.color : '#ccc'};
+                    box-shadow: ${isOwned ? '0 4px 6px rgba(0,0,0,0.1)' : 'none'};
+                `;
+
+                slot.innerHTML = `
+                    <div class="${iconClass}" style="font-size: 50px; transition: transform 0.2s;">
+                        ${data.icon}
+                    </div>
+                    <span style="
+                        font-family:'Comic Neue';
+                        font-weight:bold;
+                        margin-top:5px;
+                        font-size:0.75em;
+                        color:#333;
+                        text-align:center;
+                        line-height:1.1;
+                        width: 100%;
+                        padding: 0 5px;
+                        box-sizing: border-box;
+                    ">
+                        ${isOwned ? data.name : '???'}
+                    </span>
+                `;
+
+                // Click to Speak
+                if (isOwned) {
+                    slot.addEventListener('click', () => {
+                        // Bounce Animation
+                        slot.classList.add('bounce');
+                        setTimeout(() => slot.classList.remove('bounce'), 500);
+
+                        // Speech
+                        if (window.speakText) window.speakText(data.speech || data.name);
+
+                        // If in play mode, add to canvas
+                        if (contentContainer.classList.contains('play-mode-active')) {
+                            addToCanvas(data.icon);
+                        }
+                    });
+                }
+
+                stickerGrid.appendChild(slot);
+            }
+        }
+            // If entering play mode, refresh the sticker list there (simplified for now)
+            if (contentContainer.classList.contains('play-mode-active')) {
+                // In play mode, we show the canvas, but we could show a small sidebar of stickers.
+                // For simplicity, let's keep the logic simple: Toggle between "View" and "Play".
+            }
+        }
+
+        // --- 3. KONVA PLAY MODE ---
+        function initPlayMode() {
+            const container = document.getElementById('sticker-canvas-container');
+
+            if (!playModeStage) {
+                playModeStage = new Konva.Stage({
+                    container: 'play-canvas',
+                    width: container.clientWidth,
+                    height: container.clientHeight
+                });
+                playModeLayer = new Konva.Layer();
+                playModeStage.add(playModeLayer);
+
+                // Add a background rect to receive clicks
+                const bg = new Konva.Rect({
+                    width: playModeStage.width(),
+                    height: playModeStage.height(),
+                    fill: '#fcfcfc'
+                });
+                playModeLayer.add(bg);
+
+                // Add some initial text instructions on canvas
+                const text = new Konva.Text({
+                    x: 20, y: 20,
+                    text: 'Tap stickers in the grid to add them,\nthen drag them here!',
+                    fontSize: 18,
+                    fontFamily: 'Comic Neue',
+                    fill: '#aaa'
+                });
+                playModeLayer.add(text);
+
+                // Resize listener
+                new ResizeObserver(() => {
+                     playModeStage.width(container.clientWidth);
+                     playModeStage.height(container.clientHeight);
+                     bg.width(container.clientWidth);
+                     bg.height(container.clientHeight);
+                }).observe(container);
+            }
+
+            // Populate canvas with already owned stickers (just a random few for fun)
+            if (playModeLayer.getChildren().length <= 2) {
+                const myStickers = window.StickerManager.getInventory();
+                const allData = window.StickerManager.getStickerData();
+                myStickers.slice(0, 3).forEach((key, i) => {
+                     addKonvaSticker(allData[key].icon, 50 + (i*60), 100);
+                });
+            }
+        }
+
+        function addToCanvas(iconChar) {
+            if (!playModeStage) return;
+            // Add random position near center
+            const x = playModeStage.width() / 2 + (Math.random() * 40 - 20);
+            const y = playModeStage.height() / 2 + (Math.random() * 40 - 20);
+            addKonvaSticker(iconChar, x, y);
+        }
+
+        function addKonvaSticker(iconChar, x, y) {
+            const textNode = new Konva.Text({
+                x: x,
+                y: y,
+                text: iconChar,
+                fontSize: 60,
+                draggable: true
+            });
+
+            textNode.on('mouseover', function () {
+                document.body.style.cursor = 'pointer';
+            });
+            textNode.on('mouseout', function () {
+                document.body.style.cursor = 'default';
+            });
+            textNode.on('click tap', function() {
+                 // Bring to front
+                 this.moveToTop();
+                 // Play sound again?
+            });
+
+            // Double tap to remove
+            textNode.on('dblclick dbltap', function() {
+                this.destroy();
+            });
+
+            playModeLayer.add(textNode);
+            playModeLayer.batchDraw();
+        }
+
+    </script>
 </body>
 </html>

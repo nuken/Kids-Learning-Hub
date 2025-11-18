@@ -358,6 +358,9 @@
             if (clickedShape === currentShapeProblem.shape) {
                 playSound(correctSound);
                 webDisplay.style.backgroundImage = `url('${currentShapeProblem.filledImage}')`;
+                if (currentShapeProblem.shape === 'hexagon') {
+                    window.StickerManager.awardSticker('shape_shifter');
+                }
                 nextShapeButton.classList.remove('hidden');
                 if (window.playConfettiEffect) window.playConfettiEffect();
                 if (friendlySpider) {
@@ -857,9 +860,6 @@
             if (allSolved) {
                 isPuzzleSolved = true;
                 if (window.playConfettiEffect) window.playConfettiEffect();
-                if (currentShapeProblem.shape === 'hexagon') {
-     window.StickerManager.awardSticker('shape_shifter');
-}
                 if (window.speakText) window.speakText("Great job!");
                 nextPuzzleButton.classList.remove('hidden');
             }

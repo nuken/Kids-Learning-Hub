@@ -194,3 +194,74 @@ h1 {
     animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+/* --- Sticker Book Upgrades --- */
+
+/* Silhouette Effect for locked stickers */
+.sticker-locked {
+    filter: brightness(0) opacity(0.2);
+    pointer-events: none;
+}
+
+/* Click animation */
+.sticker-slot {
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.sticker-slot:active {
+    transform: scale(0.9);
+}
+.sticker-slot.bounce {
+    animation: stickerBounce 0.5s;
+}
+@keyframes stickerBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* Progress Bar */
+#sticker-progress-container {
+    width: 100%;
+    background-color: #eee;
+    border-radius: 10px;
+    margin: 10px 0 20px 0;
+    height: 25px;
+    overflow: hidden;
+    border: 2px solid #ccc;
+}
+#sticker-progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    width: 0%;
+    transition: width 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9em;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Modal Open Animation */
+#sticker-overlay > div {
+    animation: bookOpen 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes bookOpen {
+    0% { transform: scale(0) rotateY(90deg); opacity: 0; }
+    100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+/* Play Mode Canvas */
+#sticker-canvas-container {
+    width: 100%;
+    height: 350px;
+    background-color: #fff;
+    border: 4px dashed #FFD700;
+    border-radius: 15px;
+    margin-top: 20px;
+    overflow: hidden;
+    display: none; /* Hidden by default */
+    position: relative;
+}
+.play-mode-active #sticker-grid { display: none; }
+.play-mode-active #sticker-canvas-container { display: block; }

@@ -1,6 +1,6 @@
 /*
  * =================================================================
- * MASTER SPEECH MODULE (Updated for iOS Quality)
+ * MASTER SPEECH MODULE (Optimized for Windows & iOS)
  * =================================================================
  */
 
@@ -11,81 +11,109 @@ window.preferredVoice = null; // Store the selected voice globally
 
 /**
  * Loads voices and intelligently picks the best "human-sounding" one
- * available on the device (prioritizing iOS premium voices).
+ * available on the device (prioritizing iOS premium and Windows Natural voices).
  */
 window.loadVoices = function() {
     if (window.voiceList.length > 0) return; // Already loaded
-
+    
     window.voiceList = window.speechSynthesis.getVoices();
 
-    // Run the Smart Voice Hunting Logic
-    if (!window.preferredVoice && window.voiceList.length > 0) {
+    if (window.voiceList.length > 0) {
+        // Reset preferred voice to ensure we pick the best one if the list changed
+        window.preferredVoice = null; 
 
-        // 1. Check for a saved preference (if you add settings later)
+        // 1. Check for a manually saved preference (if you add settings later)
         const savedName = localStorage.getItem('klh_preferred_voice');
         if (savedName) {
             window.preferredVoice = window.voiceList.find(v => v.name === savedName);
         }
 
-        // 2. If no preference, hunt for high-quality Apple voices
+        // 2. Windows/Edge "Natural" Voices (Best quality on Windows)
+        //    Looks for "Microsoft Aria Online (Natural)", "Guy", etc.
         if (!window.preferredVoice) {
-            const iosFavorites = ['Samantha', 'Daniel', 'Karen', 'Moira', 'Rishi', 'Tessa'];
-            window.preferredVoice = window.voiceList.find(v => iosFavorites.includes(v.name) && v.lang.startsWith('en'));
-        }
-
-        // 3. Look for any "Enhanced" or "Siri" voice (often hidden high-quality gems)
-        if (!window.preferredVoice) {
-            window.preferredVoice = window.voiceList.find(v =>
-                (v.name.includes('Enhanced') || v.name.includes('Siri')) && v.lang.startsWith('en')
+            const winHighQuality = ['Natural', 'Online', 'Google US English'];
+            window.preferredVoice = window.voiceList.find(v => 
+                v.lang.startsWith('en') && 
+                winHighQuality.some(keyword => v.name.includes(keyword))
             );
         }
 
-        // 4. Fallback: Default US English
+        // 3. iOS/Mac High-Quality Favorites
+        if (!window.preferredVoice) {
+            const iosFavorites = ['Samantha', 'Daniel', 'Karen', 'Moira', 'Rishi', 'Tessa'];
+            window.preferredVoice = window.voiceList.find(v => 
+                v.lang.startsWith('en') && iosFavorites.includes(v.name)
+            );
+        }
+
+        // 4. iOS "Enhanced" or "Siri" (Hidden gems)
+        if (!window.preferredVoice) {
+            window.preferredVoice = window.voiceList.find(v => 
+                v.lang.startsWith('en') && 
+                (v.name.includes('Enhanced') || v.name.includes('Siri'))
+            );
+        }
+
+        // 5. Fallback: Default US English
         if (!window.preferredVoice) {
             window.preferredVoice = window.voiceList.find(v => v.lang === 'en-US' && v.default);
         }
 
-        // 5. Final Fallback: Any US English voice
+        // 6. Final Fallback: Any US English voice
         if (!window.preferredVoice) {
             window.preferredVoice = window.voiceList.find(v => v.lang === 'en-US');
+        }
+        
+        if (window.preferredVoice) {
+            console.log("Selected Voice:", window.preferredVoice.name);
         }
     }
 };
 
 // Try to load immediately
 window.loadVoices();
-// Ensure we load again when the browser reports voices are ready (vital for Safari)
+// Ensure we load again when the browser reports voices are ready
 window.speechSynthesis.onvoiceschanged = window.loadVoices;
 
 
 /**
- * Speaks text with specific optimizations for iOS devices.
+ * Speaks text with specific optimizations for iOS (Pitch/Rate) and Windows (Wake-up Primer).
  * @param {string} text - The text to speak.
  * @param {function} [onEndCallback] - Optional callback.
  */
 window.speakText = function(text, onEndCallback) {
     window.speechSynthesis.cancel(); // Stop any overlap
 
-    // Safari sometimes returns an empty list initially. Try loading again.
+    // Safari/Chrome sometimes return an empty list initially. Try loading again.
     if (window.voiceList.length === 0) {
         window.loadVoices();
+    }
+
+    // --- WINDOWS FIX: Audio Wake-Up ---
+    // Windows audio drivers often sleep, cutting off the first word.
+    // We queue a fast, nearly silent "primer" to wake it up first.
+    if (navigator.platform.indexOf('Win') > -1) {
+        const primer = new SpeechSynthesisUtterance("_");
+        primer.volume = 0.01; // Just enough to engage the speaker
+        primer.rate = 10;     // Super fast to minimize delay
+        window.speechSynthesis.speak(primer);
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
 
     // --- iOS OPTIMIZATIONS ---
     // Detect if we are on an Apple mobile device
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     if (isIOS) {
-        // iOS default voices are often deep/slow.
+        // iOS default voices are often deep/slow. 
         // We speed them up and raise pitch slightly to sound friendlier.
-        utterance.rate = 1.05;
-        utterance.pitch = 1.1;
+        utterance.rate = 1.05; 
+        utterance.pitch = 1.1; 
     } else {
         // Standard settings for Windows/Android
-        utterance.rate = 0.9;
+        utterance.rate = 0.9; 
         utterance.pitch = 1.0;
     }
 
@@ -94,7 +122,7 @@ window.speakText = function(text, onEndCallback) {
         utterance.voice = window.preferredVoice;
         // **CRITICAL FIX**: Explicitly set the lang matching the voice.
         // This prevents Safari from using a French accent if the voice has a hidden lang tag.
-        utterance.lang = window.preferredVoice.lang;
+        utterance.lang = window.preferredVoice.lang; 
     } else {
         utterance.lang = 'en-US';
     }
@@ -106,11 +134,11 @@ window.speakText = function(text, onEndCallback) {
     window.speechSynthesis.speak(utterance);
 };
 
+
 // --- PART 2: AUDIO UNLOCKER LOGIC ---
-// (From Alphabet/unlock-speech.js)
+// (Keeps mobile browsers happy by unlocking audio on the first touch)
 
 ;(function globalUnlockSpeech() {
-  // Detect mobile devices
   function isMobile() {
     if (navigator.userAgentData && navigator.userAgentData.mobile !== undefined) {
       return navigator.userAgentData.mobile;
@@ -118,12 +146,6 @@ window.speakText = function(text, onEndCallback) {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
-  // Detect desktop
-  function isDesktop() {
-    return !isMobile();
-  }
-
-  // Try to resume an AudioContext
   async function resumeAudio() {
     try {
       const context = (window.__unlockAudioContext && window.__unlockAudioContext.context) || new (window.AudioContext || window.webkitAudioContext)();
@@ -137,16 +159,13 @@ window.speakText = function(text, onEndCallback) {
         src.connect(context.destination);
         src.start(0);
         window.__unlockAudioContext = { context, _unlockSrc: src };
-      } catch (e) {
-        // Non-fatal
-      }
+      } catch (e) {}
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  // Small speechSynthesis utterance to unlock speech
   function speakUnlockUtterance() {
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) {
@@ -154,14 +173,13 @@ window.speakText = function(text, onEndCallback) {
         return;
       }
       try {
-        const voices = speechSynthesis.getVoices();
         const utter = new SpeechSynthesisUtterance('');
         utter.volume = 0;
-        utter.text = ' '; // Use a single space
+        utter.text = ' '; 
         utter.onend = () => resolve(true);
         utter.onerror = () => resolve(false);
         speechSynthesis.speak(utter);
-        setTimeout(() => resolve(true), 500); // Fallback timer
+        setTimeout(() => resolve(true), 500); 
       } catch (e) {
         resolve(false);
       }
@@ -174,15 +192,7 @@ window.speakText = function(text, onEndCallback) {
     return audioResumed || speechRes;
   }
 
-  // Public function to call on load
   window.unlockSpeechIfNeeded = function unlockSpeechIfNeeded() {
-
-    // This was targeting desktops, but for iOS we need it on mobile too.
-    // Let's just run it on all devices for simplicity.
-    // if (!isDesktop()) {
-    //   return Promise.resolve(false);
-    // }
-
     const mayNeedUnlock = !!(window.AudioContext || window.webkitAudioContext) || 'speechSynthesis' in window;
     if (!mayNeedUnlock) return Promise.resolve(false);
 
@@ -191,7 +201,6 @@ window.speakText = function(text, onEndCallback) {
       const tryUnlockNow = async (event) => {
         if (handled) return;
         handled = true;
-
         try {
           const ok = await unlockRoutine();
           cleanup();
@@ -212,7 +221,6 @@ window.speakText = function(text, onEndCallback) {
       document.addEventListener('keydown', tryUnlockNow, true);
       document.addEventListener('touchstart', tryUnlockNow, true);
 
-      // Timeout
       setTimeout(() => {
         if (!handled) {
           handled = true;
@@ -227,11 +235,7 @@ window.speakText = function(text, onEndCallback) {
 /**
  * Creates a full-screen confetti "win" animation.
  */
-/**
- * Creates a full-screen confetti "win" animation.
- */
 window.playConfettiEffect = function() {
-    // 1. Setup Canvas
     const canvas = document.createElement('canvas');
     canvas.style.position = 'fixed';
     canvas.style.top = '0';
@@ -248,19 +252,16 @@ window.playConfettiEffect = function() {
     canvas.width = width;
     canvas.height = height;
 
-    // 2. Config
     const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#9C27B0'];
-    // Shapes: 0=Circle, 1=Square, 2=Triangle
     const particles = [];
     const numParticles = 100; 
 
-    // 3. Create Particles
     for (let i = 0; i < numParticles; i++) {
         particles.push({
             x: Math.random() * width,
-            y: Math.random() * height - height, // Start above screen
-            vx: Math.random() * 2 - 1,          // Horizontal drift
-            vy: Math.random() * 3 + 2,          // Falling speed
+            y: Math.random() * height - height,
+            vx: Math.random() * 2 - 1,
+            vy: Math.random() * 3 + 2,
             color: colors[Math.floor(Math.random() * colors.length)],
             shape: Math.floor(Math.random() * 3), 
             size: Math.random() * 10 + 5,
@@ -269,116 +270,74 @@ window.playConfettiEffect = function() {
         });
     }
 
-    // 4. Animation Loop
     let startTime = Date.now();
-    const duration = 5000; // 5 seconds
+    const duration = 5000; 
 
     function animate() {
         const now = Date.now();
         const elapsed = now - startTime;
-
         if (elapsed > duration) {
-            canvas.remove(); // Cleanup
+            canvas.remove();
             return;
         }
-
         ctx.clearRect(0, 0, width, height);
-
         particles.forEach(p => {
-            // Update
             p.x += p.vx;
             p.y += p.vy;
             p.rotation += p.rotationSpeed;
-
-            // Draw
             ctx.fillStyle = p.color;
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.rotate((p.rotation * Math.PI) / 180);
-
-            if (p.shape === 0) { // Circle
-                ctx.beginPath();
-                ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (p.shape === 1) { // Square
+            if (p.shape === 0) {
+                ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill();
+            } else if (p.shape === 1) {
                 ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-            } else if (p.shape === 2) { // Triangle
-                ctx.beginPath();
-                ctx.moveTo(0, -p.size / 2);
-                ctx.lineTo(p.size / 2, p.size / 2);
-                ctx.lineTo(-p.size / 2, p.size / 2);
-                ctx.closePath();
-                ctx.fill();
+            } else if (p.shape === 2) {
+                ctx.beginPath(); ctx.moveTo(0, -p.size / 2);
+                ctx.lineTo(p.size / 2, p.size / 2); ctx.lineTo(-p.size / 2, p.size / 2);
+                ctx.closePath(); ctx.fill();
             }
             ctx.restore();
-
-            // Reset if off screen (optional loop)
             if (p.y > height + 20) {
-                 // Only reset if we are in the first 3 seconds, else let them fall out
-                 if (elapsed < duration - 2000) {
-                     p.y = -20;
-                     p.x = Math.random() * width;
-                 }
+                 if (elapsed < duration - 2000) { p.y = -20; p.x = Math.random() * width; }
             }
         });
-
         requestAnimationFrame(animate);
     }
-
-    // Handle resize
     window.addEventListener('resize', () => {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-    }, { once: true }); // Just do it once or managing listener removal becomes complex
-
+        width = window.innerWidth; height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+    }, { once: true });
     animate();
 }
+
 /**
  * Creates a localized "burst" of confetti from a target element.
- * @param {HTMLElement} targetElement - The DOM element to burst from.
  */
 window.playBurstEffect = function(targetElement) {
-    const numConfetti = 30; // A good number for a burst
+    const numConfetti = 30;
     const colors = ['#f44336', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#9C27B0'];
-    const shapes = ['★', '●', '▲']; // Simpler shapes for a clean burst
+    const shapes = ['★', '●', '▲'];
     const container = document.body;
-
-    // Get the absolute center coordinates of the button
     const rect = targetElement.getBoundingClientRect();
     const startX = rect.left + rect.width / 2 + window.scrollX;
     const startY = rect.top + rect.height / 2 + window.scrollY;
 
     for (let i = 0; i < numConfetti; i++) {
         const particle = document.createElement('div');
-        particle.classList.add('burst-particle'); // Use our new CSS class
-        
-        // Set the shape and a random color
+        particle.classList.add('burst-particle');
         particle.innerHTML = shapes[Math.floor(Math.random() * shapes.length)];
         particle.style.color = colors[Math.floor(Math.random() * colors.length)];
-
-        // Set the particle's starting position (fixed to the screen)
         particle.style.left = `${startX}px`;
         particle.style.top = `${startY}px`;
-
-        // Calculate a random destination for the particle to fly to
         const angle = Math.random() * 2 * Math.PI;
-        const distance = Math.random() * 100 + 50; // Fly 50-150px outwards
-        
-        // We use 'translate' in the CSS, so the destination is relative
+        const distance = Math.random() * 100 + 50;
         const destX = Math.cos(angle) * distance;
         const destY = Math.sin(angle) * distance;
-
-        // Set the CSS variables that the @keyframe animation will use
         particle.style.setProperty('--dest-x', `${destX}px`);
         particle.style.setProperty('--dest-y', `${destY}px`);
-        
         container.appendChild(particle);
-
-        // Clean up the particle after the animation (800ms)
-        setTimeout(() => {
-            particle.remove();
-        }, 800);
+        setTimeout(() => { particle.remove(); }, 800);
     }
 }

@@ -1,113 +1,110 @@
 /*
  * =================================================================
- * MASTER SPEECH MODULE (v2 - With iOS/Safari Fixes)
+ * MASTER SPEECH MODULE (Updated for iOS Quality)
  * =================================================================
- *
- * This single file provides:
- * 1. window.loadVoices():     Loads and selects the best voice.
- * 2. window.speakText():       A robust speech function with iOS fixes.
- * 3. window.unlockSpeechIfNeeded(): A gesture-based audio unlocker.
- *
- * This code is based on the superior logic found in Alphabet/script.js.
  */
 
 // --- PART 1: ROBUST SPEECH SYNTHESIS LOGIC ---
 
-// Make voiceList global to persist across calls.
 window.voiceList = [];
+window.preferredVoice = null; // Store the selected voice globally
 
 /**
- * Populates the global voiceList. This function is designed to be
- * called multiple times if needed, as Safari can be slow to load voices.
+ * Loads voices and intelligently picks the best "human-sounding" one
+ * available on the device (prioritizing iOS premium voices).
  */
 window.loadVoices = function() {
-    // If we've already loaded voices, don't do it again.
-    if (window.voiceList.length > 0) {
-        return;
-    }
+    if (window.voiceList.length > 0) return; // Already loaded
+
     window.voiceList = window.speechSynthesis.getVoices();
 
-    // Attempt to find a preferred voice immediately
-    if (!window.preferredVoice) {
-         let selectedVoice = null;
-         // 1. Try to find the high-quality "Samantha" voice, specific to Apple devices.
-        selectedVoice = window.voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
+    // Run the Smart Voice Hunting Logic
+    if (!window.preferredVoice && window.voiceList.length > 0) {
 
-        // 2. If not found, look for any voice that is the browser's default for US English.
-        if (!selectedVoice) {
-            selectedVoice = window.voiceList.find(v => v.lang === 'en-US' && v.default);
+        // 1. Check for a saved preference (if you add settings later)
+        const savedName = localStorage.getItem('klh_preferred_voice');
+        if (savedName) {
+            window.preferredVoice = window.voiceList.find(v => v.name === savedName);
         }
 
-        // 3. If still no voice, just grab the very first US English voice available.
-        if (!selectedVoice) {
-            selectedVoice = window.voiceList.find(v => v.lang === 'en-US');
+        // 2. If no preference, hunt for high-quality Apple voices
+        if (!window.preferredVoice) {
+            const iosFavorites = ['Samantha', 'Daniel', 'Karen', 'Moira', 'Rishi', 'Tessa'];
+            window.preferredVoice = window.voiceList.find(v => iosFavorites.includes(v.name) && v.lang.startsWith('en'));
         }
 
-        window.preferredVoice = selectedVoice;
+        // 3. Look for any "Enhanced" or "Siri" voice (often hidden high-quality gems)
+        if (!window.preferredVoice) {
+            window.preferredVoice = window.voiceList.find(v =>
+                (v.name.includes('Enhanced') || v.name.includes('Siri')) && v.lang.startsWith('en')
+            );
+        }
+
+        // 4. Fallback: Default US English
+        if (!window.preferredVoice) {
+            window.preferredVoice = window.voiceList.find(v => v.lang === 'en-US' && v.default);
+        }
+
+        // 5. Final Fallback: Any US English voice
+        if (!window.preferredVoice) {
+            window.preferredVoice = window.voiceList.find(v => v.lang === 'en-US');
+        }
     }
-}
+};
 
-// Try to load voices immediately when the script runs.
+// Try to load immediately
 window.loadVoices();
-
-// Also, set up the event listener which is the "correct" way to do it.
+// Ensure we load again when the browser reports voices are ready (vital for Safari)
 window.speechSynthesis.onvoiceschanged = window.loadVoices;
 
 
 /**
- * The robust, Safari-compatible text-to-speech function.
+ * Speaks text with specific optimizations for iOS devices.
  * @param {string} text - The text to speak.
- * @param {function} [onEndCallback] - Optional: A function to run when speech finishes.
+ * @param {function} [onEndCallback] - Optional callback.
  */
 window.speakText = function(text, onEndCallback) {
-    // Always cancel any previous speech to avoid overlaps.
-    window.speechSynthesis.cancel();
+    window.speechSynthesis.cancel(); // Stop any overlap
 
-    // ** SAFARI FIX 1: If the voice list is still empty, make another attempt to load them. **
+    // Safari sometimes returns an empty list initially. Try loading again.
     if (window.voiceList.length === 0) {
         window.loadVoices();
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // A good rate for kids
 
-    // Set the language as a fallback.
-    utterance.lang = 'en-US';
+    // --- iOS OPTIMIZATIONS ---
+    // Detect if we are on an Apple mobile device
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+        // iOS default voices are often deep/slow.
+        // We speed them up and raise pitch slightly to sound friendlier.
+        utterance.rate = 1.05;
+        utterance.pitch = 1.1;
+    } else {
+        // Standard settings for Windows/Android
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+    }
+
+    // Assign the voice found by our Smart Hunter
+    if (window.preferredVoice) {
+        utterance.voice = window.preferredVoice;
+        // **CRITICAL FIX**: Explicitly set the lang matching the voice.
+        // This prevents Safari from using a French accent if the voice has a hidden lang tag.
+        utterance.lang = window.preferredVoice.lang;
+    } else {
+        utterance.lang = 'en-US';
+    }
 
     if (onEndCallback) {
         utterance.onend = onEndCallback;
     }
 
-    // Only try to select a specific voice if the list has been populated.
-    if (window.voiceList.length > 0) {
-
-        // Use the globally pre-selected voice if available
-        let selectedVoice = window.preferredVoice;
-
-        // If preferredVoice is still null, try one last time to find one
-        if (!selectedVoice) {
-             selectedVoice = window.voiceList.find(v => v.name === 'Samantha' && v.lang === 'en-US');
-            if (!selectedVoice) {
-                selectedVoice = window.voiceList.find(v => v.lang === 'en-US' && v.default);
-            }
-            if (!selectedVoice) {
-                selectedVoice = window.voiceList.find(v => v.lang === 'en-US');
-            }
-        }
-
-        // If we successfully found a voice, assign it.
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-
-            // ** CRITICAL SAFARI FIX 2: Re-set the lang property from the
-            //    voice object itself. This fixes the "French voice" issue. **
-            utterance.lang = selectedVoice.lang;
-        }
-    }
-
     window.speechSynthesis.speak(utterance);
-}
-
+};
 
 // --- PART 2: AUDIO UNLOCKER LOGIC ---
 // (From Alphabet/unlock-speech.js)
